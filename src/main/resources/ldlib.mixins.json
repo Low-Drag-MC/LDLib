@@ -5,7 +5,10 @@
   "refmap": "ldlib.refmap.json",
   "minVersion": "0.8",
   "client": [
+    "BlockRendererDispatcherMixin",
+    "ItemRendererMixin"
   ],
   "mixins": [
+    "DimensionTypeAccessor"
   ]
 }

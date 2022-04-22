@@ -1,8 +1,9 @@
 buildscript {
     repositories {
+        jcenter()
+        mavenCentral()
         maven { url = 'https://maven.minecraftforge.net' }
 		maven { url = 'https://maven.parchmentmc.org' }
-        mavenCentral()
     }
     dependencies {
         classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '5.1.+', changing: true
@@ -10,6 +11,11 @@ buildscript {
         classpath 'org.spongepowered:mixingradle:0.7.+'
     }
 }
+
+repositories {
+    maven { url 'https://dvs1.progwml6.com/files/maven' }
+}
+
 apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'org.parchmentmc.librarian.forgegradle'
 // Only edit below this line, the above code adds and enables the necessary things for Forge to be setup.
@@ -41,7 +47,7 @@ minecraft {
             property 'forge.logging.console.level', 'debug'
 
             mods {
-                examplemod {
+                ldlib {
                     source sourceSets.main
                 }
             }
@@ -59,7 +65,7 @@ minecraft {
             property 'forge.logging.console.level', 'debug'
 
             mods {
-                examplemod {
+                ldlib {
                     source sourceSets.main
                 }
             }
@@ -81,10 +87,10 @@ minecraft {
             property 'forge.logging.console.level', 'debug'
 
             // Specify the modid for data generation, where to output the resulting resource, and where to look for existing resources.
-            args '--mod', 'examplemod', '--all', '--output', file('src/generated/resources/'), '--existing', file('src/main/resources/')
+            args '--mod', 'ldlib', '--all', '--output', file('src/generated/resources/'), '--existing', file('src/main/resources/')
 
             mods {
-                examplemod {
+                ldlib {
                     source sourceSets.main
                 }
             }
@@ -98,6 +104,10 @@ sourceSets.main.resources { srcDir 'src/generated/resources' }
 dependencies {
 	minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
     // Apply Mixin AP
+
+    //JEI
+    compileOnly fg.deobf("mezz.jei:jei-${jei_version}:api")
+    runtimeOnly fg.deobf("mezz.jei:jei-${jei_version}")
 
     if (System.getProperty('idea.sync.active') != 'true') {
         annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
