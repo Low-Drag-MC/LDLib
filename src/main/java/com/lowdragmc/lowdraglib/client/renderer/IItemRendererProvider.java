@@ -10,6 +10,8 @@ import javax.annotation.Nonnull;
  * Description: 
  */
 public interface IItemRendererProvider {
+    ThreadLocal<Boolean> disabled = ThreadLocal.withInitial(()->false);
+
     @Nonnull
     IRenderer getRenderer(ItemStack stack);
 }

@@ -1,23 +1,37 @@
 package com.lowdragmc.lowdraglib.client;
 
 import com.lowdragmc.lowdraglib.CommonProxy;
-import com.lowdragmc.lowdraglib.RegistryHandler;
-import net.minecraft.client.renderer.RenderTypeLookup;
+import com.lowdragmc.lowdraglib.LDLMod;
+import com.lowdragmc.lowdraglib.client.renderer.IRenderer;
+import com.lowdragmc.lowdraglib.jei.JEIClientEventHandler;
+import net.minecraft.client.renderer.texture.AtlasTexture;
+import net.minecraftforge.client.event.TextureStitchEvent;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 
+import java.util.HashSet;
+import java.util.Set;
+
 public class ClientProxy extends CommonProxy {
+    public static Set<IRenderer> renderers = new HashSet<>();
 
     public ClientProxy() {
         super();
         IEventBus eventBus = FMLJavaModLoadingContext.get().getModEventBus();
-        eventBus.addListener(this::clientSetup);
+        eventBus.register(ClientProxy.class);
+        if (LDLMod.isModLoaded(LDLMod.MODID_JEI)) {
+            MinecraftForge.EVENT_BUS.register(JEIClientEventHandler.class);
+        }
     }
 
-    private void clientSetup(final FMLClientSetupEvent e) {
-        e.enqueueWork(() -> {
-            RenderTypeLookup.setRenderLayer(RegistryHandler.TEST_BLOCK.get(), renderType -> true);
-        });
+    @SubscribeEvent
+    public static void registerTextures(TextureStitchEvent.Pre event) {
+        if (event.getMap().location().equals(AtlasTexture.LOCATION_BLOCKS)) {
+            for (IRenderer renderer : renderers) {
+                renderer.onTextureSwitchEvent(event);
+            }
+        }
     }
 }

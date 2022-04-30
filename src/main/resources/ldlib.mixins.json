@@ -6,9 +6,11 @@
   "minVersion": "0.8",
   "client": [
     "BlockRendererDispatcherMixin",
-    "ItemRendererMixin"
+    "ItemRendererMixin",
+    "TileEntityRendererDispatcherMixin",
+    "WorldRendererMixin"
   ],
   "mixins": [
-    "DimensionTypeAccessor"
-  ]
+    "DimensionTypeAccessor",
+ ]
 }

@@ -9,15 +9,15 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
 /**
- * BlockInfo represents immutable information for com.lowdragmc.lowdraglib.test.block in world
- * This includes com.lowdragmc.lowdraglib.test.block state and tile entity, and needed for complete representation
- * of some complex blocks like machines, when rendering or manipulating them without world instance
+ * Author: KilaBash
+ * Date: 2022/04/26
+ * Description:
  */
 public class BlockInfo {
     public static final BlockInfo EMPTY = new BlockInfo(Blocks.AIR);
 
     private final BlockState blockState;
-    private final TileEntity tileEntity;
+    private TileEntity tileEntity;
     private final ItemStack itemStack;
 
     public BlockInfo(Block block) {
@@ -67,5 +67,9 @@ public class BlockInfo {
         if (tileEntity != null) {
             world.setBlockEntity(pos, tileEntity);
         }
+    }
+
+    public void setTileEntity(TileEntity tileEntity) {
+        this.tileEntity = tileEntity;
     }
 }

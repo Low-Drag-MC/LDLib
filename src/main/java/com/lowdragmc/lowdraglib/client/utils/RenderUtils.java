@@ -1,5 +1,6 @@
 package com.lowdragmc.lowdraglib.client.utils;
 
+import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.MainWindow;
@@ -9,6 +10,8 @@ import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.vector.Matrix4f;
+import net.minecraft.util.math.vector.Vector3f;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.lwjgl.opengl.GL11;
@@ -96,64 +99,65 @@ public class RenderUtils {
         GL11.glScissor((int)(x * s), (int)(translatedY * s), (int)(w * s), (int)(h * s));
     }
 
-    public static void renderBlockOverLay(BlockPos pos, float r, float g, float b, float scale) {
+    public static void renderBlockOverLay(MatrixStack matrixStack, BlockPos pos, float r, float g, float b, float scale) {
         if (pos == null) return;
         RenderSystem.enableBlend();
         RenderSystem.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE);
-        RenderSystem.translated((pos.getX() + 0.5), (pos.getY() + 0.5), (pos.getZ() + 0.5));
-        RenderSystem.scalef(scale, scale, scale);
+        
+        matrixStack.pushPose();
+        matrixStack.translate((pos.getX() + 0.5), (pos.getY() + 0.5), (pos.getZ() + 0.5));
+        matrixStack.scale(scale, scale, scale);
 
         Tessellator tessellator = Tessellator.getInstance();
         RenderSystem.disableTexture();
         BufferBuilder buffer = tessellator.getBuilder();
         buffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_COLOR);
-        RenderUtils.renderCubeFace(buffer, -0.5f, -0.5f, -0.5f, 0.5, 0.5, 0.5, r, g, b, 1);
+        RenderUtils.renderCubeFace(matrixStack, buffer, -0.5f, -0.5f, -0.5f, 0.5f, 0.5f, 0.5f, r, g, b, 1);
         tessellator.end();
 
-        RenderSystem.scalef(1 / scale, 1 / scale, 1 / scale);
-        RenderSystem.translated(-(pos.getX() + 0.5), -(pos.getY() + 0.5), -(pos.getZ() + 0.5));
-        RenderSystem.enableTexture();
+        matrixStack.popPose();
 
+        RenderSystem.enableTexture();
         RenderSystem.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
         RenderSystem.color4f(1, 1, 1, 1);
     }
 
-    public static void renderCubeFace(BufferBuilder buffer, double minX, double minY, double minZ, double maxX, double maxY, double maxZ, float r, float g, float b, float a) {
-        buffer.vertex(minX, minY, minZ).color(r, g, b, a).endVertex();
-        buffer.vertex(minX, minY, maxZ).color(r, g, b, a).endVertex();
-       buffer.vertex(minX, maxY, maxZ).color(r, g, b, a).endVertex();
-       buffer.vertex(minX, maxY, minZ).color(r, g, b, a).endVertex();
+    public static void renderCubeFace(MatrixStack matrixStack, BufferBuilder buffer, float minX, float minY, float minZ, float maxX, float maxY, float maxZ, float r, float g, float b, float a) {
+        Matrix4f mat = matrixStack.last().pose();
+        buffer.vertex(mat, minX, minY, minZ).color(r, g, b, a).endVertex();
+        buffer.vertex(mat, minX, minY, maxZ).color(r, g, b, a).endVertex();
+        buffer.vertex(mat, minX, maxY, maxZ).color(r, g, b, a).endVertex();
+        buffer.vertex(mat, minX, maxY, minZ).color(r, g, b, a).endVertex();
 
-       buffer.vertex(maxX, minY, minZ).color(r, g, b, a).endVertex();
-       buffer.vertex(maxX, maxY, minZ).color(r, g, b, a).endVertex();
-       buffer.vertex(maxX, maxY, maxZ).color(r, g, b, a).endVertex();
-       buffer.vertex(maxX, minY, maxZ).color(r, g, b, a).endVertex();
+        buffer.vertex(mat, maxX, minY, minZ).color(r, g, b, a).endVertex();
+        buffer.vertex(mat, maxX, maxY, minZ).color(r, g, b, a).endVertex();
+        buffer.vertex(mat, maxX, maxY, maxZ).color(r, g, b, a).endVertex();
+        buffer.vertex(mat, maxX, minY, maxZ).color(r, g, b, a).endVertex();
 
-       buffer.vertex(minX, minY, minZ).color(r, g, b, a).endVertex();
-       buffer.vertex(maxX, minY, minZ).color(r, g, b, a).endVertex();
-       buffer.vertex(maxX, minY, maxZ).color(r, g, b, a).endVertex();
-       buffer.vertex(minX, minY, maxZ).color(r, g, b, a).endVertex();
+        buffer.vertex(mat, minX, minY, minZ).color(r, g, b, a).endVertex();
+        buffer.vertex(mat, maxX, minY, minZ).color(r, g, b, a).endVertex();
+        buffer.vertex(mat, maxX, minY, maxZ).color(r, g, b, a).endVertex();
+        buffer.vertex(mat, minX, minY, maxZ).color(r, g, b, a).endVertex();
 
-       buffer.vertex(minX, maxY, minZ).color(r, g, b, a).endVertex();
-       buffer.vertex(minX, maxY, maxZ).color(r, g, b, a).endVertex();
-       buffer.vertex(maxX, maxY, maxZ).color(r, g, b, a).endVertex();
-       buffer.vertex(maxX, maxY, minZ).color(r, g, b, a).endVertex();
+        buffer.vertex(mat, minX, maxY, minZ).color(r, g, b, a).endVertex();
+        buffer.vertex(mat, minX, maxY, maxZ).color(r, g, b, a).endVertex();
+        buffer.vertex(mat, maxX, maxY, maxZ).color(r, g, b, a).endVertex();
+        buffer.vertex(mat, maxX, maxY, minZ).color(r, g, b, a).endVertex();
 
-       buffer.vertex(minX, minY, minZ).color(r, g, b, a).endVertex();
-       buffer.vertex(minX, maxY, minZ).color(r, g, b, a).endVertex();
-       buffer.vertex(maxX, maxY, minZ).color(r, g, b, a).endVertex();
-       buffer.vertex(maxX, minY, minZ).color(r, g, b, a).endVertex();
+        buffer.vertex(mat, minX, minY, minZ).color(r, g, b, a).endVertex();
+        buffer.vertex(mat, minX, maxY, minZ).color(r, g, b, a).endVertex();
+        buffer.vertex(mat, maxX, maxY, minZ).color(r, g, b, a).endVertex();
+        buffer.vertex(mat, maxX, minY, minZ).color(r, g, b, a).endVertex();
 
-       buffer.vertex(minX, minY, maxZ).color(r, g, b, a).endVertex();
-       buffer.vertex(maxX, minY, maxZ).color(r, g, b, a).endVertex();
-       buffer.vertex(maxX, maxY, maxZ).color(r, g, b, a).endVertex();
-       buffer.vertex(minX, maxY, maxZ).color(r, g, b, a).endVertex();
+        buffer.vertex(mat, minX, minY, maxZ).color(r, g, b, a).endVertex();
+        buffer.vertex(mat, maxX, minY, maxZ).color(r, g, b, a).endVertex();
+        buffer.vertex(mat, maxX, maxY, maxZ).color(r, g, b, a).endVertex();
+        buffer.vertex(mat, minX, maxY, maxZ).color(r, g, b, a).endVertex();
     }
 
     public static void useLightMap(float x, float y, Runnable codeBlock){
         /* hack the lightmap */
         GL11.glPushAttrib(GL11.GL_LIGHTING_BIT);
-        net.minecraft.client.renderer.RenderHelper.turnOff();
         float lastBrightnessX = GlStateManager.lastBrightnessX;
         float lastBrightnessY = GlStateManager.lastBrightnessY;
         RenderSystem.glMultiTexCoord2f(33986, x, y);
@@ -162,45 +166,44 @@ public class RenderUtils {
         }
         /* restore the lightmap  */
         RenderSystem.glMultiTexCoord2f(33986, lastBrightnessX, lastBrightnessY);
-        net.minecraft.client.renderer.RenderHelper.turnBackOn();
         GL11.glPopAttrib();
     }
 
-    public static void moveToFace(double x, double y, double z, Direction face) {
-        GlStateManager._translated(x + 0.5 + face.getStepX() * 0.5, y + 0.5 + face.getStepY() * 0.5, z + 0.5 + face.getStepZ() * 0.5);
+    public static void moveToFace(MatrixStack matrixStack, double x, double y, double z, Direction face) {
+        matrixStack.translate(x + 0.5 + face.getStepX() * 0.5, y + 0.5 + face.getStepY() * 0.5, z + 0.5 + face.getStepZ() * 0.5);
     }
 
-    public static void rotateToFace(Direction face, @Nullable Direction spin) {
+    public static void rotateToFace(MatrixStack matrixStack, Direction face, @Nullable Direction spin) {
         int angle = spin == Direction.EAST ? 90 : spin == Direction.SOUTH ? 180 : spin == Direction.WEST ? -90 : 0;
         switch (face) {
             case UP:
-                GlStateManager._scalef(1.0f, -1.0f, 1.0f);
-                GlStateManager._rotatef(90.0f, 1.0f, 0.0f, 0.0f);
-                GlStateManager._rotatef(angle, 0, 0, 1);
+                matrixStack.scale(1.0f, -1.0f, 1.0f);
+                matrixStack.mulPose(Vector3f.XP.rotationDegrees(90));
+                matrixStack.mulPose(Vector3f.ZP.rotationDegrees(angle));
                 break;
             case DOWN:
-                GlStateManager._scalef(1.0f, -1.0f, 1.0f);
-                GlStateManager._rotatef(-90.0f, 1.0f, 0.0f, 0.0f);
-                GlStateManager._rotatef(spin == Direction.EAST ? 90 : spin == Direction.NORTH ? 180 : spin == Direction.WEST ? -90 : 0, 0, 0, 1);
+                matrixStack.scale(1.0f, -1.0f, 1.0f);
+                matrixStack.mulPose(Vector3f.XP.rotationDegrees(-90));
+                matrixStack.mulPose(Vector3f.ZP.rotationDegrees(spin == Direction.EAST ? 90 : spin == Direction.NORTH ? 180 : spin == Direction.WEST ? -90 : 0));
                 break;
             case EAST:
-                GlStateManager._scalef(-1.0f, -1.0f, -1.0f);
-                GlStateManager._rotatef(-90.0f, 0.0f, 1.0f, 0.0f);
-                GlStateManager._rotatef(angle, 0, 0, 1);
+                matrixStack.scale(-1.0f, -1.0f, -1.0f);
+                matrixStack.mulPose(Vector3f.YP.rotationDegrees(-90));
+                matrixStack.mulPose(Vector3f.ZP.rotationDegrees(angle));
                 break;
             case WEST:
-                GlStateManager._scalef(-1.0f, -1.0f, -1.0f);
-                GlStateManager._rotatef(90.0f, 0.0f, 1.0f, 0.0f);
-                GlStateManager._rotatef(angle, 0, 0, 1);
+                matrixStack.scale(-1.0f, -1.0f, -1.0f);
+                matrixStack.mulPose(Vector3f.YP.rotationDegrees(90));
+                matrixStack.mulPose(Vector3f.ZP.rotationDegrees(angle));
                 break;
             case NORTH:
-                GlStateManager._scalef(-1.0f, -1.0f, -1.0f);
-                GlStateManager._rotatef(angle, 0, 0, 1);
+                matrixStack.scale(-1.0f, -1.0f, -1.0f);
+                matrixStack.mulPose(Vector3f.ZP.rotationDegrees(angle));
                 break;
             case SOUTH:
-                GlStateManager._scalef(-1.0f, -1.0f, -1.0f);
-                GlStateManager._rotatef(180.0f, 0.0f, 1.0f, 0.0f);
-                GlStateManager._rotatef(angle, 0, 0, 1);
+                matrixStack.scale(-1.0f, -1.0f, -1.0f);
+                matrixStack.mulPose(Vector3f.YP.rotationDegrees(180.0f));
+                matrixStack.mulPose(Vector3f.ZP.rotationDegrees(angle));
                 break;
             default:
                 break;

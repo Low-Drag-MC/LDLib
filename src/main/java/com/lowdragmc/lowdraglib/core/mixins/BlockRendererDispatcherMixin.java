@@ -30,7 +30,9 @@ public class BlockRendererDispatcherMixin {
                                          CallbackInfo ci) {
         if (state.getBlock() instanceof IBlockRendererProvider) {
             IRenderer renderer = ((IBlockRendererProvider) state.getBlock()).getRenderer(state, pos, blockReader);
-            renderer.renderBlockDamage(state, pos, blockReader, matrixStack, vertexBuilder, modelData);
+            if (renderer != null) {
+                renderer.renderBlockDamage(state, pos, blockReader, matrixStack, vertexBuilder, modelData);
+            }
             ci.cancel();
         }
     }
@@ -47,8 +49,10 @@ public class BlockRendererDispatcherMixin {
                                   CallbackInfoReturnable<Boolean> cir) {
         if (state.getBlock() instanceof IBlockRendererProvider) {
             IRenderer renderer = ((IBlockRendererProvider) state.getBlock()).getRenderer(state, pos, blockReader);
-            cir.setReturnValue(renderer.renderModel(state, pos, blockReader, matrixStack, vertexBuilder, checkSides, rand, modelData));
+            if (renderer != null) {
+                cir.setReturnValue(renderer.renderModel(state, pos, blockReader, matrixStack, vertexBuilder, checkSides, rand, modelData));
+            }
+            cir.setReturnValue(false);
         }
-
     }
 }

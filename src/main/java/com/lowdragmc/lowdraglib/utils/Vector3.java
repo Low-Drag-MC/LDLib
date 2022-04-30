@@ -1,6 +1,5 @@
 package com.lowdragmc.lowdraglib.utils;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.sun.javafx.geom.Vec3d;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.math.BlockPos;
@@ -8,8 +7,6 @@ import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.math.vector.Vector3f;
 import net.minecraft.util.math.vector.Vector3i;
 import net.minecraft.util.math.vector.Vector4f;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
 
 import java.math.BigDecimal;
 import java.math.MathContext;

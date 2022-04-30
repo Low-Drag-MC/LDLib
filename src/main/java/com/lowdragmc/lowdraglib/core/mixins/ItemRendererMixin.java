@@ -16,7 +16,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(ItemRenderer.class)
 public class ItemRendererMixin {
 
-    @Inject(method = "render", at = @At(value = "HEAD"), cancellable = true, remap = false)
+    @Inject(method = "render", at = @At(value = "HEAD"), cancellable = true)
     public void injectRenderItem(ItemStack stack,
                                  ItemCameraTransforms.TransformType transformType,
                                  boolean leftHand,
@@ -26,7 +26,7 @@ public class ItemRendererMixin {
                                  int combinedOverlay,
                                  IBakedModel model,
                                  CallbackInfo ci){
-        if (stack.getItem() instanceof IItemRendererProvider) {
+        if (stack.getItem() instanceof IItemRendererProvider && !IItemRendererProvider.disabled.get()) {
             IRenderer renderer =((IItemRendererProvider) stack.getItem()).getRenderer(stack);
             renderer.renderItem(stack, transformType, leftHand, matrixStack, buffer, combinedLight, combinedOverlay, model);
             ci.cancel();
