@@ -19,15 +19,13 @@ public class ClientProxy extends CommonProxy {
 
     public ClientProxy() {
         super();
-        IEventBus eventBus = FMLJavaModLoadingContext.get().getModEventBus();
-        eventBus.register(ClientProxy.class);
         if (LDLMod.isModLoaded(LDLMod.MODID_JEI)) {
             MinecraftForge.EVENT_BUS.register(JEIClientEventHandler.class);
         }
     }
 
     @SubscribeEvent
-    public static void registerTextures(TextureStitchEvent.Pre event) {
+    public void registerTextures(TextureStitchEvent.Pre event) {
         if (event.getMap().location().equals(AtlasTexture.LOCATION_BLOCKS)) {
             for (IRenderer renderer : renderers) {
                 renderer.onTextureSwitchEvent(event);

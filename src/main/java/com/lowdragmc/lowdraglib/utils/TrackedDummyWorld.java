@@ -18,7 +18,6 @@ import java.util.function.Predicate;
  * Description: TrackedDummyWorld. Used to build a Fake World.
  */
 public class TrackedDummyWorld extends DummyWorld {
-    
 
     private Predicate<BlockPos> renderFilter;
     public final World proxyWorld;
