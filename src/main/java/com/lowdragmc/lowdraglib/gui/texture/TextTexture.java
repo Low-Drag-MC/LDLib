@@ -86,6 +86,9 @@ public class TextTexture implements IGuiTexture{
                         .splitLines(text, width, Style.EMPTY)
                         .stream().map(ITextProperties::getString)
                         .collect(Collectors.toList());
+                if (texts.size() == 0) {
+                    texts = Collections.singletonList(text);
+                }
             } else {
                 texts = Collections.singletonList(text);
             }

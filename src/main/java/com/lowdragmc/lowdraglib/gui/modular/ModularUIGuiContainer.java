@@ -187,16 +187,19 @@ public class ModularUIGuiContainer extends ContainerScreen<ModularUIContainer> {
 
     @Override
     public boolean mouseDragged(double mouseX, double mouseY, int pButton, double pDragX, double pDragY) {
+        focused = false;
         return modularUI.mainGroup.mouseDragged(mouseX, mouseY, pButton, pDragX, pDragY);
     }
 
     @Override
     public boolean mouseReleased(double mouseX, double mouseY, int pButton) {
+        focused = false;
         return modularUI.mainGroup.mouseReleased(mouseX, mouseY, pButton);
     }
 
     @Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        focused = false;
         if (modularUI.mainGroup.keyPressed(keyCode, scanCode, modifiers)) {
             return true;
         }
@@ -205,21 +208,25 @@ public class ModularUIGuiContainer extends ContainerScreen<ModularUIContainer> {
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double wheelDelta) {
+        focused = false;
         return modularUI.mainGroup.mouseWheelMove(mouseX, mouseY, wheelDelta);
     }
 
     @Override
     public boolean keyReleased(int keyCode, int scanCode, int modifiers) {
+        focused = false;
         return modularUI.mainGroup.keyReleased(keyCode, scanCode, modifiers);
     }
 
     @Override
     public boolean charTyped(char codePoint, int modifiers) {
+        focused = false;
         return modularUI.mainGroup.charTyped(codePoint, modifiers);
     }
 
     @Override
     public void mouseMoved(double mouseX, double mouseY) {
+        focused = false;
         modularUI.mainGroup.mouseMoved(mouseX, mouseY);
     }
 

@@ -27,7 +27,9 @@ public class SelectorWidget extends WidgetGroup {
 
     public SelectorWidget(int x, int y, int width, int height, List<String> candidates, int fontColor) {
         super(new Position(x, y), new Size(width, height));
-        this.button = new ButtonWidget(0,0, width, height, d -> setShow(!isShow));
+        this.button = new ButtonWidget(0,0, width, height, d -> {
+            if (d.isRemote) setShow(!isShow);
+        });
         this.candidates = candidates;
         this.selects = new ArrayList<>();
         this.addWidget(button);
@@ -67,6 +69,7 @@ public class SelectorWidget extends WidgetGroup {
         return this;
     }
 
+    @OnlyIn(Dist.CLIENT)
     public void setShow(boolean isShow) {
         if (isShow) {
             setFocus(true);

@@ -1,9 +1,8 @@
 package com.lowdragmc.lowdraglib.gui.texture;
 
+import com.lowdragmc.lowdraglib.gui.util.DrawerHelper;
 import com.mojang.blaze3d.matrix.MatrixStack;
-import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.ItemRenderer;
+import com.mojang.blaze3d.platform.GlStateManager;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 
@@ -33,32 +32,10 @@ public class ItemStackTexture implements IGuiTexture{
     @Override
     public void draw(MatrixStack mStack, int mouseX, int mouseY, float x, float y, int width, int height) {
         if (itemStack.length == 0) return;
-
-        mStack.pushPose();
-        
-        RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
-        RenderSystem.enableRescaleNormal();
-        RenderSystem.glMultiTexCoord2f(33986, 240.0F, 240.0F); // light map
-        RenderSystem.enableDepthTest();
-
-        mStack.scale(width / 16f, height / 16f, 0.0001f);
-        mStack.translate(x * 16 / width, y * 16 / height, 0);
-        
-        Minecraft mc = Minecraft.getInstance();
-        ItemRenderer itemRenderer = mc.getItemRenderer();
-
-        itemRenderer.blitOffset = 200f;
-        itemRenderer.renderAndDecorateItem(itemStack[index], 0, 0);
-        itemRenderer.blitOffset = 0;
-
-        RenderSystem.disableRescaleNormal();
-        RenderSystem.color4f(1F, 1F, 1F, 1F);
-        RenderSystem.enableBlend();
-        RenderSystem.disableDepthTest();
-        RenderSystem.enableAlphaTest();
-
-        mStack.popPose();
-
-
+        GlStateManager._pushMatrix();
+        GlStateManager._scalef(width / 16f, height / 16f, (width + height) / 32f);
+        GlStateManager._translatef(x * 16 / width, y * 16 / height, -200);
+        DrawerHelper.drawItemStack(mStack, itemStack[index], 0, 0, null);
+        GlStateManager._popMatrix();
     }
 }

@@ -25,7 +25,6 @@ public class WidgetGroup extends Widget implements IGhostIngredientTarget, IIngr
     public final List<Widget> widgets = new ArrayList<>();
     private final WidgetGroupUIAccess groupUIAccess = new WidgetGroupUIAccess();
     private final boolean isDynamicSized;
-    private boolean initialized = false;
     protected transient List<Widget> waitToRemoved;
 
     public WidgetGroup(int x, int y, int width, int height) {
@@ -143,10 +142,11 @@ public class WidgetGroup extends Widget implements IGhostIngredientTarget, IIngr
         widget.setUiAccess(groupUIAccess);
         widget.setGui(gui);
         widget.setParentPosition(getPosition());
+        widget.setParent(this);
         if (isClientSideWidget) {
             widget.setClientSideWidget();
         }
-        if (initialized && !widget.isInitialized()) {
+        if (isInitialized() && !widget.isInitialized()) {
             widget.initWidget();
             if (!isRemote() && !widget.isClientSideWidget) {
                 writeUpdateInfo(2, buffer -> {
@@ -195,6 +195,7 @@ public class WidgetGroup extends Widget implements IGhostIngredientTarget, IIngr
             this.uiAccess.notifyWidgetChange();
         }
     }
+
 
     @Override
     public void initWidget() {
