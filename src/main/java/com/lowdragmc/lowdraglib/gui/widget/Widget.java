@@ -399,4 +399,10 @@ public class Widget {
     protected void setParent(WidgetGroup parent) {
         this.parent = parent;
     }
+
+    public boolean isParent(WidgetGroup widgetGroup) {
+        if (parent == null) return false;
+        if (parent == widgetGroup) return true;
+        return parent.isParent(widgetGroup);
+    }
 }

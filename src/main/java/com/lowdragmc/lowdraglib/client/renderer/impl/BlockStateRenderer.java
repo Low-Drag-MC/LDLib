@@ -19,7 +19,9 @@ import net.minecraft.client.renderer.model.ItemCameraTransforms;
 import net.minecraft.client.renderer.tileentity.TileEntityRenderer;
 import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
 import net.minecraft.item.ItemStack;
+import net.minecraft.state.properties.BlockStateProperties;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IBlockDisplayReader;
 import net.minecraft.world.World;
@@ -53,8 +55,14 @@ public class BlockStateRenderer implements IRenderer {
         }
     }
 
-    public BlockState getState() {
-        return blockInfo.getBlockState();
+    public BlockState getState(BlockState blockState) {
+        BlockState state = blockInfo.getBlockState();
+        if (blockState.hasProperty(BlockStateProperties.FACING) && state.hasProperty(BlockStateProperties.FACING)) {
+            state = state.setValue(BlockStateProperties.FACING, blockState.getValue(BlockStateProperties.FACING));
+        } else if (blockState.hasProperty(BlockStateProperties.HORIZONTAL_FACING)) {
+            state = state.setValue(BlockStateProperties.HORIZONTAL_FACING, blockState.getValue(BlockStateProperties.HORIZONTAL_FACING));
+        }
+        return state;
     }
 
     public BlockInfo getBlockInfo() {
@@ -84,7 +92,7 @@ public class BlockStateRenderer implements IRenderer {
                                   MatrixStack matrixStack,
                                   IVertexBuilder vertexBuilder,
                                   IModelData modelData) {
-        state = getState();
+        state = getState(state);
         if (state.getRenderShape() != BlockRenderType.INVISIBLE && RenderTypeLookup.canRenderInLayer(state, MinecraftForgeClient.getRenderLayer())) {
             BlockRendererDispatcher brd = Minecraft.getInstance().getBlockRenderer();
             blockReader = new FacadeBlockDisplayReader(blockReader, pos, state, blockReader instanceof World ? getTileEntity((World) blockReader, pos) : blockInfo.getTileEntity());
@@ -101,7 +109,7 @@ public class BlockStateRenderer implements IRenderer {
                                MatrixStack matrixStack,
                                IVertexBuilder vertexBuilder, boolean checkSides,
                                Random rand, IModelData modelData) {
-        state = getState();
+        state = getState(state);
         if (state.getRenderShape() != BlockRenderType.INVISIBLE && RenderTypeLookup.canRenderInLayer(state, MinecraftForgeClient.getRenderLayer())) {
             BlockRendererDispatcher brd = Minecraft.getInstance().getBlockRenderer();
             blockReader = new FacadeBlockDisplayReader(blockReader, pos, state, blockReader instanceof World ? getTileEntity((World) blockReader, pos) : blockInfo.getTileEntity());
@@ -116,7 +124,7 @@ public class BlockStateRenderer implements IRenderer {
         TileEntity tile = blockInfo.getTileEntity();
         if (tile != null && world != null) {
             try {
-                tile.setLevelAndPosition(new FacadeBlockWorld(world, pos, getState(), tile), pos);
+                tile.setLevelAndPosition(new FacadeBlockWorld(world, pos, getState(world.getBlockState(pos)), tile), pos);
             } catch (Throwable throwable) {
                 blockInfo.setTileEntity(null);
             }

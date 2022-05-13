@@ -165,9 +165,10 @@ public class ModularUIGuiContainer extends ContainerScreen<ModularUIContainer> {
     public boolean switchFocus(@Nonnull Widget widget) {
         if (focused) return false;
         if (lastFocus == widget) return false;
-        if (lastFocus != null) lastFocus.setFocus(false);
+        Widget l = lastFocus;
         focused = true;
         lastFocus = widget;
+        if (l != null) l.setFocus(false);
         return true;
     }
 

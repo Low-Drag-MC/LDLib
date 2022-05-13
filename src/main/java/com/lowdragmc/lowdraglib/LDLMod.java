@@ -21,6 +21,7 @@ public class LDLMod {
     public static final Random RNG = new Random();
 
     public LDLMod() {
+        System.setProperty("java.awt.headless", "false");
         DistExecutor.unsafeRunForDist(() -> ClientProxy::new, () -> CommonProxy::new);
     }
 

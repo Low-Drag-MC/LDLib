@@ -250,11 +250,13 @@ public class SceneWidget extends WidgetGroup {
     @OnlyIn(Dist.CLIENT)
     public void drawFacingBorder(MatrixStack matrixStack, BlockPosFace posFace, int color, int inner) {
         matrixStack.pushPose();
+        RenderSystem.disableDepthTest();
         RenderUtils.moveToFace(matrixStack, posFace.pos.getX(), posFace.pos.getY(), posFace.pos.getZ(), posFace.facing);
         RenderUtils.rotateToFace(matrixStack, posFace.facing, null);
         matrixStack.scale(1f / 16, 1f / 16, 0);
         matrixStack.translate(-8, -8, 0);
         DrawerHelper.drawBorder(matrixStack, 1 + inner * 2, 1 + inner * 2, 14 - 4 * inner, 14 - 4 * inner, color, 1);
+        RenderSystem.enableDepthTest();
         matrixStack.popPose();
     }
 

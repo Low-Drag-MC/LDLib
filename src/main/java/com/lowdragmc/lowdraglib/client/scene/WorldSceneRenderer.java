@@ -22,11 +22,17 @@ import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.RenderTypeLookup;
 import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.client.renderer.WorldRenderer;
 import net.minecraft.client.renderer.texture.AtlasTexture;
+import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.client.renderer.tileentity.TileEntityRenderer;
 import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.client.renderer.vertex.VertexBuffer;
 import net.minecraft.client.renderer.vertex.VertexFormat;
+import net.minecraft.crash.CrashReport;
+import net.minecraft.crash.CrashReportCategory;
+import net.minecraft.crash.ReportedException;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockRayTraceResult;
@@ -351,7 +357,7 @@ public abstract class WorldSceneRenderer {
         mc.getTextureManager().bind(AtlasTexture.LOCATION_BLOCKS);
         RenderType oldRenderLayer = MinecraftForgeClient.getRenderLayer();
 
-        float particleTicks = mc.getDeltaFrameTime();
+        float particleTicks = mc.getFrameTime();
         if (useCache) {
             renderCacheBuffer(mc, particleTicks);
         } else {
@@ -366,7 +372,7 @@ public abstract class WorldSceneRenderer {
                             if (hook != null) {
                                 hook.apply(true, layer);
                             }
-                            renderTESR(renderedBlocks, matrixstack, mc.renderBuffers().bufferSource());
+                            renderTESR(renderedBlocks, matrixstack, mc.renderBuffers().bufferSource(), particleTicks);
                         }
                         if (hook != null) {
                             hook.apply(false, layer);
@@ -459,7 +465,7 @@ public abstract class WorldSceneRenderer {
             for (int i = 0; i < layers.size(); i++) {
                 RenderType layer = layers.get(i);
                 if (layer == RenderType.translucent() && tileEntities != null) { // render tesr before translucent
-                    renderTESR(tileEntities, matrixstack, mc.renderBuffers().bufferSource());
+                    renderTESR(tileEntities, matrixstack, mc.renderBuffers().bufferSource(), particleTicks);
                 }
                 
                 VertexBuffer vertexbuffer = vertexBuffers[i];
@@ -510,14 +516,27 @@ public abstract class WorldSceneRenderer {
         }
     }
 
-    private void renderTESR(Collection<BlockPos> poses, MatrixStack matrixStack, IRenderTypeBuffer.Impl buffers) {
-        if (buffers != null) return;
+    private void renderTESR(Collection<BlockPos> poses, MatrixStack matrixStack, IRenderTypeBuffer.Impl buffers, float partialTicks) {
+        if (buffers == null) return;
         for (BlockPos pos : poses) {
             TileEntity tile = world.getBlockEntity(pos);
             if (tile != null) {
                 matrixStack.pushPose();
                 matrixStack.translate(pos.getX(), pos.getY(), pos.getZ());
-                TileEntityRendererDispatcher.instance.render(tile, 0, matrixStack, buffers);
+                TileEntityRenderer<TileEntity> tileentityrenderer = TileEntityRendererDispatcher.instance.getRenderer(tile);
+                if (tileentityrenderer != null) {
+                    if (tile.hasLevel() && tile.getType().isValid(tile.getBlockState().getBlock())) {
+                        try {
+                            World world = tile.getLevel();
+                            tileentityrenderer.render(tile, partialTicks, matrixStack, buffers, 0xF000F0, OverlayTexture.NO_OVERLAY);
+                        } catch (Throwable throwable) {
+                            CrashReport crashreport = CrashReport.forThrowable(throwable, "Rendering Block Entity");
+                            CrashReportCategory crashreportcategory = crashreport.addCategory("Block Entity Details");
+                            tile.fillCrashReportCategory(crashreportcategory);
+                            throw new ReportedException(crashreport);
+                        }
+                    }
+                }
                 matrixStack.popPose();
             }
         }

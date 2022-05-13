@@ -127,6 +127,10 @@ public class WidgetGroup extends Widget implements IGhostIngredientTarget, IIngr
         super.setVisible(visible);
     }
 
+    public boolean isChild(Widget widget) {
+        return widget.isParent(this);
+    }
+
     public WidgetGroup addWidget(Widget widget) {
         return addWidget(widgets.size(), widget);
     }

@@ -1,5 +1,6 @@
 package com.lowdragmc.lowdraglib.gui.widget;
 
+import com.lowdragmc.lowdraglib.gui.modular.ModularUIGuiContainer;
 import com.lowdragmc.lowdraglib.gui.texture.ColorRectTexture;
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.texture.TextTexture;
@@ -113,7 +114,21 @@ public class SelectorWidget extends WidgetGroup {
     @Override
     public void onFocusChanged() {
         if (!isFocus()) {
-            setShow(false);
+            ModularUIGuiContainer container = gui.getModularUIGui();
+            if (!container.lastFocus.isParent(this)) {
+                setShow(false);
+            }
+        }
+    }
+
+    @Override
+    public void updateScreen() {
+        super.updateScreen();
+        if (gui != null) {
+            ModularUIGuiContainer container = gui.getModularUIGui();
+            if (container != null && container.lastFocus != null && container.lastFocus.isParent(this)) {
+                setFocus(true);
+            }
         }
     }
 
@@ -142,6 +157,14 @@ public class SelectorWidget extends WidgetGroup {
         popUp.setVisible(lastVisible);
     }
 
+    @Override
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        if (!super.mouseClicked(mouseX, mouseY, button)) {
+            setFocus(false);
+            return false;
+        }
+        return true;
+    }
 
     @Override
     public void handleClientAction(int id, PacketBuffer buffer) {

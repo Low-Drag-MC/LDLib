@@ -18,12 +18,13 @@ import net.minecraft.client.renderer.model.ModelRotation;
 import net.minecraft.client.renderer.model.RenderMaterial;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.item.ItemStack;
+import net.minecraft.state.properties.BlockStateProperties;
+import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IBlockDisplayReader;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.client.ForgeHooksClient;
 import net.minecraftforge.client.MinecraftForgeClient;
 import net.minecraftforge.client.event.TextureStitchEvent;
 import net.minecraftforge.client.model.ModelLoader;
@@ -31,6 +32,7 @@ import net.minecraftforge.client.model.data.IModelData;
 import net.minecraftforge.fml.loading.FMLEnvironment;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Random;
 
 public class IModelRenderer implements IRenderer {
@@ -40,6 +42,8 @@ public class IModelRenderer implements IRenderer {
     public final ResourceLocation modelLocation;
     @OnlyIn(Dist.CLIENT)
     protected IBakedModel itemModel;
+    @OnlyIn(Dist.CLIENT)
+    protected Map<Direction, IBakedModel> blockModels;
 
     protected IModelRenderer() {
         modelLocation = null;
@@ -106,12 +110,24 @@ public class IModelRenderer implements IRenderer {
 
     @OnlyIn(Dist.CLIENT)
     protected IBakedModel getBlockBakedModel(BlockPos pos, IBlockDisplayReader blockAccess) {
-        return getItemBakedModel();
+        BlockState blockState = blockAccess.getBlockState(pos);
+        Direction frontFacing = Direction.NORTH;
+        if (blockState.hasProperty(BlockStateProperties.FACING)) {
+            frontFacing = blockState.getValue(BlockStateProperties.FACING);
+        } else if (blockState.hasProperty(BlockStateProperties.HORIZONTAL_FACING)) {
+            frontFacing = blockState.getValue(BlockStateProperties.FACING);
+        }
+        return blockModels.computeIfAbsent(frontFacing, facing -> getModel().bake(
+                ModelLoader.instance(),
+                ModelLoader.defaultTextureGetter(),
+                ModelFactory.getRotation(facing),
+                modelLocation));
     }
 
     @Override
     public void onTextureSwitchEvent(TextureStitchEvent.Pre event) {
         itemModel = null;
+        blockModels.clear();
         IUnbakedModel model = getModel();
         for (RenderMaterial material : model.getMaterials(ModelFactory::getUnBakedModel, new HashSet<>())) {
             event.addSprite(material.texture());
