@@ -2,6 +2,7 @@ package com.lowdragmc.lowdraglib.gui.texture;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.platform.GlStateManager;
+import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.resources.I18n;
@@ -106,6 +107,8 @@ public class TextTexture implements IGuiTexture{
 //        if (backgroundColor != 0) {
 //            new ColorRectTexture(backgroundColor).draw(mouseX, mouseY, x, y, width, height);
 //        }
+        stack.pushPose();
+        stack.translate(0, 0, 200);
         FontRenderer fontRenderer = Minecraft.getInstance().font;
         int textH = fontRenderer.lineHeight;
         if (type == TextType.NORMAL) {
@@ -166,8 +169,7 @@ public class TextTexture implements IGuiTexture{
                 }
             }
         }
-
-
+        stack.popPose();
         GlStateManager._color4f(1, 1, 1, 1);
     }
 

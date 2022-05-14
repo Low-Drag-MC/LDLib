@@ -351,6 +351,7 @@ public class SceneWidget extends WidgetGroup {
             }
         }
         RenderSystem.disableDepthTest();
+        RenderSystem.depthMask(false);
         super.drawInBackground(matrixStack, mouseX, mouseY, partialTicks);
         currentMouseX = mouseX;
         currentMouseY = mouseY;

@@ -80,6 +80,7 @@ public class ModularUIGuiContainer extends ContainerScreen<ModularUIContainer> {
         
         RenderSystem.disableRescaleNormal();
         RenderSystem.disableDepthTest();
+        RenderSystem.depthMask(false);
 
         tooltipTexts = null;
 
@@ -104,6 +105,7 @@ public class ModularUIGuiContainer extends ContainerScreen<ModularUIContainer> {
         renderReturningItemStack();
         
         RenderSystem.popMatrix();
+        RenderSystem.depthMask(true);
         RenderSystem.enableDepthTest();
     }
 

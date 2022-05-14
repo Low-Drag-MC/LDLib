@@ -310,6 +310,7 @@ public abstract class WorldSceneRenderer {
         RenderSystem.disableLighting();
         RenderSystem.enableTexture();
         RenderSystem.enableAlphaTest();
+        RenderSystem.depthMask(true);
     }
 
     protected void clearView(int x, int y, int width, int height) {
@@ -341,7 +342,7 @@ public abstract class WorldSceneRenderer {
         RenderSystem.enableColorMaterial();
         RenderSystem.colorMaterial(1032, 5634);
         RenderSystem.disableRescaleNormal();
-        RenderSystem.depthMask(true);
+        RenderSystem.depthMask(false);
         RenderSystem.disableDepthTest();
         RenderSystem.enableBlend();
     }

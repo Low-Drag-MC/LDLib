@@ -376,7 +376,7 @@ public class WidgetGroup extends Widget implements IGhostIngredientTarget, IIngr
     public boolean keyReleased(int keyCode, int scanCode, int modifiers) {
         for (int i = widgets.size() - 1; i >= 0; i--) {
             Widget widget = widgets.get(i);
-            if(widget.isVisible() && widget.isActive() && widget.keyPressed(keyCode, scanCode, modifiers)) {
+            if(widget.isVisible() && widget.isActive() && widget.keyReleased(keyCode, scanCode, modifiers)) {
                 return true;
             }
         }

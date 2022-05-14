@@ -160,13 +160,16 @@ public class DrawerHelper {
 
     @OnlyIn(Dist.CLIENT)
     public static void drawItemStack(MatrixStack mStack, ItemStack itemStack, int x, int y, @Nullable String altTxt) {
-        mStack.pushPose();
-        mStack.translate(0.0F, 0.0F, 32.0F);
-        
+
+        RenderSystem.pushMatrix();
+        RenderSystem.multMatrix(mStack.last().pose());
+        RenderSystem.translatef(0, 0, -200);
+
         RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
         RenderSystem.enableRescaleNormal();
         RenderSystem.glMultiTexCoord2f(33986, 240.0F, 240.0F); // light map
         RenderSystem.enableDepthTest();
+        RenderSystem.depthMask(true);
 
         Minecraft mc = Minecraft.getInstance();
         ItemRenderer itemRenderer = mc.getItemRenderer();
@@ -177,9 +180,10 @@ public class DrawerHelper {
         itemRenderer.renderGuiItemDecorations(font == null ? mc.font : font, itemStack, x, y, altTxt);
         itemRenderer.blitOffset = 0;
 
+        RenderSystem.depthMask(false);
         RenderSystem.disableRescaleNormal();
         RenderSystem.color4f(1F, 1F, 1F, 1F);
-        mStack.popPose();
+        RenderSystem.popMatrix();
         RenderSystem.enableBlend();
         RenderSystem.disableDepthTest();
         RenderSystem.enableAlphaTest();

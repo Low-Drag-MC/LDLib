@@ -18,7 +18,7 @@ public class JEIClientEventHandler {
             for (RecipeLayout<?> recipeLayout : JEIPlugin.getRecipeLayouts((RecipesGui) event.getGui())) {
                 Object recipe = recipeLayout.getRecipe();
                 if (recipe instanceof ModularWrapper) {
-                    if (((ModularWrapper) recipe).mouseClicked(event.getMouseX(), event.getMouseY(), event.getButton())) {
+                    if (((ModularWrapper<?>) recipe).mouseClicked(event.getMouseX(), event.getMouseY(), event.getButton())) {
                         event.setCanceled(true);
                     }
                 }
@@ -32,7 +32,7 @@ public class JEIClientEventHandler {
             for (RecipeLayout<?> recipeLayout : JEIPlugin.getRecipeLayouts((RecipesGui) event.getGui())) {
                 Object recipe = recipeLayout.getRecipe();
                 if (recipe instanceof ModularWrapper) {
-                    if (((ModularWrapper) recipe).mouseReleased(event.getMouseX(), event.getMouseY(), event.getButton())) {
+                    if (((ModularWrapper<?>) recipe).mouseReleased(event.getMouseX(), event.getMouseY(), event.getButton())) {
                         event.setCanceled(true);
                     }
                 }
@@ -46,7 +46,7 @@ public class JEIClientEventHandler {
             for (RecipeLayout<?> recipeLayout : JEIPlugin.getRecipeLayouts((RecipesGui) event.getGui())) {
                 Object recipe = recipeLayout.getRecipe();
                 if (recipe instanceof ModularWrapper) {
-                    if (((ModularWrapper) recipe).mouseDragged(event.getMouseX(), event.getMouseY(), event.getMouseButton(), event.getDragX(), event.getDragY())) {
+                    if (((ModularWrapper<?>) recipe).mouseDragged(event.getMouseX(), event.getMouseY(), event.getMouseButton(), event.getDragX(), event.getDragY())) {
                         event.setCanceled(true);
                     }
                 }
@@ -59,7 +59,7 @@ public class JEIClientEventHandler {
             for (RecipeLayout<?> recipeLayout : JEIPlugin.getRecipeLayouts((RecipesGui) event.getGui())) {
                 Object recipe = recipeLayout.getRecipe();
                 if (recipe instanceof ModularWrapper) {
-                    if (((ModularWrapper) recipe).mouseScrolled(event.getMouseX(), event.getMouseY(), event.getScrollDelta())) {
+                    if (((ModularWrapper<?>) recipe).mouseScrolled(event.getMouseX(), event.getMouseY(), event.getScrollDelta())) {
                         event.setCanceled(true);
                     }
                 }
@@ -73,7 +73,7 @@ public class JEIClientEventHandler {
             for (RecipeLayout<?> recipeLayout : JEIPlugin.getRecipeLayouts((RecipesGui) event.getGui())) {
                 Object recipe = recipeLayout.getRecipe();
                 if (recipe instanceof ModularWrapper) {
-                    if (((ModularWrapper) recipe).keyPressed(event.getKeyCode(), event.getScanCode(), event.getModifiers())) {
+                    if (((ModularWrapper<?>) recipe).keyPressed(event.getKeyCode(), event.getScanCode(), event.getModifiers())) {
                         event.setCanceled(true);
                     }
                 }
@@ -87,7 +87,7 @@ public class JEIClientEventHandler {
             for (RecipeLayout<?> recipeLayout : JEIPlugin.getRecipeLayouts((RecipesGui) event.getGui())) {
                 Object recipe = recipeLayout.getRecipe();
                 if (recipe instanceof ModularWrapper) {
-                    if (((ModularWrapper) recipe).keyReleased(event.getKeyCode(), event.getScanCode(), event.getModifiers())) {
+                    if (((ModularWrapper<?>) recipe).keyReleased(event.getKeyCode(), event.getScanCode(), event.getModifiers())) {
                         event.setCanceled(true);
                     }
                 }
@@ -101,7 +101,7 @@ public class JEIClientEventHandler {
             for (RecipeLayout<?> recipeLayout : JEIPlugin.getRecipeLayouts((RecipesGui) event.getGui())) {
                 Object recipe = recipeLayout.getRecipe();
                 if (recipe instanceof ModularWrapper) {
-                    if (((ModularWrapper) recipe).charTyped(event.getCodePoint(), event.getModifiers())) {
+                    if (((ModularWrapper<?>) recipe).charTyped(event.getCodePoint(), event.getModifiers())) {
                         event.setCanceled(true);
                     }
                 }

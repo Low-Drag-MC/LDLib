@@ -3,6 +3,7 @@ package com.lowdragmc.lowdraglib.client;
 import com.lowdragmc.lowdraglib.CommonProxy;
 import com.lowdragmc.lowdraglib.LDLMod;
 import com.lowdragmc.lowdraglib.client.renderer.IRenderer;
+import com.lowdragmc.lowdraglib.client.shader.Shaders;
 import com.lowdragmc.lowdraglib.jei.JEIClientEventHandler;
 import net.minecraft.client.renderer.texture.AtlasTexture;
 import net.minecraftforge.client.event.TextureStitchEvent;
@@ -19,6 +20,7 @@ public class ClientProxy extends CommonProxy {
 
     public ClientProxy() {
         super();
+        Shaders.init();
         if (LDLMod.isModLoaded(LDLMod.MODID_JEI)) {
             MinecraftForge.EVENT_BUS.register(JEIClientEventHandler.class);
         }

@@ -3,7 +3,6 @@ package com.lowdragmc.lowdraglib.utils;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
-import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
@@ -51,7 +50,7 @@ public class BlockInfo {
         return new BlockInfo(state);
     }
 
-    public static BlockInfo fromBlockState(Block block) {
+    public static BlockInfo fromBlock(Block block) {
         return BlockInfo.fromBlockState(block.defaultBlockState());
     }
 

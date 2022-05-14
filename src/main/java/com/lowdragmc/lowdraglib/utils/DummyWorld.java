@@ -1,8 +1,10 @@
 package com.lowdragmc.lowdraglib.utils;
 
 import com.lowdragmc.lowdraglib.core.mixins.DimensionTypeAccessor;
+import mcp.MethodsReturnNonnullByDefault;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.fluid.Fluid;
@@ -11,6 +13,7 @@ import net.minecraft.fluid.Fluids;
 import net.minecraft.item.crafting.RecipeManager;
 import net.minecraft.scoreboard.Scoreboard;
 import net.minecraft.tags.ITagCollectionSupplier;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Direction;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.SoundEvent;
@@ -32,6 +35,7 @@ import net.minecraft.world.storage.MapData;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.List;
 
 /**
@@ -139,6 +143,27 @@ public class DummyWorld extends World {
 
     public DummyWorld() {
         super(SPAWN_WORLD_INFO, null, DIMENSION_TYPE, null,true, false, 0);
+    }
+
+    @Override
+    public boolean setBlock(BlockPos pPos, BlockState pState, int pFlags, int pRecursionLeft) {
+        return false;
+    }
+
+    @Override
+    public void setBlockEntity(BlockPos p_175690_1_, @Nullable TileEntity p_175690_2_) {
+        super.setBlockEntity(p_175690_1_, p_175690_2_);
+    }
+
+    @Override
+    public BlockState getBlockState(BlockPos pPos) {
+        return Blocks.AIR.defaultBlockState();
+    }
+
+    @Nullable
+    @Override
+    public TileEntity getBlockEntity(BlockPos pPos) {
+        return null;
     }
 
     @Override
