@@ -26,6 +26,7 @@ import java.awt.Rectangle;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -72,12 +73,12 @@ public class Widget {
     }
 
     public Widget setHoverTooltips(String... tooltipText) {
-        tooltipTexts = Arrays.stream(tooltipText).map(TranslationTextComponent::new).collect(Collectors.toList());
+        tooltipTexts = Arrays.stream(tooltipText).filter(Objects::nonNull).filter(s->!s.isEmpty()).map(TranslationTextComponent::new).collect(Collectors.toList());
         return this;
     }
 
     public Widget setHoverTooltips(ITextComponent... tooltipText) {
-        tooltipTexts = Arrays.stream(tooltipText).collect(Collectors.toList());
+        tooltipTexts = Arrays.stream(tooltipText).filter(Objects::nonNull).collect(Collectors.toList());
         return this;
     }
 

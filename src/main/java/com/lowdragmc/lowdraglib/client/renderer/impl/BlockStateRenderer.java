@@ -1,5 +1,6 @@
 package com.lowdragmc.lowdraglib.client.renderer.impl;
 
+import com.lowdragmc.lowdraglib.LDLMod;
 import com.lowdragmc.lowdraglib.client.renderer.IRenderer;
 import com.lowdragmc.lowdraglib.client.utils.FacadeBlockDisplayReader;
 import com.lowdragmc.lowdraglib.utils.BlockInfo;
@@ -21,7 +22,6 @@ import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
 import net.minecraft.item.ItemStack;
 import net.minecraft.state.properties.BlockStateProperties;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IBlockDisplayReader;
 import net.minecraft.world.World;
@@ -30,7 +30,6 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.MinecraftForgeClient;
 import net.minecraftforge.client.event.TextureStitchEvent;
 import net.minecraftforge.client.model.data.IModelData;
-import net.minecraftforge.fml.loading.FMLEnvironment;
 
 import java.util.Random;
 
@@ -50,7 +49,7 @@ public class BlockStateRenderer implements IRenderer {
 
     public BlockStateRenderer(BlockInfo blockInfo) {
         this.blockInfo = blockInfo == null ? new BlockInfo(Blocks.BARRIER) : blockInfo;
-        if (FMLEnvironment.dist == Dist.CLIENT) {
+        if (LDLMod.isClient()) {
             registerTextureSwitchEvent();
         }
     }

@@ -55,10 +55,10 @@ public class ModularUIContainer extends Container implements WidgetUIAccess {
     //OTHERWISE ID MISMATCH CAN HAPPEN BETWEEN ASSIGNED SLOTS!
     @Override
     public void notifyWidgetChange() {
-        List<SlotWidget> nativeWidgets = new ArrayList<>(modularUI.mainGroup.getNativeWidgets());
+        List<SlotWidget> nativeWidgets = modularUI.mainGroup.getNativeWidgets();
 
         Set<SlotWidget> removedWidgets = new HashSet<>(slotMap.values());
-        removedWidgets.removeAll(nativeWidgets);
+        nativeWidgets.forEach(removedWidgets::remove);
         if (!removedWidgets.isEmpty()) {
             for (SlotWidget removedWidget : removedWidgets) {
                 Slot slotHandle = removedWidget.getHandle();

@@ -16,7 +16,7 @@ import net.minecraft.world.World;
 public class BlockInfo {
     public static final BlockInfo EMPTY = new BlockInfo(Blocks.AIR);
 
-    private final BlockState blockState;
+    private BlockState blockState;
     private TileEntity tileEntity;
     private final ItemStack itemStack;
 
@@ -75,5 +75,9 @@ public class BlockInfo {
 
     public void setTileEntity(TileEntity tileEntity) {
         this.tileEntity = tileEntity;
+    }
+
+    public void setBlockState(BlockState blockState) {
+        this.blockState = blockState;
     }
 }

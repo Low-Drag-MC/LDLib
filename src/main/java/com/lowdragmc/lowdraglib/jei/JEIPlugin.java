@@ -72,6 +72,7 @@ public class JEIPlugin implements IModPlugin {
     public void registerAdvanced(@Nonnull IAdvancedRegistration registration) {
     }
 
+
     public static void setupInputHandler() {
         try {
             Field inputHandlerField = Internal.class.getDeclaredField("inputHandler");

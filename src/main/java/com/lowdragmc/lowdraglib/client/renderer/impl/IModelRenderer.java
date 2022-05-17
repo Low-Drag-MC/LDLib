@@ -29,15 +29,16 @@ import net.minecraftforge.client.MinecraftForgeClient;
 import net.minecraftforge.client.event.TextureStitchEvent;
 import net.minecraftforge.client.model.ModelLoader;
 import net.minecraftforge.client.model.data.IModelData;
-import net.minecraftforge.fml.loading.FMLEnvironment;
 
+import javax.annotation.Nullable;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 
 public class IModelRenderer implements IRenderer {
 
-//    protected static final Set<ResourceLocation> CACHE = new HashSet<>();
+    protected static final Set<ResourceLocation> CACHE = new HashSet<>();
 
     public final ResourceLocation modelLocation;
     @OnlyIn(Dist.CLIENT)
@@ -51,9 +52,17 @@ public class IModelRenderer implements IRenderer {
 
     public IModelRenderer(ResourceLocation modelLocation) {
         this.modelLocation = modelLocation;
-        if (FMLEnvironment.dist == Dist.CLIENT) {
-            registerTextureSwitchEvent();
+        if (LDLMod.isClient()) {
+            if (isRaw()) {
+                registerTextureSwitchEvent();
+                CACHE.add(modelLocation);
+            }
         }
+    }
+
+    @Override
+    public boolean isRaw() {
+        return !CACHE.contains(modelLocation);
     }
 
     @OnlyIn(Dist.CLIENT)
@@ -68,7 +77,10 @@ public class IModelRenderer implements IRenderer {
                            IRenderTypeBuffer buffer, int combinedLight,
                            int combinedOverlay, IBakedModel model) {
         IItemRendererProvider.disabled.set(true);
-        Minecraft.getInstance().getItemRenderer().render(stack, transformType, leftHand, matrixStack, buffer, combinedLight, combinedOverlay, getItemBakedModel());
+        model = getItemBakedModel();
+        if (model != null) {
+            Minecraft.getInstance().getItemRenderer().render(stack, transformType, leftHand, matrixStack, buffer, combinedLight, combinedOverlay, model);
+        }
         IItemRendererProvider.disabled.set(false);
     }
 
@@ -80,6 +92,7 @@ public class IModelRenderer implements IRenderer {
                                   IModelData modelData) {
         BlockRendererDispatcher brd = Minecraft.getInstance().getBlockRenderer();
         IBakedModel ibakedmodel = getBlockBakedModel(pos, blockReader);
+        if (ibakedmodel == null) return;
         brd.getModelRenderer().renderModel(blockReader, ibakedmodel, state, pos, matrixStack, vertexBuilder, true, LDLMod.random, state.getSeed(pos), OverlayTexture.NO_OVERLAY, modelData);
     }
 
@@ -93,10 +106,12 @@ public class IModelRenderer implements IRenderer {
         if (layer != RenderType.cutoutMipped()) return false;
         BlockRendererDispatcher brd = Minecraft.getInstance().getBlockRenderer();
         IBakedModel ibakedmodel = getBlockBakedModel(pos, blockReader);
+        if (ibakedmodel == null) return false;
         return brd.getModelRenderer().renderModel(blockReader, ibakedmodel, state, pos, matrixStack, vertexBuilder, checkSides, rand, state.getSeed(pos), OverlayTexture.NO_OVERLAY, modelData);
     }
 
     @OnlyIn(Dist.CLIENT)
+    @Nullable
     protected IBakedModel getItemBakedModel() {
         if (itemModel == null) {
             itemModel = getModel().bake(
@@ -109,6 +124,7 @@ public class IModelRenderer implements IRenderer {
     }
 
     @OnlyIn(Dist.CLIENT)
+    @Nullable
     protected IBakedModel getBlockBakedModel(BlockPos pos, IBlockDisplayReader blockAccess) {
         BlockState blockState = blockAccess.getBlockState(pos);
         Direction frontFacing = Direction.NORTH;

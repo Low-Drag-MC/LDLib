@@ -62,10 +62,12 @@ public interface IRenderer {
                     int combinedOverlay, IBakedModel model);
 
     @OnlyIn(Dist.CLIENT)
-    void renderBlockDamage(BlockState state, BlockPos pos,
+    default void renderBlockDamage(BlockState state, BlockPos pos,
                            IBlockDisplayReader blockReader,
                            MatrixStack matrixStack,
-                           IVertexBuilder vertexBuilder, IModelData modelData);
+                           IVertexBuilder vertexBuilder, IModelData modelData) {
+
+    }
 
     @OnlyIn(Dist.CLIENT)
     boolean renderModel(BlockState state, BlockPos pos,

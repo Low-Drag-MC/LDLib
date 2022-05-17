@@ -43,7 +43,7 @@ public class ModularWrapper<T extends Widget> extends ModularUIGuiContainer {
         modularUI.updateScreenSize(this.width, this.height);
         Position displayOffset = new Position(modularUI.getGuiLeft(), layout.getPosY());
         modularUI.mainGroup.setParentPosition(displayOffset);
-        this.menu.slots.clear();
+//        this.menu.slots.clear();
     }
 
     public void draw(MatrixStack matrixStack, int mouseX, int mouseY) {
@@ -76,6 +76,7 @@ public class ModularWrapper<T extends Widget> extends ModularUIGuiContainer {
             DrawerHelper.drawHoveringText(matrixStack, ItemStack.EMPTY, tooltipTexts, mouseX, mouseY, width, height, 300);
         }
 
+        RenderSystem.depthMask(true);
         RenderSystem.enableDepthTest();
     }
 

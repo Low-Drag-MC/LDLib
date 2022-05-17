@@ -137,7 +137,7 @@ public class TextFieldWidget extends Widget {
 
     @Override
     public void updateScreen() {
-        if (textSupplier != null && isClientSideWidget&& !textSupplier.get().equals(getCurrentString())) {
+        if (this.isVisible() && this.isActive() && textSupplier != null && isClientSideWidget&& !textSupplier.get().equals(getCurrentString())) {
             setCurrentString(textSupplier.get());
         }
     }

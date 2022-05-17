@@ -3,6 +3,8 @@ package com.lowdragmc.lowdraglib.jei;
 import mezz.jei.gui.recipes.RecipeLayout;
 import mezz.jei.gui.recipes.RecipesGui;
 import net.minecraftforge.client.event.GuiScreenEvent;
+import net.minecraftforge.client.event.RecipesUpdatedEvent;
+import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 /**
@@ -11,6 +13,12 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
  * @implNote JEIClientEventHandler
  */
 public class JEIClientEventHandler {
+
+
+    @SubscribeEvent(priority = EventPriority.LOWEST)
+    public static void onRecipesUpdatedEventEvent(RecipesUpdatedEvent event) {
+        JEIPlugin.setupInputHandler();
+    }
 
     @SubscribeEvent
     public static void onMouseClickedEventPre(GuiScreenEvent.MouseClickedEvent.Pre event) {

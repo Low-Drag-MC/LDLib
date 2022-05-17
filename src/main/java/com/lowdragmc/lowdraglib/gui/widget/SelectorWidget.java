@@ -113,11 +113,9 @@ public class SelectorWidget extends WidgetGroup {
 
     @Override
     public void onFocusChanged() {
-        if (!isFocus()) {
-            ModularUIGuiContainer container = gui.getModularUIGui();
-            if (!container.lastFocus.isParent(this)) {
-                setShow(false);
-            }
+        ModularUIGuiContainer container = gui.getModularUIGui();
+        if (!container.lastFocus.isParent(this)) {
+            setShow(false);
         }
     }
 

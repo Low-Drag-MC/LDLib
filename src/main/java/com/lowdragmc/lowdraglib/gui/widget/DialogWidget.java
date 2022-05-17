@@ -66,9 +66,9 @@ public class DialogWidget extends WidgetGroup {
     @Override
     @OnlyIn(Dist.CLIENT)
     public void drawInBackground(@Nonnull MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
-        matrixStack.translate(0, 0, 200);
+//        matrixStack.translate(0, 0, 200);
         super.drawInBackground(matrixStack, mouseX, mouseY, partialTicks);
-        matrixStack.translate(0, 0, -200);
+//        matrixStack.translate(0, 0, -200);
     }
 
     @Override
@@ -81,8 +81,7 @@ public class DialogWidget extends WidgetGroup {
     @Override
     @OnlyIn(Dist.CLIENT)
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-        super.keyPressed(keyCode, scanCode, modifiers);
-        if (keyCode == GLFW.GLFW_KEY_ESCAPE) {
+        if (!super.keyPressed(keyCode, scanCode, modifiers) && keyCode == GLFW.GLFW_KEY_ESCAPE) {
             close();
         }
         return true;

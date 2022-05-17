@@ -5,12 +5,12 @@ import com.lowdragmc.lowdraglib.LDLMod;
 import com.lowdragmc.lowdraglib.client.renderer.IRenderer;
 import com.lowdragmc.lowdraglib.client.shader.Shaders;
 import com.lowdragmc.lowdraglib.jei.JEIClientEventHandler;
+import com.lowdragmc.lowdraglib.jei.JEIPlugin;
 import net.minecraft.client.renderer.texture.AtlasTexture;
 import net.minecraftforge.client.event.TextureStitchEvent;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -20,10 +20,14 @@ public class ClientProxy extends CommonProxy {
 
     public ClientProxy() {
         super();
-        Shaders.init();
         if (LDLMod.isModLoaded(LDLMod.MODID_JEI)) {
             MinecraftForge.EVENT_BUS.register(JEIClientEventHandler.class);
         }
+    }
+
+    @SubscribeEvent
+    public void clientSetup(final FMLClientSetupEvent e) {
+        e.enqueueWork(Shaders::init);
     }
 
     @SubscribeEvent

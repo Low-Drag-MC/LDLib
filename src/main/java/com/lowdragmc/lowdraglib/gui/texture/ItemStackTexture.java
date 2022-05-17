@@ -34,7 +34,8 @@ public class ItemStackTexture implements IGuiTexture{
         if (itemStack.length == 0) return;
         mStack.pushPose();
         mStack.scale(width / 16f, height / 16f, (width + height) / 32f);
-        mStack.translate(x * 16 / width, y * 16 / height, 0);
+        //TODO fix scale z offset
+        mStack.translate(x * 16 / width, y * 16 / height, -200 * (width + height) / 32f);
         DrawerHelper.drawItemStack(mStack, itemStack[index], 0, 0, null);
         mStack.popPose();
     }
