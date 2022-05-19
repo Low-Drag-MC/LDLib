@@ -11,6 +11,6 @@
     "WorldRendererMixin"
   ],
   "mixins": [
-    "DimensionTypeAccessor",
- ]
+    "DimensionTypeAccessor"
+  ]
 }

@@ -14,8 +14,8 @@ import net.minecraft.block.BlockState;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.registries.ForgeRegistries;
 
-public class IBlockStateTypeAdapterFactory implements TypeAdapterFactory {
-    public static final IBlockStateTypeAdapterFactory INSTANCE = new IBlockStateTypeAdapterFactory();
+public class BlockStateTypeAdapterFactory implements TypeAdapterFactory {
+    public static final BlockStateTypeAdapterFactory INSTANCE = new BlockStateTypeAdapterFactory();
 
     @SuppressWarnings("unchecked")
     @Override

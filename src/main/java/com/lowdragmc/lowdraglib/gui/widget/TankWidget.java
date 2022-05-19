@@ -105,6 +105,17 @@ public class TankWidget extends Widget implements IIngredientSlot {
     @OnlyIn(Dist.CLIENT)
     public void drawInBackground(@Nonnull MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
         super.drawInBackground(matrixStack, mouseX, mouseY, partialTicks);
+        if (isClientSideWidget) {
+            FluidStack fluidStack = fluidTank.getFluid();
+            if (fluidTank.getCapacity() != lastTankCapacity) {
+                this.lastTankCapacity = fluidTank.getCapacity();
+            }
+            if (!fluidStack.isFluidEqual(lastFluidInTank)) {
+                this.lastFluidInTank = fluidStack.copy();
+            } else if (fluidStack.getAmount() != lastFluidInTank.getAmount()) {
+                this.lastFluidInTank.setAmount(fluidStack.getAmount());
+            }
+        }
         Position pos = getPosition();
         Size size = getSize();
         if (lastFluidInTank != null) {
@@ -155,22 +166,6 @@ public class TankWidget extends Widget implements IIngredientSlot {
                 super.drawInForeground(matrixStack, mouseX, mouseY, partialTicks);
             }
             RenderSystem.color4f(1.0f, 1.0f, 1.0f, 1f);
-        }
-    }
-
-    @Override
-    @OnlyIn(Dist.CLIENT)
-    public void updateScreen() {
-        if (isClientSideWidget) {
-            FluidStack fluidStack = fluidTank.getFluid();
-            if (fluidTank.getCapacity() != lastTankCapacity) {
-                this.lastTankCapacity = fluidTank.getCapacity();
-            }
-            if (!fluidStack.isFluidEqual(lastFluidInTank)) {
-                this.lastFluidInTank = fluidStack.copy();
-            } else if (fluidStack.getAmount() != lastFluidInTank.getAmount()) {
-                this.lastFluidInTank.setAmount(fluidStack.getAmount());
-            }
         }
     }
 

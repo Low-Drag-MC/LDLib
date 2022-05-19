@@ -5,6 +5,8 @@ import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.platform.GlStateManager;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 public class ItemStackTexture implements IGuiTexture{
     private final ItemStack[] itemStack;
@@ -29,6 +31,7 @@ public class ItemStackTexture implements IGuiTexture{
                 index = 0;
     }
 
+    @OnlyIn(Dist.CLIENT)
     @Override
     public void draw(MatrixStack mStack, int mouseX, int mouseY, float x, float y, int width, int height) {
         if (itemStack.length == 0) return;

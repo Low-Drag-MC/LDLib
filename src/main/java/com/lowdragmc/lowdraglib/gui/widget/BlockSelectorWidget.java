@@ -5,7 +5,6 @@ import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.items.IItemHandlerModifiable;
 import net.minecraftforge.items.ItemStackHandler;
@@ -16,7 +15,7 @@ import java.util.function.Consumer;
 public class BlockSelectorWidget extends WidgetGroup {
     private Consumer<BlockState> onBlockStateUpdate;
     private Block block;
-    private CompoundNBT tag;
+    private int meta;
     private final IItemHandlerModifiable handler;
     private final TextFieldWidget blockField;
     private final TextFieldWidget metaField;
@@ -34,9 +33,9 @@ public class BlockSelectorWidget extends WidgetGroup {
             }
         }).setHoverTooltips("multiblocked.gui.tips.block_register");
         metaField = (TextFieldWidget) new TextFieldWidget(142, 0, 20, 20, null, s -> {
-//            tag = Integer.parseInt(s);
+            meta = Integer.parseInt(s);
             onUpdate();
-        }).setNumbersOnly(0, 16).setHoverTooltips("multiblocked.gui.tips.block_meta");
+        }).setNumbersOnly(0, Integer.MAX_VALUE).setHoverTooltips("multiblocked.gui.tips.block_meta");
 
         addWidget(new PhantomSlotWidget(handler = new ItemStackHandler(1), 0, 1, 1)
                 .setClearSlotOnRightClick(true)
@@ -45,7 +44,7 @@ public class BlockSelectorWidget extends WidgetGroup {
                     if (stack.isEmpty() || !(stack.getItem() instanceof BlockItem)) {
                         if (block != null) {
                             block = null;
-                            tag = new CompoundNBT();
+                            meta = 0;
                             blockField.setCurrentString("");
                             metaField.setCurrentString("0");
                             onUpdate();
@@ -53,10 +52,9 @@ public class BlockSelectorWidget extends WidgetGroup {
                     } else {
                         BlockItem itemBlock = (BlockItem) stack.getItem();
                         block = itemBlock.getBlock();
-//                        block.getStateForPlacement()
-                        tag = itemBlock.getShareTag(stack);
+                        meta = 0;
                         blockField.setCurrentString(block.getRegistryName() == null ? "" : block.getRegistryName().toString());
-//                        metaField.setCurrentString(meta + "");
+                        metaField.setCurrentString("0");
                         onUpdate();
                     }
                 }).setBackgroundTexture(new ColorBorderTexture(1, -1)));
@@ -73,17 +71,17 @@ public class BlockSelectorWidget extends WidgetGroup {
     public BlockSelectorWidget setBlock(BlockState blockState) {
         if (blockState == null) {
             block = null;
-            tag = new CompoundNBT();
+            meta = 0;
             handler.setStackInSlot(0, ItemStack.EMPTY);
             blockField.setCurrentString("");
             metaField.setCurrentString("0");
         } else {
             block = blockState.getBlock();
             new ItemStack(block);
-//            tag = block.getMetaFromState(blockState);
-//            handler.setStackInSlot(0, block == null ? ItemStack.EMPTY : new ItemStack(Item.getItemFromBlock(block), 1, block.damageDropped(block.getStateFromMeta(meta))));
+            meta = block.getStateDefinition().getPossibleStates().indexOf(blockState);
+            handler.setStackInSlot(0, new ItemStack(block));
             blockField.setCurrentString(block.getRegistryName() == null ? "" : block.getRegistryName().toString());
-//            metaField.setCurrentString(meta + "");
+            metaField.setCurrentString(meta + "");
         }
         return this;
     }
@@ -94,11 +92,12 @@ public class BlockSelectorWidget extends WidgetGroup {
     }
 
     private void onUpdate() {
-        handler.setStackInSlot(0, block == null ? ItemStack.EMPTY : new ItemStack(BlockItem.byBlock(block), 1));
-//        handler.setStackInSlot(0, block == null ? ItemStack.EMPTY : new ItemStack(BlockItem.byBlock(block), 1, block.damageDropped(block.getStateFromMeta(meta))));
+        handler.setStackInSlot(0, block == null ? ItemStack.EMPTY : new ItemStack(block));
         if (onBlockStateUpdate != null) {
-//            onBlockStateUpdate.accept(block == null ? null : block.getStateFromMeta(meta));
-            onBlockStateUpdate.accept(block == null ? null : block.defaultBlockState());
+            BlockState state = block == null ? null :
+                    block.getStateDefinition().getPossibleStates().size() > meta ?
+                            block.getStateDefinition().getPossibleStates().get(meta) : null;
+            onBlockStateUpdate.accept(state);
         }
     }
 }

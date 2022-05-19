@@ -7,6 +7,8 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 public class TileEntityUIFactory extends UIFactory<TileEntity>{
     public static final TileEntityUIFactory INSTANCE  = new TileEntityUIFactory();
@@ -23,6 +25,7 @@ public class TileEntityUIFactory extends UIFactory<TileEntity>{
         return null;
     }
 
+    @OnlyIn(Dist.CLIENT)
     @Override
     protected TileEntity readHolderFromSyncData(PacketBuffer syncData) {
         World world = Minecraft.getInstance().level;

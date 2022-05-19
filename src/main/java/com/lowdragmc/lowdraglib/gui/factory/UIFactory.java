@@ -79,6 +79,8 @@ public abstract class UIFactory<T> {
         ModularUIGuiContainer ModularUIGuiContainer = new ModularUIGuiContainer(uiTemplate, windowId);
         uiTemplate.mainGroup.readInitialData(serializedHolder);
         minecraft.setScreen(ModularUIGuiContainer);
+        minecraft.player.containerMenu = ModularUIGuiContainer.getMenu();
+
     }
 
     protected abstract ModularUI createUITemplate(T holder, PlayerEntity entityPlayer);

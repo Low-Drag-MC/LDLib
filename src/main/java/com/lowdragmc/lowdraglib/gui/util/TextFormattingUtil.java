@@ -42,10 +42,11 @@ public class TextFormattingUtil {
     }
 
     public static String formatLongToCompactStringBuckets(long value, int precision) {
+        if (value == 0) return value + "";
         //Long.MIN_VALUE == -Long.MIN_VALUE so we need an adjustment here
         if (value == Long.MIN_VALUE) return formatLongToCompactStringBuckets(Long.MIN_VALUE + 1, precision);
         if (value < 0) return "-" + formatLongToCompactStringBuckets(-value, precision);
-        if (value < Math.pow(10, precision)) return Long.toString(value) + suffixesBucket.floorEntry(value).getValue(); //deal with easy case
+        if (value < Math.pow(10, precision)) return value + suffixesBucket.floorEntry(value).getValue(); //deal with easy case
 
         Map.Entry<Long, String> e = suffixesBucket.floorEntry(value);
         Long divideBy = e.getKey();

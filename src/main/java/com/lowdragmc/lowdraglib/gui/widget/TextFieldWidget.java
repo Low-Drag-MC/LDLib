@@ -8,11 +8,14 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.network.PacketBuffer;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 import javax.annotation.Nonnull;
+import javax.xml.soap.Text;
+import java.util.Locale;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -213,6 +216,20 @@ public class TextFieldWidget extends Widget {
 
     public TextFieldWidget setValidator(Function<String, String> validator) {
         this.textValidator = validator;
+        return this;
+    }
+
+    public TextFieldWidget setResourceLocationOnly() {
+        setValidator(s -> {
+            try {
+                s = s.toLowerCase();
+                s = s.replace(' ', '_');
+                if (ResourceLocation.isValidResourceLocation(s)) {
+                    return s;
+                }
+            } catch (NumberFormatException ignored) { }
+            return this.currentString;
+        });
         return this;
     }
 

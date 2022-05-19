@@ -14,7 +14,6 @@ buildscript {
 
 repositories {
     maven { url 'https://dvs1.progwml6.com/files/maven' }
-    maven { url 'https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/' }
 }
 
 apply plugin: 'net.minecraftforge.gradle'
@@ -107,9 +106,6 @@ sourceSets.main.resources { srcDir 'src/generated/resources' }
 dependencies {
 	minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
     // Apply Mixin AP
-
-    //geckolib
-    implementation fg.deobf('software.bernie.geckolib:geckolib-forge-1.16.5:3.0.71')
 
     //JEI
     compileOnly fg.deobf("mezz.jei:jei-${jei_version}:api")

@@ -1,13 +1,16 @@
 package com.lowdragmc.lowdraglib.client.renderer;
 
-
 import com.lowdragmc.lowdraglib.client.ClientProxy;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.vertex.IVertexBuilder;
 import net.minecraft.block.BlockState;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.IRenderTypeBuffer;
 import net.minecraft.client.renderer.model.IBakedModel;
 import net.minecraft.client.renderer.model.ItemCameraTransforms;
+import net.minecraft.client.renderer.texture.AtlasTexture;
+import net.minecraft.client.renderer.texture.MissingTextureSprite;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
@@ -17,10 +20,10 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.event.TextureStitchEvent;
 import net.minecraftforge.client.model.data.IModelData;
 
+import javax.annotation.Nonnull;
 import java.util.Random;
 
 public interface IRenderer {
-
     IRenderer EMPTY = new IRenderer() {
         @Override
         @OnlyIn(Dist.CLIENT)
@@ -29,16 +32,6 @@ public interface IRenderer {
                                boolean leftHand, MatrixStack matrixStack,
                                IRenderTypeBuffer buffer, int combinedLight,
                                int combinedOverlay, IBakedModel model) {
-
-        }
-
-        @Override
-        @OnlyIn(Dist.CLIENT)
-        public void renderBlockDamage(BlockState state, BlockPos pos,
-                                      IBlockDisplayReader blockReader,
-                                      MatrixStack matrixStack,
-                                      IVertexBuilder vertexBuilder,
-                                      IModelData modelData) {
 
         }
 
@@ -100,5 +93,11 @@ public interface IRenderer {
     @OnlyIn(Dist.CLIENT)
     default void render(TileEntity tileEntity, float partialTicks, MatrixStack stack, IRenderTypeBuffer buffer, int combinedLight, int combinedOverlay) {
 
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    @Nonnull
+    default TextureAtlasSprite getParticleTexture() {
+        return Minecraft.getInstance().getTextureAtlas(AtlasTexture.LOCATION_BLOCKS).apply(MissingTextureSprite.getLocation());
     }
 }

@@ -1,6 +1,8 @@
 package com.lowdragmc.lowdraglib.gui.texture;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 public class GuiTextureGroup implements IGuiTexture{
     public IGuiTexture[] textures;
@@ -28,6 +30,7 @@ public class GuiTextureGroup implements IGuiTexture{
         }
     }
 
+    @OnlyIn(Dist.CLIENT)
     @Override
     public void drawSubArea(MatrixStack stack, float x, float y, int width, int height, float drawnU, float drawnV, float drawnWidth, float drawnHeight) {
         for (IGuiTexture texture : textures) {

@@ -17,6 +17,7 @@ import net.minecraft.client.renderer.ItemRenderer;
 import net.minecraft.client.renderer.RenderTypeLookup;
 import net.minecraft.client.renderer.model.IBakedModel;
 import net.minecraft.client.renderer.model.ItemCameraTransforms;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.renderer.tileentity.TileEntityRenderer;
 import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
 import net.minecraft.item.ItemStack;
@@ -29,8 +30,10 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.MinecraftForgeClient;
 import net.minecraftforge.client.event.TextureStitchEvent;
+import net.minecraftforge.client.model.data.EmptyModelData;
 import net.minecraftforge.client.model.data.IModelData;
 
+import javax.annotation.Nonnull;
 import java.util.Random;
 
 public class BlockStateRenderer implements IRenderer {
@@ -39,7 +42,7 @@ public class BlockStateRenderer implements IRenderer {
     @OnlyIn(Dist.CLIENT)
     private IBakedModel itemModel;
 
-    private BlockStateRenderer() {
+    protected BlockStateRenderer() {
         blockInfo = null;
     }
 
@@ -58,7 +61,7 @@ public class BlockStateRenderer implements IRenderer {
         BlockState state = blockInfo.getBlockState();
         if (blockState.hasProperty(BlockStateProperties.FACING) && state.hasProperty(BlockStateProperties.FACING)) {
             state = state.setValue(BlockStateProperties.FACING, blockState.getValue(BlockStateProperties.FACING));
-        } else if (blockState.hasProperty(BlockStateProperties.HORIZONTAL_FACING)) {
+        } else if (blockState.hasProperty(BlockStateProperties.HORIZONTAL_FACING)&& state.hasProperty(BlockStateProperties.HORIZONTAL_FACING)) {
             state = state.setValue(BlockStateProperties.HORIZONTAL_FACING, blockState.getValue(BlockStateProperties.HORIZONTAL_FACING));
         }
         return state;
@@ -74,6 +77,18 @@ public class BlockStateRenderer implements IRenderer {
             itemModel = Minecraft.getInstance().getItemRenderer().getModel(renderItem, null, null);
         }
         return itemModel;
+    }
+
+    @Override
+    @OnlyIn(Dist.CLIENT)
+    @Nonnull
+    public TextureAtlasSprite getParticleTexture() {
+        ItemStack renderItem = getBlockInfo().getItemStackForm();
+        IBakedModel model = getItemModel(renderItem);
+        if (model == null) {
+            return IRenderer.super.getParticleTexture();
+        }
+        return model.getParticleTexture(EmptyModelData.INSTANCE);
     }
 
     @Override

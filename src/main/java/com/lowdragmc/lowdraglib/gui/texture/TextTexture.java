@@ -102,6 +102,7 @@ public class TextTexture implements IGuiTexture{
         return this;
     }
 
+    @OnlyIn(Dist.CLIENT)
     @Override
     public void draw(MatrixStack stack, int mouseX, int mouseY, float x, float y, int width, int height) {
 //        if (backgroundColor != 0) {

@@ -101,11 +101,11 @@ public class ModularUIGuiContainer extends ContainerScreen<ModularUIContainer> {
 
         net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(new net.minecraftforge.client.event.GuiContainerEvent.DrawForeground(this, matrixStack, mouseX, mouseY));
 
+        RenderSystem.depthMask(true);
         renderItemStackOnMouse(mouseX, mouseY);
         renderReturningItemStack();
         
         RenderSystem.popMatrix();
-        RenderSystem.depthMask(true);
         RenderSystem.enableDepthTest();
     }
 
@@ -137,7 +137,7 @@ public class ModularUIGuiContainer extends ContainerScreen<ModularUIContainer> {
     }
 
     public void renderFloatingItem(ItemStack stack, int pX, int pY, @Nullable String text) {
-        RenderSystem.translatef(0.0F, 0.0F, 32.0F);
+        RenderSystem.translatef(0.0F, 0.0F, 232.0F);
         this.setBlitOffset(200); // zlevel
         this.itemRenderer.blitOffset = 200.0F;
         net.minecraft.client.gui.FontRenderer font = stack.getItem().getFontRenderer(stack);
