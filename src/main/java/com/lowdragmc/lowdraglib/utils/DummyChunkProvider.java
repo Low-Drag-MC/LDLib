@@ -1,13 +1,11 @@
 package com.lowdragmc.lowdraglib.utils;
 
-import io.netty.util.collection.LongObjectHashMap;
-import io.netty.util.collection.LongObjectMap;
-import net.minecraft.util.math.ChunkPos;
+import com.lowdragmc.lowdraglib.LDLMod;
+import net.minecraft.client.Minecraft;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.AbstractChunkProvider;
 import net.minecraft.world.chunk.ChunkStatus;
-import net.minecraft.world.chunk.EmptyChunk;
 import net.minecraft.world.chunk.IChunk;
 import net.minecraft.world.lighting.WorldLightManager;
 
@@ -25,7 +23,7 @@ public class DummyChunkProvider extends AbstractChunkProvider {
     @Nullable
     @Override
     public IChunk getChunk(int x, int z, @Nonnull ChunkStatus pRequiredStatus, boolean pLoad) {
-        return new EmptyChunk(world, new ChunkPos(x, z));
+        return null;
     }
 
     @Override
@@ -37,6 +35,9 @@ public class DummyChunkProvider extends AbstractChunkProvider {
     @Override
     @Nonnull
     public WorldLightManager getLightEngine() {
+        if (LDLMod.isClient()) {
+            return Minecraft.getInstance().level.getLightEngine();
+        }
         return null;
     }
 

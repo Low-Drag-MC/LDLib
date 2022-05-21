@@ -1,7 +1,6 @@
 package com.lowdragmc.lowdraglib.utils;
 
 import com.lowdragmc.lowdraglib.core.mixins.DimensionTypeAccessor;
-import mcp.MethodsReturnNonnullByDefault;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
@@ -11,6 +10,7 @@ import net.minecraft.fluid.Fluid;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.fluid.Fluids;
 import net.minecraft.item.crafting.RecipeManager;
+import net.minecraft.profiler.IProfiler;
 import net.minecraft.scoreboard.Scoreboard;
 import net.minecraft.tags.ITagCollectionSupplier;
 import net.minecraft.tileentity.TileEntity;
@@ -35,8 +35,8 @@ import net.minecraft.world.storage.MapData;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.List;
+import java.util.function.Supplier;
 
 /**
  * Author: KilaBash
@@ -139,11 +139,58 @@ public class DummyWorld extends World {
 
     }
 
+    private static final IProfiler dummyProfiler = new IProfiler() {
+        @Override
+        public void startTick() {
+
+        }
+
+        @Override
+        public void endTick() {
+
+        }
+
+        @Override
+        public void push(String pName) {
+
+        }
+
+        @Override
+        public void push(Supplier<String> pNameSupplier) {
+
+        }
+
+        @Override
+        public void pop() {
+
+        }
+
+        @Override
+        public void popPush(String pName) {
+
+        }
+
+        @Override
+        public void popPush(Supplier<String> pNameSupplier) {
+
+        }
+
+        @Override
+        public void incrementCounter(String pEntryId) {
+
+        }
+
+        @Override
+        public void incrementCounter(Supplier<String> pEntryIdSupplier) {
+
+        }
+    };
+
     protected DummyChunkProvider chunkProvider = new DummyChunkProvider(this);
 
     public DummyWorld() {
-        super(SPAWN_WORLD_INFO, null, DIMENSION_TYPE, null,true, false, 0);
-    }
+        super(SPAWN_WORLD_INFO, null, DIMENSION_TYPE, ()-> dummyProfiler,true, false, 0);
+    };
 
     @Override
     public boolean setBlock(BlockPos pPos, BlockState pState, int pFlags, int pRecursionLeft) {
