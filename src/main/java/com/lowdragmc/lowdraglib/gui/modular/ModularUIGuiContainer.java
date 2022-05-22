@@ -204,7 +204,7 @@ public class ModularUIGuiContainer extends ContainerScreen<ModularUIContainer> {
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
         focused = false;
         if (modularUI.mainGroup.keyPressed(keyCode, scanCode, modifiers)) {
-            return true;
+            return false;
         }
         return super.keyPressed(keyCode, scanCode, modifiers);
     }
