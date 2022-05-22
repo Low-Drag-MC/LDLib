@@ -147,7 +147,7 @@ public class IModelRenderer implements IRenderer {
         if (blockState.hasProperty(BlockStateProperties.FACING)) {
             frontFacing = blockState.getValue(BlockStateProperties.FACING);
         } else if (blockState.hasProperty(BlockStateProperties.HORIZONTAL_FACING)) {
-            frontFacing = blockState.getValue(BlockStateProperties.FACING);
+            frontFacing = blockState.getValue(BlockStateProperties.HORIZONTAL_FACING);
         }
         return blockModels.computeIfAbsent(frontFacing, facing -> {
             IBakedModel model = getModel().bake(
