@@ -12,6 +12,7 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
@@ -112,9 +113,8 @@ public class SelectorWidget extends WidgetGroup {
     }
 
     @Override
-    public void onFocusChanged() {
-        ModularUIGuiContainer container = gui.getModularUIGui();
-        if (!container.lastFocus.isParent(this)) {
+    public void onFocusChanged(@Nullable Widget lastFocus, Widget focus) {
+        if (lastFocus != null && !lastFocus.isParent(this) && focus != this) {
             setShow(false);
         }
     }

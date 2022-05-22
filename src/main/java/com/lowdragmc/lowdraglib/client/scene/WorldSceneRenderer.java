@@ -1,6 +1,5 @@
 package com.lowdragmc.lowdraglib.client.scene;
 
-
 import com.lowdragmc.lowdraglib.client.utils.EntityCamera;
 import com.lowdragmc.lowdraglib.client.utils.glu.GLU;
 import com.lowdragmc.lowdraglib.utils.Position;
@@ -14,15 +13,7 @@ import net.minecraft.block.BlockRenderType;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.BlockModelRenderer;
-import net.minecraft.client.renderer.BlockRendererDispatcher;
-import net.minecraft.client.renderer.BufferBuilder;
-import net.minecraft.client.renderer.IRenderTypeBuffer;
-import net.minecraft.client.renderer.RenderHelper;
-import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.RenderTypeLookup;
-import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.WorldRenderer;
+import net.minecraft.client.renderer.*;
 import net.minecraft.client.renderer.texture.AtlasTexture;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.tileentity.TileEntityRenderer;
@@ -52,13 +43,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
@@ -281,8 +266,6 @@ public abstract class WorldSceneRenderer {
         RenderSystem.pushLightingAttributes();
         RenderSystem.pushTextureAttributes();
 
-//        RenderStateHelper.disableLightmap();
-
         RenderSystem.enableDepthTest();
         RenderSystem.enableBlend();
 
@@ -310,6 +293,11 @@ public abstract class WorldSceneRenderer {
         RenderSystem.enableTexture();
         RenderSystem.enableAlphaTest();
         RenderSystem.depthMask(true);
+
+        Minecraft mc = Minecraft.getInstance();
+        RenderSystem.enableCull();
+        RenderSystem.enableRescaleNormal();
+        mc.getTextureManager().bind(AtlasTexture.LOCATION_BLOCKS);
     }
 
     protected void clearView(int x, int y, int width, int height) {
@@ -344,6 +332,8 @@ public abstract class WorldSceneRenderer {
         RenderSystem.depthMask(false);
         RenderSystem.disableDepthTest();
         RenderSystem.enableBlend();
+
+        RenderSystem.bindTexture(-1);
     }
 
     protected void drawWorld() {
@@ -352,9 +342,6 @@ public abstract class WorldSceneRenderer {
         }
 
         Minecraft mc = Minecraft.getInstance();
-        RenderSystem.enableCull();
-        RenderSystem.enableRescaleNormal();
-        mc.getTextureManager().bind(AtlasTexture.LOCATION_BLOCKS);
         RenderType oldRenderLayer = MinecraftForgeClient.getRenderLayer();
 
         float particleTicks = mc.getFrameTime();

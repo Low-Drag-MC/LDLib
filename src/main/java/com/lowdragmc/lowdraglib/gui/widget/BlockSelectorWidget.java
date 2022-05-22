@@ -31,7 +31,7 @@ public class BlockSelectorWidget extends WidgetGroup {
                     onUpdate();
                 }
             }
-        }).setHoverTooltips("multiblocked.gui.tips.block_register");
+        }).setResourceLocationOnly().setHoverTooltips("multiblocked.gui.tips.block_register");
         metaField = (TextFieldWidget) new TextFieldWidget(142, 0, 20, 20, null, s -> {
             meta = Integer.parseInt(s);
             onUpdate();

@@ -243,7 +243,7 @@ public class DummyWorld extends World {
 
     @Override
     public int getBrightness(@Nonnull LightType lightType, @Nonnull BlockPos pos) {
-        return lightType == LightType.SKY ? 15 : 0;
+        return 15;
     }
 
     @Override

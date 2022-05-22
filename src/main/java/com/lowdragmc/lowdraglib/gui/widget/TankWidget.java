@@ -31,6 +31,7 @@ import net.minecraftforge.fluids.capability.IFluidHandler;
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.BiConsumer;
 
 public class TankWidget extends Widget implements IIngredientSlot {
 
@@ -44,6 +45,7 @@ public class TankWidget extends Widget implements IIngredientSlot {
 
     protected FluidStack lastFluidInTank;
     protected int lastTankCapacity;
+    protected BiConsumer<TankWidget, List<ITextComponent>> onAddedTooltips;
 
     public TankWidget(IFluidTank fluidTank, int x, int y, boolean allowClickContainerFilling, boolean allowClickContainerEmptying) {
         super(new Position(x, y), new Size(18, 18));
@@ -52,6 +54,11 @@ public class TankWidget extends Widget implements IIngredientSlot {
         this.allowClickFilling = allowClickContainerFilling;
         this.allowClickEmptying = allowClickContainerEmptying;
         this.drawHoverTips = true;
+    }
+
+    public TankWidget setOnAddedTooltips(BiConsumer<TankWidget, List<ITextComponent>> onAddedTooltips) {
+        this.onAddedTooltips = onAddedTooltips;
+        return this;
     }
 
     public TankWidget setDrawHoverTips(boolean drawHoverTips) {
@@ -101,6 +108,13 @@ public class TankWidget extends Widget implements IIngredientSlot {
         return null;
     }
 
+    private List<ITextComponent> getToolTips(List<ITextComponent> list) {
+        if (this.onAddedTooltips != null) {
+            this.onAddedTooltips.accept(this, list);
+        }
+        return list;
+    }
+
     @Override
     @OnlyIn(Dist.CLIENT)
     public void drawInBackground(@Nonnull MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
@@ -144,20 +158,20 @@ public class TankWidget extends Widget implements IIngredientSlot {
     @Override
     @OnlyIn(Dist.CLIENT)
     public void drawInForeground(@Nonnull MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
-        if (drawHoverTips && isMouseOverElement(mouseX, mouseY) && !lastFluidInTank.isEmpty()) {
+        if (drawHoverTips && isMouseOverElement(mouseX, mouseY)) {
             List<ITextComponent> tooltips = new ArrayList<>();
-            if (lastFluidInTank != null) {
+            if (lastFluidInTank != null && !lastFluidInTank.isEmpty()) {
                 FluidAttributes fluid = lastFluidInTank.getFluid().getAttributes();
                 tooltips.add(fluid.getDisplayName(lastFluidInTank));
-                tooltips.add(new TranslationTextComponent("multiblocked.fluid.amount", lastFluidInTank.getAmount(), lastTankCapacity));
-                tooltips.add(new TranslationTextComponent("multiblocked.fluid.temperature", fluid.getTemperature(lastFluidInTank)));
-                tooltips.add(new TranslationTextComponent(fluid.isGaseous(lastFluidInTank) ? "multiblocked.fluid.state_gas" : "multiblocked.fluid.state_liquid"));
+                tooltips.add(new TranslationTextComponent("ldlib.fluid.amount", lastFluidInTank.getAmount(), lastTankCapacity));
+                tooltips.add(new TranslationTextComponent("ldlib.fluid.temperature", fluid.getTemperature(lastFluidInTank)));
+                tooltips.add(new TranslationTextComponent(fluid.isGaseous(lastFluidInTank) ? "ldlib.fluid.state_gas" : "ldlib.fluid.state_liquid"));
             } else {
-                tooltips.add(new TranslationTextComponent("multiblocked.fluid.empty"));
-                tooltips.add(new TranslationTextComponent("multiblocked.fluid.amount", 0, lastTankCapacity));
+                tooltips.add(new TranslationTextComponent("ldlib.fluid.empty"));
+                tooltips.add(new TranslationTextComponent("ldlib.fluid.amount", 0, lastTankCapacity));
             }
             if (gui != null) {
-                setHoverTooltips(tooltips);
+                setHoverTooltips(getToolTips(tooltips));
                 super.drawInForeground(matrixStack, mouseX, mouseY, partialTicks);
             }
             RenderSystem.color4f(1.0f, 1.0f, 1.0f, 1f);

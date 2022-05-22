@@ -1,5 +1,6 @@
 package com.lowdragmc.lowdraglib.gui.texture;
 
+import com.lowdragmc.lowdraglib.gui.util.DrawerHelper;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -105,11 +106,11 @@ public class TextTexture implements IGuiTexture{
     @OnlyIn(Dist.CLIENT)
     @Override
     public void draw(MatrixStack stack, int mouseX, int mouseY, float x, float y, int width, int height) {
-//        if (backgroundColor != 0) {
-//            new ColorRectTexture(backgroundColor).draw(mouseX, mouseY, x, y, width, height);
-//        }
+        if (backgroundColor != 0) {
+            DrawerHelper.drawSolidRect(stack, (int) x, (int) y, width, height, backgroundColor);
+        }
         stack.pushPose();
-        stack.translate(0, 0, 200);
+        stack.translate(0, 0, 400);
         FontRenderer fontRenderer = Minecraft.getInstance().font;
         int textH = fontRenderer.lineHeight;
         if (type == TextType.NORMAL) {

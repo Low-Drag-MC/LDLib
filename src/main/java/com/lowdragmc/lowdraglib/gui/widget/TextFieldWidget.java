@@ -14,6 +14,7 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.xml.soap.Text;
 import java.util.Locale;
 import java.util.function.Consumer;
@@ -85,7 +86,7 @@ public class TextFieldWidget extends Widget {
     }
 
     @Override
-    public void onFocusChanged() {
+    public void onFocusChanged(@Nullable Widget lastFocus, Widget focus) {
         if (!isFocus()) {
             this.textField.setFocus(false);
         }

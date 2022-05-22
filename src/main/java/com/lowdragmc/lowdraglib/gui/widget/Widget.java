@@ -3,6 +3,7 @@ package com.lowdragmc.lowdraglib.gui.widget;
 import com.google.common.base.Preconditions;
 import com.lowdragmc.lowdraglib.LDLMod;
 import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
+import com.lowdragmc.lowdraglib.gui.modular.ModularUIGuiContainer;
 import com.lowdragmc.lowdraglib.gui.modular.WidgetUIAccess;
 import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
@@ -22,6 +23,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import org.lwjgl.glfw.GLFW;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.awt.Rectangle;
 import java.util.Arrays;
 import java.util.Collections;
@@ -320,14 +322,19 @@ public class Widget {
      */
     @OnlyIn(Dist.CLIENT)
     public final void setFocus(boolean focus) {
-        if (isFocus != focus) {
+        if (isFocus != focus && gui != null) {
+            ModularUIGuiContainer guiContainer = gui.getModularUIGui();
+            Widget lastFocus = guiContainer.lastFocus;
             if (!focus) {
                 isFocus = false;
-                onFocusChanged();
+                if (guiContainer.lastFocus == this) {
+                    guiContainer.lastFocus = null;
+                }
+                onFocusChanged(lastFocus, guiContainer.lastFocus);
             } else {
-                if (gui != null && gui.getModularUIGui().switchFocus(this)) {
+                if (guiContainer.switchFocus(this)) {
                     isFocus = true;
-                    onFocusChanged();
+                    onFocusChanged(lastFocus, guiContainer.lastFocus);
                 }
             }
         }
@@ -339,7 +346,7 @@ public class Widget {
     }
     
     @OnlyIn(Dist.CLIENT)
-    public void onFocusChanged() {
+    public void onFocusChanged(@Nullable Widget lastFocus, Widget focus) {
         
     }
 
