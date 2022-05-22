@@ -95,7 +95,7 @@ public class TankWidget extends Widget implements IIngredientSlot {
 
     @Override
     public Object getIngredientOverMouse(double mouseX, double mouseY) {
-        if (isMouseOverElement(mouseX, mouseY)) {
+        if (isMouseOverElement(mouseX, mouseY) && !lastFluidInTank.isEmpty()) {
             return lastFluidInTank;
         }
         return null;
@@ -120,16 +120,11 @@ public class TankWidget extends Widget implements IIngredientSlot {
         Size size = getSize();
         if (lastFluidInTank != null) {
             RenderSystem.disableBlend();
-            FluidStack stackToDraw = lastFluidInTank;
-            int drawAmount = lastFluidInTank.getAmount();
-            if (showAmount && lastFluidInTank.getAmount() == 0) {
-                stackToDraw = lastFluidInTank.copy();
-                stackToDraw.setAmount(1);
-                drawAmount = 1;
+            if (!lastFluidInTank.isEmpty()) {
+                DrawerHelper.drawFluidForGui(matrixStack, lastFluidInTank, lastFluidInTank.getAmount(), pos.x + 1, pos.y + 1, size.width - 2, size.height - 2);
             }
-            DrawerHelper.drawFluidForGui(matrixStack, stackToDraw, drawAmount, pos.x + 1, pos.y + 1, size.width - 2, size.height - 2);
 
-            if (showAmount) {
+            if (showAmount && !lastFluidInTank.isEmpty()) {
                 matrixStack.pushPose();
                 matrixStack.scale(0.5F, 0.5F, 1);
                 String s = TextFormattingUtil.formatLongToCompactStringBuckets(lastFluidInTank.getAmount(), 3) + "B";
@@ -149,7 +144,7 @@ public class TankWidget extends Widget implements IIngredientSlot {
     @Override
     @OnlyIn(Dist.CLIENT)
     public void drawInForeground(@Nonnull MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
-        if (drawHoverTips && isMouseOverElement(mouseX, mouseY)) {
+        if (drawHoverTips && isMouseOverElement(mouseX, mouseY) && !lastFluidInTank.isEmpty()) {
             List<ITextComponent> tooltips = new ArrayList<>();
             if (lastFluidInTank != null) {
                 FluidAttributes fluid = lastFluidInTank.getFluid().getAttributes();
