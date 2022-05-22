@@ -283,7 +283,6 @@ public abstract class WorldSceneRenderer {
 
 //        RenderStateHelper.disableLightmap();
 
-        RenderSystem.disableLighting();
         RenderSystem.enableDepthTest();
         RenderSystem.enableBlend();
 

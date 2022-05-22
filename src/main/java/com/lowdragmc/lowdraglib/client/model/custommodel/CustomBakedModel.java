@@ -22,12 +22,7 @@ import net.minecraftforge.client.model.pipeline.BakedQuadBuilder;
 
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
-import java.util.EnumMap;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 
 /**
  * Used to baked the model with emissive effect. or multi-layer
