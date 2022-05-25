@@ -2,30 +2,29 @@ package com.lowdragmc.lowdraglib.client.renderer.impl;
 
 import com.lowdragmc.lowdraglib.LDLMod;
 import com.lowdragmc.lowdraglib.client.renderer.IRenderer;
-import com.lowdragmc.lowdraglib.client.utils.FacadeBlockDisplayReader;
+import com.lowdragmc.lowdraglib.utils.FacadeBlockAndTintGetter;
 import com.lowdragmc.lowdraglib.utils.BlockInfo;
 import com.lowdragmc.lowdraglib.utils.FacadeBlockWorld;
-import com.mojang.blaze3d.matrix.MatrixStack;
-import com.mojang.blaze3d.vertex.IVertexBuilder;
-import net.minecraft.block.BlockRenderType;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.BlockRendererDispatcher;
-import net.minecraft.client.renderer.IRenderTypeBuffer;
-import net.minecraft.client.renderer.ItemRenderer;
-import net.minecraft.client.renderer.RenderTypeLookup;
-import net.minecraft.client.renderer.model.IBakedModel;
-import net.minecraft.client.renderer.model.ItemCameraTransforms;
+import net.minecraft.client.renderer.ItemBlockRenderTypes;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.block.BlockRenderDispatcher;
+import net.minecraft.client.renderer.block.model.ItemTransforms;
+import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
+import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.client.renderer.tileentity.TileEntityRenderer;
-import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
-import net.minecraft.item.ItemStack;
-import net.minecraft.state.properties.BlockStateProperties;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IBlockDisplayReader;
-import net.minecraft.world.World;
+import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.BlockAndTintGetter;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.RenderShape;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.MinecraftForgeClient;
@@ -40,7 +39,7 @@ public class BlockStateRenderer implements IRenderer {
 
     public final BlockInfo blockInfo;
     @OnlyIn(Dist.CLIENT)
-    private IBakedModel itemModel;
+    private BakedModel itemModel;
 
     protected BlockStateRenderer() {
         blockInfo = null;
@@ -72,9 +71,9 @@ public class BlockStateRenderer implements IRenderer {
     }
 
     @OnlyIn(Dist.CLIENT)
-    protected IBakedModel getItemModel(ItemStack renderItem) {
+    protected BakedModel getItemModel(ItemStack renderItem) {
         if (itemModel == null) {
-            itemModel = Minecraft.getInstance().getItemRenderer().getModel(renderItem, null, null);
+            itemModel = Minecraft.getInstance().getItemRenderer().getModel(renderItem, null, null, 0);
         }
         return itemModel;
     }
@@ -84,16 +83,16 @@ public class BlockStateRenderer implements IRenderer {
     @Nonnull
     public TextureAtlasSprite getParticleTexture() {
         ItemStack renderItem = getBlockInfo().getItemStackForm();
-        IBakedModel model = getItemModel(renderItem);
+        BakedModel model = getItemModel(renderItem);
         if (model == null) {
             return IRenderer.super.getParticleTexture();
         }
-        return model.getParticleTexture(EmptyModelData.INSTANCE);
+        return model.getParticleIcon(EmptyModelData.INSTANCE);
     }
 
     @Override
     @OnlyIn(Dist.CLIENT)
-    public void renderItem(ItemStack stack, ItemCameraTransforms.TransformType transformType, boolean leftHand, MatrixStack matrixStack, IRenderTypeBuffer buffer, int combinedLight, int combinedOverlay, IBakedModel model) {
+    public void renderItem(ItemStack stack, ItemTransforms.TransformType transformType, boolean leftHand, PoseStack matrixStack, MultiBufferSource buffer, int combinedLight, int combinedOverlay, BakedModel model) {
         ItemRenderer itemRenderer = Minecraft.getInstance().getItemRenderer();
         ItemStack renderItem = getBlockInfo().getItemStackForm();
         itemRenderer.render(renderItem, transformType, leftHand, matrixStack, buffer, combinedLight, combinedOverlay, getItemModel(renderItem));
@@ -102,64 +101,65 @@ public class BlockStateRenderer implements IRenderer {
     @Override
     @OnlyIn(Dist.CLIENT)
     public void renderBlockDamage(BlockState state, BlockPos pos,
-                                  IBlockDisplayReader blockReader,
-                                  MatrixStack matrixStack,
-                                  IVertexBuilder vertexBuilder,
+                                  BlockAndTintGetter blockReader,
+                                  PoseStack poseStack,
+                                  VertexConsumer vertexBuilder,
                                   IModelData modelData) {
         state = getState(state);
-        if (state.getRenderShape() != BlockRenderType.INVISIBLE && RenderTypeLookup.canRenderInLayer(state, MinecraftForgeClient.getRenderLayer())) {
-            BlockRendererDispatcher brd = Minecraft.getInstance().getBlockRenderer();
-            blockReader = new FacadeBlockDisplayReader(blockReader, pos, state, blockReader instanceof World ? getTileEntity((World) blockReader, pos) : blockInfo.getTileEntity());
-            brd.renderBlockDamage(state, pos, blockReader, matrixStack, vertexBuilder, modelData);
+        if (state.getRenderShape() != RenderShape.INVISIBLE && ItemBlockRenderTypes.canRenderInLayer(state, MinecraftForgeClient.getRenderType())) {
+            BlockRenderDispatcher brd = Minecraft.getInstance().getBlockRenderer();
+            blockReader = new FacadeBlockAndTintGetter(blockReader, pos, state, getBlockEntity(blockReader, pos));
+            brd.renderBreakingTexture(state, pos, blockReader, poseStack, vertexBuilder, modelData);
         }
 
     }
 
     @Override
     @OnlyIn(Dist.CLIENT)
-    public boolean renderModel(BlockState state,
-                               BlockPos pos,
-                               IBlockDisplayReader blockReader,
-                               MatrixStack matrixStack,
-                               IVertexBuilder vertexBuilder, boolean checkSides,
+    public boolean renderModel(BlockState state, BlockPos pos,
+                               BlockAndTintGetter blockReader,
+                               PoseStack matrixStack,
+                               VertexConsumer vertexBuilder, boolean checkSides,
                                Random rand, IModelData modelData) {
         state = getState(state);
-        if (state.getRenderShape() != BlockRenderType.INVISIBLE && RenderTypeLookup.canRenderInLayer(state, MinecraftForgeClient.getRenderLayer())) {
-            BlockRendererDispatcher brd = Minecraft.getInstance().getBlockRenderer();
-            blockReader = new FacadeBlockDisplayReader(blockReader, pos, state, blockReader instanceof World ? getTileEntity((World) blockReader, pos) : blockInfo.getTileEntity());
-            return brd.renderModel(state, pos, blockReader, matrixStack, vertexBuilder, checkSides, rand, modelData);
+        if (state.getRenderShape() != RenderShape.INVISIBLE && ItemBlockRenderTypes.canRenderInLayer(state, MinecraftForgeClient.getRenderType())) {
+            BlockRenderDispatcher brd = Minecraft.getInstance().getBlockRenderer();
+            blockReader = new FacadeBlockAndTintGetter(blockReader, pos, state, getBlockEntity(blockReader, pos));
+            return brd.renderBatched(state, pos, blockReader, matrixStack, vertexBuilder, checkSides, rand, modelData);
         }
         return false;
     }
 
     @OnlyIn(Dist.CLIENT)
-    public TileEntity getTileEntity(World world, BlockPos pos) {
+    public BlockEntity getBlockEntity(BlockAndTintGetter world, BlockPos pos) {
         BlockInfo blockInfo = getBlockInfo();
-        TileEntity tile = blockInfo.getTileEntity();
-        if (tile != null && world != null) {
+        BlockEntity tile = blockInfo.getBlockEntity(pos);
+        if (tile != null && world instanceof Level) {
             try {
-                tile.setLevelAndPosition(new FacadeBlockWorld(world, pos, getState(world.getBlockState(pos)), tile), pos);
+                tile.setLevel(new FacadeBlockWorld((Level) world, pos, getState(world.getBlockState(pos)), tile));
             } catch (Throwable throwable) {
-                blockInfo.setTileEntity(null);
+                blockInfo.setHasBlockEntity(false);
             }
         }
         return tile;
     }
 
     @Override
-    public boolean hasTESR(TileEntity tileEntity) {
-        tileEntity = getTileEntity(tileEntity.getLevel(), tileEntity.getBlockPos());
+    @OnlyIn(Dist.CLIENT)
+    public boolean hasTESR(BlockEntity tileEntity) {
+        tileEntity = getBlockEntity(tileEntity.getLevel(), tileEntity.getBlockPos());
         if (tileEntity == null) {
             return false;
         }
-        return TileEntityRendererDispatcher.instance.getRenderer(tileEntity) != null;
+        return Minecraft.getInstance().getBlockEntityRenderDispatcher().getRenderer(tileEntity) != null;
     }
 
     @Override
-    public boolean isGlobalRenderer(TileEntity tileEntity) {
-        tileEntity = getTileEntity(tileEntity.getLevel(), tileEntity.getBlockPos());
+    @OnlyIn(Dist.CLIENT)
+    public boolean isGlobalRenderer(BlockEntity tileEntity) {
+        tileEntity = getBlockEntity(tileEntity.getLevel(), tileEntity.getBlockPos());
         if (tileEntity == null) return false;
-        TileEntityRenderer<TileEntity> tesr = TileEntityRendererDispatcher.instance.getRenderer(tileEntity);
+        BlockEntityRenderer<BlockEntity> tesr = Minecraft.getInstance().getBlockEntityRenderDispatcher().getRenderer(tileEntity);
         if (tesr != null) {
             return tesr.shouldRenderOffScreen(tileEntity);
         }
@@ -167,15 +167,15 @@ public class BlockStateRenderer implements IRenderer {
     }
 
     @Override
-    public void render(TileEntity tileEntity, float partialTicks, MatrixStack stack, IRenderTypeBuffer buffer, int combinedLight, int combinedOverlay) {
-        tileEntity = getTileEntity(tileEntity.getLevel(), tileEntity.getBlockPos());
+    public void render(BlockEntity tileEntity, float partialTicks, PoseStack stack, MultiBufferSource buffer, int combinedLight, int combinedOverlay) {
+        tileEntity = getBlockEntity(tileEntity.getLevel(), tileEntity.getBlockPos());
         if (tileEntity == null) return;
-        TileEntityRenderer<TileEntity> tesr = TileEntityRendererDispatcher.instance.getRenderer(tileEntity);
+        BlockEntityRenderer<BlockEntity> tesr = Minecraft.getInstance().getBlockEntityRenderDispatcher().getRenderer(tileEntity);
         if (tesr != null) {
             try {
                 tesr.render(tileEntity, partialTicks, stack, buffer, combinedLight, combinedOverlay);
             } catch (Exception e){
-                getBlockInfo().setTileEntity(null);
+                getBlockInfo().setHasBlockEntity(false);
             }
         }
     }

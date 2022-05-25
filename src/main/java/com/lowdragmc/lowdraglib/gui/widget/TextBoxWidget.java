@@ -2,16 +2,15 @@ package com.lowdragmc.lowdraglib.gui.widget;
 
 import com.lowdragmc.lowdraglib.utils.Position;
 import com.lowdragmc.lowdraglib.utils.Size;
-import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.FontRenderer;
-import net.minecraft.util.text.ITextProperties;
-import net.minecraft.util.text.Style;
+import net.minecraft.client.gui.Font;
+import net.minecraft.network.chat.FormattedText;
+import net.minecraft.network.chat.Style;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class TextBoxWidget extends Widget {
 
@@ -70,13 +69,15 @@ public class TextBoxWidget extends Widget {
     protected void calculate() {
         if (isRemote()) {
             this.textLines = new ArrayList<>();
-            FontRenderer font = Minecraft.getInstance().font;
+            Font font = Minecraft.getInstance().font;
             this.space = Math.max(space, 0);
             this.fontSize = Math.max(fontSize, 1);
             int wrapWidth = getSize().width * font.lineHeight / fontSize;
             if (content != null) {
                 for (String textLine : content) {
-                    this.textLines.addAll(font.getSplitter().splitLines(textLine, wrapWidth, Style.EMPTY).stream().map(ITextProperties::getString).collect(Collectors.toList()));
+                    this.textLines.addAll(font.getSplitter()
+                            .splitLines(textLine, wrapWidth, Style.EMPTY)
+                            .stream().map(FormattedText::getString).toList());
                 }
             }
             this.setSize(new Size(this.getSize().width, this.textLines.size() * (fontSize + space)));
@@ -84,12 +85,12 @@ public class TextBoxWidget extends Widget {
     }
 
     @Override
-    public void drawInBackground(@Nonnull MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
+    public void drawInBackground(@Nonnull PoseStack matrixStack, int mouseX, int mouseY, float partialTicks) {
         super.drawInBackground(matrixStack, mouseX, mouseY, partialTicks);
         if (!textLines.isEmpty()) {
             Position position = getPosition();
             Size size = getSize();
-            FontRenderer font = Minecraft.getInstance().font;
+            Font font = Minecraft.getInstance().font;
             float scale = fontSize * 1.0f / font.lineHeight;
             matrixStack.pushPose();
             matrixStack.scale(scale, scale, 1);

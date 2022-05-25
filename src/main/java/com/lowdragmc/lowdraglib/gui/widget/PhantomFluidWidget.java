@@ -3,10 +3,10 @@ package com.lowdragmc.lowdraglib.gui.widget;
 import com.google.common.collect.Lists;
 import com.lowdragmc.lowdraglib.gui.ingredient.IGhostIngredientTarget;
 import com.lowdragmc.lowdraglib.gui.ingredient.Target;
-import net.minecraft.client.renderer.Rectangle2d;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.network.PacketBuffer;
+import net.minecraft.client.renderer.Rect2i;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.fluids.FluidStack;
@@ -33,8 +33,7 @@ public class PhantomFluidWidget extends TankWidget implements IGhostIngredientTa
     }
 
     public static FluidStack drainFrom(Object ingredient) {
-        if (ingredient instanceof ItemStack) {
-            ItemStack itemStack = (ItemStack) ingredient;
+        if (ingredient instanceof ItemStack itemStack) {
             itemStack.getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY, null).ifPresent(handler -> handler.drain(Integer.MAX_VALUE, IFluidHandler.FluidAction.SIMULATE));
         }
         return null;
@@ -47,11 +46,11 @@ public class PhantomFluidWidget extends TankWidget implements IGhostIngredientTa
             return Collections.emptyList();
         }
 
-        Rectangle2d rectangle = toRectangleBox();
+        Rect2i rectangle = toRectangleBox();
         return Lists.newArrayList(new Target() {
             @Nonnull
             @Override
-            public Rectangle2d getArea() {
+            public Rect2i getArea() {
                 return rectangle;
             }
 
@@ -64,7 +63,7 @@ public class PhantomFluidWidget extends TankWidget implements IGhostIngredientTa
                     ingredientStack = drainFrom(ingredient);
 
                 if (ingredientStack != null) {
-                    CompoundNBT tagCompound = ingredientStack.writeToNBT(new CompoundNBT());
+                    CompoundTag tagCompound = ingredientStack.writeToNBT(new CompoundTag());
                     writeClientAction(2, buffer -> buffer.writeNbt(tagCompound));
                 }
 
@@ -76,9 +75,9 @@ public class PhantomFluidWidget extends TankWidget implements IGhostIngredientTa
     }
 
     @Override
-    public void handleClientAction(int id, PacketBuffer buffer) {
+    public void handleClientAction(int id, FriendlyByteBuf buffer) {
         if (id == 1) {
-            ItemStack itemStack = gui.entityPlayer.inventory.getCarried().copy();
+            ItemStack itemStack = gui.getModularUIContainer().getCarried().copy();
             if (!itemStack.isEmpty()) {
                 itemStack.setCount(1);
                 itemStack.getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY).ifPresent(handler -> {

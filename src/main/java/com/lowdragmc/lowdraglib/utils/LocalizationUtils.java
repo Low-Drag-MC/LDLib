@@ -1,6 +1,7 @@
 package com.lowdragmc.lowdraglib.utils;
 
 
+import net.minecraft.client.resources.language.I18n;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.fml.loading.FMLEnvironment;
 
@@ -24,7 +25,7 @@ public class LocalizationUtils {
         if (FMLEnvironment.dist == Dist.DEDICATED_SERVER) {
             return String.format(localisationKey, substitutions);
         } else {
-            return net.minecraft.client.resources.I18n.get(localisationKey, substitutions);
+            return I18n.get(localisationKey, substitutions);
         }
     }
 }

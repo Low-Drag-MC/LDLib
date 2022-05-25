@@ -1,15 +1,15 @@
 package com.lowdragmc.lowdraglib.client.utils;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
-import net.minecraft.client.renderer.BufferBuilder;
-import net.minecraft.util.math.vector.Matrix4f;
+import com.mojang.blaze3d.vertex.BufferBuilder;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.math.Matrix4f;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public class RenderBufferUtils {
 
-    public static void renderCubeFrame(MatrixStack matrixStack, BufferBuilder buffer, float minX, float minY, float minZ, float maxX, float maxY, float maxZ, float r, float g, float b, float a) {
+    public static void renderCubeFrame(PoseStack matrixStack, BufferBuilder buffer, float minX, float minY, float minZ, float maxX, float maxY, float maxZ, float r, float g, float b, float a) {
         Matrix4f mat = matrixStack.last().pose();
         buffer.vertex(mat, minX, minY, minZ).color(r, g, b, a).endVertex();
         buffer.vertex(mat, maxX, minY, minZ).color(r, g, b, a).endVertex();
@@ -48,7 +48,7 @@ public class RenderBufferUtils {
         buffer.vertex(mat, minX, maxY, maxZ).color(r, g, b, a).endVertex();
     }
 
-    public static void renderCubeFace(MatrixStack matrixStack, BufferBuilder buffer, float minX, float minY, float minZ, float maxX, float maxY, float maxZ, float red, float green, float blue, float a, boolean shade) {
+    public static void renderCubeFace(PoseStack matrixStack, BufferBuilder buffer, float minX, float minY, float minZ, float maxX, float maxY, float maxZ, float red, float green, float blue, float a, boolean shade) {
         Matrix4f mat = matrixStack.last().pose();
         float r = red, g = green, b = blue;
 

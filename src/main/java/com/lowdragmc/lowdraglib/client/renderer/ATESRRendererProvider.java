@@ -1,13 +1,14 @@
 package com.lowdragmc.lowdraglib.client.renderer;
 
 
-import com.mojang.blaze3d.matrix.MatrixStack;
-import net.minecraft.block.BlockState;
-import net.minecraft.client.renderer.IRenderTypeBuffer;
-import net.minecraft.client.renderer.tileentity.TileEntityRenderer;
-import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.world.World;
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.MethodsReturnNonnullByDefault;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -21,24 +22,34 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * Description: 
  */
 @OnlyIn(Dist.CLIENT)
-public class ATESRRendererProvider<T extends TileEntity> extends TileEntityRenderer<T> {
+@ParametersAreNonnullByDefault
+@MethodsReturnNonnullByDefault
+public class ATESRRendererProvider<T extends BlockEntity> implements BlockEntityRenderer<T> {
 
-    public ATESRRendererProvider(TileEntityRendererDispatcher dispatcher) {
-        super(dispatcher);
+    public ATESRRendererProvider() {
     }
 
     @Override
-    @ParametersAreNonnullByDefault
-    public void render(T te, float partialTicks, MatrixStack stack, IRenderTypeBuffer buffer, int combinedLight, int combinedOverlay) {
-        IRenderer renderer = getRenderer(te);
+    public int getViewDistance() {
+        return BlockEntityRenderer.super.getViewDistance();
+    }
+
+    @Override
+    public boolean shouldRender(T pBlockEntity, Vec3 pCameraPos) {
+        return BlockEntityRenderer.super.shouldRender(pBlockEntity, pCameraPos);
+    }
+
+    @Override
+    public void render(T pBlockEntity, float pPartialTick, PoseStack pPoseStack, MultiBufferSource pBufferSource, int pPackedLight, int pPackedOverlay) {
+        IRenderer renderer = getRenderer(pBlockEntity);
         if (renderer != null && !renderer.isRaw()) {
-            renderer.render(te, partialTicks, stack, buffer, combinedLight, combinedOverlay);
+            renderer.render(pBlockEntity, pPartialTick, pPoseStack, pBufferSource, pPackedLight, pPackedOverlay);
         }
     }
 
     @Nullable
     public IRenderer getRenderer(@Nonnull T tileEntity) {
-        World world = tileEntity.getLevel();
+        Level world = tileEntity.getLevel();
         if (world != null) {
             BlockState state = world.getBlockState(tileEntity.getBlockPos());
             if (state.getBlock() instanceof IBlockRendererProvider) {

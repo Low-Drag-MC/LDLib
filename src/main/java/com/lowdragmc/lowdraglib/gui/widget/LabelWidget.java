@@ -2,10 +2,10 @@ package com.lowdragmc.lowdraglib.gui.widget;
 
 import com.lowdragmc.lowdraglib.utils.Position;
 import com.lowdragmc.lowdraglib.utils.Size;
-import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.FontRenderer;
-import net.minecraft.client.resources.I18n;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.resources.language.I18n;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -42,7 +42,7 @@ public class LabelWidget extends Widget {
 
     @OnlyIn(Dist.CLIENT)
     private void updateSize() {
-        FontRenderer fontRenderer = Minecraft.getInstance().font;
+        Font fontRenderer = Minecraft.getInstance().font;
         String resultText = lastTextValue;
         setSize(new Size(fontRenderer.width(resultText), fontRenderer.lineHeight));
         if (uiAccess != null) {
@@ -52,22 +52,22 @@ public class LabelWidget extends Widget {
 
     @Override
     @OnlyIn(Dist.CLIENT)
-    public void drawInBackground(@Nonnull MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
-        super.drawInBackground(matrixStack, mouseX, mouseY, partialTicks);
+    public void drawInBackground(@Nonnull PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
+        super.drawInBackground(poseStack, mouseX, mouseY, partialTicks);
         String suppliedText = I18n.get(textSupplier.get());
         if (!suppliedText.equals(lastTextValue)) {
             this.lastTextValue = suppliedText;
             updateSize();
         }
         String[] split = suppliedText.split("\n");
-        FontRenderer fontRenderer = Minecraft.getInstance().font;
+        Font fontRenderer = Minecraft.getInstance().font;
         Position position = getPosition();
         for (int i = 0; i < split.length; i++) {
             int y = position.y + (i * (fontRenderer.lineHeight + 2));
             if (drop) {
-                fontRenderer.drawShadow(matrixStack, split[i], position.x, y, color);
+                fontRenderer.drawShadow(poseStack, split[i], position.x, y, color);
             } else {
-                fontRenderer.draw(matrixStack, split[i], position.x, y, color);
+                fontRenderer.draw(poseStack, split[i], position.x, y, color);
             }
         }
     }

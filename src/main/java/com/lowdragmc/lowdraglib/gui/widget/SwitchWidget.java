@@ -7,8 +7,8 @@ import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.util.ClickData;
 import com.lowdragmc.lowdraglib.utils.Position;
 import com.lowdragmc.lowdraglib.utils.Size;
-import com.mojang.blaze3d.matrix.MatrixStack;
-import net.minecraft.network.PacketBuffer;
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -79,12 +79,12 @@ public class SwitchWidget extends Widget {
     }
 
     @Override
-    public void writeInitialData(PacketBuffer buffer) {
+    public void writeInitialData(FriendlyByteBuf buffer) {
         buffer.writeBoolean(isPressed);
     }
 
     @Override
-    public void readInitialData(PacketBuffer buffer) {
+    public void readInitialData(FriendlyByteBuf buffer) {
         isPressed = buffer.readBoolean();
     }
 
@@ -114,7 +114,7 @@ public class SwitchWidget extends Widget {
 
     @Override
     @OnlyIn(Dist.CLIENT)
-    public void drawInBackground(@Nonnull MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
+    public void drawInBackground(@Nonnull PoseStack matrixStack, int mouseX, int mouseY, float partialTicks) {
         Position position = getPosition();
         Size size = getSize();
         if (baseTexture != null && !isPressed) {
@@ -149,7 +149,7 @@ public class SwitchWidget extends Widget {
     }
 
     @Override
-    public void handleClientAction(int id, PacketBuffer buffer) {
+    public void handleClientAction(int id, FriendlyByteBuf buffer) {
         super.handleClientAction(id, buffer);
         if (id == 1) {
             if (onPressCallback != null) {
@@ -162,7 +162,7 @@ public class SwitchWidget extends Widget {
 
     @Override
     @OnlyIn(Dist.CLIENT)
-    public void readUpdateInfo(int id, PacketBuffer buffer) {
+    public void readUpdateInfo(int id, FriendlyByteBuf buffer) {
         if (id == 2) {
             isPressed= buffer.readBoolean();
         } else {

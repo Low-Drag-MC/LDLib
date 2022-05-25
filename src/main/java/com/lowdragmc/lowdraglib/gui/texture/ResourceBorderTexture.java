@@ -1,6 +1,6 @@
 package com.lowdragmc.lowdraglib.gui.texture;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -25,7 +25,7 @@ public class ResourceBorderTexture extends ResourceTexture {
 
     @OnlyIn(Dist.CLIENT)
     @Override
-    public void drawSubArea(MatrixStack stack, float x, float y, int width, int height, float drawnU, float drawnV, float drawnWidth, float drawnHeight) {
+    public void drawSubArea(PoseStack stack, float x, float y, int width, int height, float drawnU, float drawnV, float drawnWidth, float drawnHeight) {
         //compute relative sizes
         float cornerWidth = pixelCornerWidth * 1f / pixelImageWidth;
         float cornerHeight = pixelCornerHeight * 1f / pixelImageHeight;

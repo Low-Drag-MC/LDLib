@@ -6,9 +6,9 @@ import com.lowdragmc.lowdraglib.LDLMod;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.resources.IResource;
-import net.minecraft.resources.data.IMetadataSectionSerializer;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.packs.metadata.MetadataSectionSerializer;
+import net.minecraft.server.packs.resources.Resource;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -36,7 +36,7 @@ public class LDLMetadataSection {
             return METADATA_CACHE.get(res);
         }
         LDLMetadataSection ret;
-        try (IResource resource = Minecraft.getInstance().getResourceManager().getResource(res)) {
+        try (Resource resource = Minecraft.getInstance().getResourceManager().getResource(res)) {
             ret = resource.getMetadata(Serializer.INSTANCE);
         } catch (Exception e) {
             ret = null;
@@ -65,7 +65,7 @@ public class LDLMetadataSection {
         return sprite;
     }
 
-    public static class Serializer implements IMetadataSectionSerializer<LDLMetadataSection> {
+    public static class Serializer implements MetadataSectionSerializer<LDLMetadataSection> {
         static Serializer INSTANCE = new Serializer();
 
         @Override

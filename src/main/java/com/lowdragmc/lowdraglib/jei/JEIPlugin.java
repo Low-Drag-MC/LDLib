@@ -3,19 +3,14 @@ package com.lowdragmc.lowdraglib.jei;
 import com.lowdragmc.lowdraglib.LDLMod;
 import com.lowdragmc.lowdraglib.gui.modular.ModularUIGuiContainer;
 import com.lowdragmc.lowdraglib.gui.modular.ModularUIJeiHandler;
-import mezz.jei.Internal;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.registration.IAdvancedRegistration;
 import mezz.jei.api.registration.IGuiHandlerRegistration;
-import mezz.jei.api.registration.IRecipeCategoryRegistration;
 import mezz.jei.api.runtime.IJeiRuntime;
 import mezz.jei.gui.recipes.RecipeLayout;
 import mezz.jei.gui.recipes.RecipesGui;
-import mezz.jei.input.IShowsRecipeFocuses;
-import mezz.jei.input.InputHandler;
-import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
+import net.minecraft.resources.ResourceLocation;
 
 import javax.annotation.Nonnull;
 import java.lang.reflect.Field;
@@ -74,16 +69,16 @@ public class JEIPlugin implements IModPlugin {
 
 
     public static void setupInputHandler() {
-        try {
-            Field inputHandlerField = Internal.class.getDeclaredField("inputHandler");
-            inputHandlerField.setAccessible(true);
-            InputHandler inputHandler = (InputHandler) inputHandlerField.get(null);
-            List<IShowsRecipeFocuses> showsRecipeFocuses = ObfuscationReflectionHelper.getPrivateValue(InputHandler.class, inputHandler, "showsRecipeFocuses");
-            assert showsRecipeFocuses != null;
-            showsRecipeFocuses.add(0, new MultiblockInfoRecipeFocusShower());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+//        try {
+//            Field inputHandlerField = Internal.class.getDeclaredField("inputHandler");
+//            inputHandlerField.setAccessible(true);
+//            InputHandler inputHandler = (InputHandler) inputHandlerField.get(null);
+//            List<IShowsRecipeFocuses> showsRecipeFocuses = ObfuscationReflectionHelper.getPrivateValue(InputHandler.class, inputHandler, "showsRecipeFocuses");
+//            assert showsRecipeFocuses != null;
+//            showsRecipeFocuses.add(0, new InfoRecipeFocusShower());
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
     }
 
     @Override

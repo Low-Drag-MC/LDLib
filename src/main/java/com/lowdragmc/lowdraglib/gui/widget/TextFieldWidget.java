@@ -3,20 +3,19 @@ package com.lowdragmc.lowdraglib.gui.widget;
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.utils.Position;
 import com.lowdragmc.lowdraglib.utils.Size;
-import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.FontRenderer;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import javax.xml.soap.Text;
-import java.util.Locale;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -24,7 +23,7 @@ import java.util.function.Supplier;
 public class TextFieldWidget extends Widget {
 
     @OnlyIn(Dist.CLIENT)
-    protected net.minecraft.client.gui.widget.TextFieldWidget textField;
+    protected EditBox textField;
 
     protected int maxStringLength = Integer.MAX_VALUE;
     protected Function<String, String> textValidator = (s)->s;
@@ -37,8 +36,8 @@ public class TextFieldWidget extends Widget {
     public TextFieldWidget(int xPosition, int yPosition, int width, int height, Supplier<String> textSupplier, Consumer<String> textResponder) {
         super(new Position(xPosition, yPosition), new Size(width, height));
         if (isRemote()) {
-            FontRenderer fontRenderer = Minecraft.getInstance().font;
-            this.textField = new net.minecraft.client.gui.widget.TextFieldWidget(fontRenderer, xPosition, yPosition, width, height, new StringTextComponent("text field"));
+            Font fontRenderer = Minecraft.getInstance().font;
+            this.textField = new EditBox(fontRenderer, xPosition, yPosition, width, height, new TextComponent("text field"));
             this.textField.setBordered(true);
             isBordered = true;
             this.textField.setMaxLength(this.maxStringLength);
@@ -114,11 +113,11 @@ public class TextFieldWidget extends Widget {
     }
 
     @Override
-    public void drawInBackground(@Nonnull MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
+    public void drawInBackground(@Nonnull PoseStack matrixStack, int mouseX, int mouseY, float partialTicks) {
         super.drawInBackground(matrixStack, mouseX, mouseY, partialTicks);
         this.textField.render(matrixStack, mouseX, mouseY, partialTicks);
         RenderSystem.enableBlend();
-        RenderSystem.color4f(1,1,1,1);
+        RenderSystem.setShaderColor(1,1,1,1);
     }
 
     @Override
@@ -157,7 +156,7 @@ public class TextFieldWidget extends Widget {
 
     @Override
     @OnlyIn(Dist.CLIENT)
-    public void readUpdateInfo(int id, PacketBuffer buffer) {
+    public void readUpdateInfo(int id, FriendlyByteBuf buffer) {
         super.readUpdateInfo(id, buffer);
         if (id == 1) {
             setCurrentString(buffer.readUtf());
@@ -177,7 +176,7 @@ public class TextFieldWidget extends Widget {
     }
 
     @Override
-    public void handleClientAction(int id, PacketBuffer buffer) {
+    public void handleClientAction(int id, FriendlyByteBuf buffer) {
         super.handleClientAction(id, buffer);
         if (id == 1) {
             String lastText = getCurrentString();

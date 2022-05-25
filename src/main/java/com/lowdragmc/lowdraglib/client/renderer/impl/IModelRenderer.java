@@ -5,29 +5,29 @@ import com.lowdragmc.lowdraglib.client.model.ModelFactory;
 import com.lowdragmc.lowdraglib.client.model.custommodel.CustomBakedModel;
 import com.lowdragmc.lowdraglib.client.renderer.IItemRendererProvider;
 import com.lowdragmc.lowdraglib.client.renderer.IRenderer;
-import com.mojang.blaze3d.matrix.MatrixStack;
-import com.mojang.blaze3d.vertex.IVertexBuilder;
-import net.minecraft.block.BlockState;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.BlockRendererDispatcher;
-import net.minecraft.client.renderer.IRenderTypeBuffer;
-import net.minecraft.client.renderer.model.IBakedModel;
-import net.minecraft.client.renderer.model.IUnbakedModel;
-import net.minecraft.client.renderer.model.ItemCameraTransforms;
-import net.minecraft.client.renderer.model.ModelRotation;
-import net.minecraft.client.renderer.model.RenderMaterial;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.block.BlockRenderDispatcher;
+import net.minecraft.client.renderer.block.model.ItemTransforms;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.item.ItemStack;
-import net.minecraft.state.properties.BlockStateProperties;
-import net.minecraft.util.Direction;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IBlockDisplayReader;
+import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.client.resources.model.BlockModelRotation;
+import net.minecraft.client.resources.model.Material;
+import net.minecraft.client.resources.model.UnbakedModel;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.BlockAndTintGetter;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.event.TextureStitchEvent;
-import net.minecraftforge.client.model.ModelLoader;
+import net.minecraftforge.client.model.ForgeModelBakery;
 import net.minecraftforge.client.model.data.EmptyModelData;
 import net.minecraftforge.client.model.data.IModelData;
 
@@ -46,9 +46,9 @@ public class IModelRenderer implements IRenderer {
 
     public final ResourceLocation modelLocation;
     @OnlyIn(Dist.CLIENT)
-    protected IBakedModel itemModel;
+    protected BakedModel itemModel;
     @OnlyIn(Dist.CLIENT)
-    protected Map<Direction, IBakedModel> blockModels;
+    protected Map<Direction, BakedModel> blockModels;
 
     protected IModelRenderer() {
         modelLocation = null;
@@ -69,11 +69,11 @@ public class IModelRenderer implements IRenderer {
     @OnlyIn(Dist.CLIENT)
     @Nonnull
     public TextureAtlasSprite getParticleTexture() {
-        IBakedModel model = getItemBakedModel();
+        BakedModel model = getItemBakedModel();
         if (model == null) {
             return IRenderer.super.getParticleTexture();
         }
-        return model.getParticleTexture(EmptyModelData.INSTANCE);
+        return model.getParticleIcon(EmptyModelData.INSTANCE);
     }
 
     @Override
@@ -82,16 +82,16 @@ public class IModelRenderer implements IRenderer {
     }
 
     @OnlyIn(Dist.CLIENT)
-    protected IUnbakedModel getModel() {
+    protected UnbakedModel getModel() {
         return ModelFactory.getUnBakedModel(modelLocation);
     }
 
     @Override
     public void renderItem(ItemStack stack,
-                           ItemCameraTransforms.TransformType transformType,
-                           boolean leftHand, MatrixStack matrixStack,
-                           IRenderTypeBuffer buffer, int combinedLight,
-                           int combinedOverlay, IBakedModel model) {
+                           ItemTransforms.TransformType transformType,
+                           boolean leftHand, PoseStack matrixStack,
+                           MultiBufferSource buffer, int combinedLight,
+                           int combinedOverlay, BakedModel model) {
         IItemRendererProvider.disabled.set(true);
         model = getItemBakedModel();
         if (model != null) {
@@ -102,38 +102,38 @@ public class IModelRenderer implements IRenderer {
 
     @Override
     public void renderBlockDamage(BlockState state, BlockPos pos,
-                                  IBlockDisplayReader blockReader,
-                                  MatrixStack matrixStack,
-                                  IVertexBuilder vertexBuilder,
+                                  BlockAndTintGetter blockReader,
+                                  PoseStack poseStack,
+                                  VertexConsumer vertexBuilder,
                                   IModelData modelData) {
-        BlockRendererDispatcher brd = Minecraft.getInstance().getBlockRenderer();
-        IBakedModel ibakedmodel = getBlockBakedModel(pos, blockReader);
+        IRenderer.super.renderBlockDamage(state, pos, blockReader, poseStack, vertexBuilder, modelData);
+        BlockRenderDispatcher brd = Minecraft.getInstance().getBlockRenderer();
+        BakedModel ibakedmodel = getBlockBakedModel(pos, blockReader);
         if (ibakedmodel == null) return;
-        brd.getModelRenderer().renderModel(blockReader, ibakedmodel, state, pos, matrixStack, vertexBuilder, true, LDLMod.random, state.getSeed(pos), OverlayTexture.NO_OVERLAY, modelData);
+        brd.getModelRenderer().tesselateBlock(blockReader, ibakedmodel, state, pos, poseStack, vertexBuilder, true, LDLMod.random, state.getSeed(pos), OverlayTexture.NO_OVERLAY, modelData);
     }
 
-    @OnlyIn(Dist.CLIENT)
     @Override
     public boolean renderModel(BlockState state, BlockPos pos,
-                               IBlockDisplayReader blockReader,
-                               MatrixStack matrixStack,
-                               IVertexBuilder vertexBuilder, boolean checkSides,
+                               BlockAndTintGetter blockReader,
+                               PoseStack poseStack,
+                               VertexConsumer vertexBuilder, boolean checkSides,
                                Random rand, IModelData modelData) {
-        BlockRendererDispatcher brd = Minecraft.getInstance().getBlockRenderer();
-        IBakedModel ibakedmodel = getBlockBakedModel(pos, blockReader);
+        BlockRenderDispatcher brd = Minecraft.getInstance().getBlockRenderer();
+        BakedModel ibakedmodel = getBlockBakedModel(pos, blockReader);
         if (ibakedmodel == null) return false;
         if (ibakedmodel instanceof CustomBakedModel && !((CustomBakedModel) ibakedmodel).shouldRenderInLayer(state, rand)) return false;
-        return brd.getModelRenderer().renderModel(blockReader, ibakedmodel, state, pos, matrixStack, vertexBuilder, checkSides, rand, state.getSeed(pos), OverlayTexture.NO_OVERLAY, modelData);
+        return brd.getModelRenderer().tesselateBlock(blockReader, ibakedmodel, state, pos, poseStack, vertexBuilder, checkSides, rand, state.getSeed(pos), OverlayTexture.NO_OVERLAY, modelData);
     }
 
     @OnlyIn(Dist.CLIENT)
     @Nullable
-    protected IBakedModel getItemBakedModel() {
+    protected BakedModel getItemBakedModel() {
         if (itemModel == null) {
             itemModel = getModel().bake(
-                    ModelLoader.instance(),
-                    ModelLoader.defaultTextureGetter(),
-                    ModelRotation.X0_Y0,
+                    ForgeModelBakery.instance(),
+                    ForgeModelBakery.defaultTextureGetter(),
+                    BlockModelRotation.X0_Y0,
                     modelLocation);
         }
         return itemModel;
@@ -141,7 +141,7 @@ public class IModelRenderer implements IRenderer {
 
     @OnlyIn(Dist.CLIENT)
     @Nullable
-    protected IBakedModel getBlockBakedModel(BlockPos pos, IBlockDisplayReader blockAccess) {
+    protected BakedModel getBlockBakedModel(BlockPos pos, BlockAndTintGetter blockAccess) {
         BlockState blockState = blockAccess.getBlockState(pos);
         Direction frontFacing = Direction.NORTH;
         if (blockState.hasProperty(BlockStateProperties.FACING)) {
@@ -150,9 +150,9 @@ public class IModelRenderer implements IRenderer {
             frontFacing = blockState.getValue(BlockStateProperties.HORIZONTAL_FACING);
         }
         return blockModels.computeIfAbsent(frontFacing, facing -> {
-            IBakedModel model = getModel().bake(
-                    ModelLoader.instance(),
-                    ModelLoader.defaultTextureGetter(),
+            BakedModel model = getModel().bake(
+                    ForgeModelBakery.instance(),
+                    ForgeModelBakery.defaultTextureGetter(),
                     ModelFactory.getRotation(facing),
                     modelLocation);
             return model == null ? null : new CustomBakedModel(model);
@@ -163,8 +163,8 @@ public class IModelRenderer implements IRenderer {
     public void onTextureSwitchEvent(TextureStitchEvent.Pre event) {
         itemModel = null;
         blockModels.clear();
-        IUnbakedModel model = getModel();
-        for (RenderMaterial material : model.getMaterials(ModelFactory::getUnBakedModel, new HashSet<>())) {
+        UnbakedModel model = getModel();
+        for (Material material : model.getMaterials(ModelFactory::getUnBakedModel, new HashSet<>())) {
             event.addSprite(material.texture());
         }
     }

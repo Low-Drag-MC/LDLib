@@ -1,12 +1,12 @@
 package com.lowdragmc.lowdraglib.utils;
 
-import com.sun.javafx.geom.Vec3d;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.vector.Vector3d;
-import net.minecraft.util.math.vector.Vector3f;
-import net.minecraft.util.math.vector.Vector3i;
-import net.minecraft.util.math.vector.Vector4f;
+import com.mojang.math.Vector3d;
+import com.mojang.math.Vector3f;
+import com.mojang.math.Vector4f;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Vec3i;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.phys.Vec3;
 
 import java.math.BigDecimal;
 import java.math.MathContext;
@@ -39,24 +39,30 @@ public class Vector3 {
         this.z = vec.z();
     }
 
+    public Vector3(Vec3 vec) {
+        this.x = vec.x();
+        this.y = vec.y();
+        this.z = vec.z();
+    }
+
     public Vector3(Vector3d vec) {
         this.x = vec.x;
         this.y = vec.y;
         this.z = vec.z;
     }
 
-    public Vector3(Vector3i vec) {
+    public Vector3(Vec3i vec) {
         this.x = vec.getX();
         this.y = vec.getY();
         this.z = vec.getZ();
     }
     
-    public static Vector3 fromNBT(CompoundNBT tag) {
+    public static Vector3 fromNBT(CompoundTag tag) {
         return new Vector3(tag.getDouble("x"), tag.getDouble("y"), tag.getDouble("z"));
     }
 
-    public Vec3d vec3() {
-        return new Vec3d(this.x, this.y, this.z);
+    public Vec3 vec3() {
+        return new Vec3(this.x, this.y, this.z);
     }
 
     public BlockPos pos() {
@@ -83,7 +89,7 @@ public class Vector3 {
         return d;
     }
 
-    public CompoundNBT writeToNBT(CompoundNBT tag) {
+    public CompoundTag writeToNBT(CompoundTag tag) {
         tag.putDouble("x", this.x);
         tag.putDouble("y", this.y);
         tag.putDouble("z", this.z);

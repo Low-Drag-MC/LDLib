@@ -1,40 +1,45 @@
 package com.lowdragmc.lowdraglib.utils;
 
 import com.lowdragmc.lowdraglib.core.mixins.DimensionTypeAccessor;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.fluid.Fluid;
-import net.minecraft.fluid.FluidState;
-import net.minecraft.fluid.Fluids;
-import net.minecraft.item.crafting.RecipeManager;
-import net.minecraft.profiler.IProfiler;
-import net.minecraft.scoreboard.Scoreboard;
-import net.minecraft.tags.ITagCollectionSupplier;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.Direction;
-import net.minecraft.util.SoundCategory;
-import net.minecraft.util.SoundEvent;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.registry.DynamicRegistries;
+import net.minecraft.MethodsReturnNonnullByDefault;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.Holder;
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.profiling.ProfilerFiller;
+import net.minecraft.util.profiling.metrics.MetricCategory;
 import net.minecraft.world.Difficulty;
-import net.minecraft.world.DimensionType;
-import net.minecraft.world.GameRules;
-import net.minecraft.world.ITickList;
-import net.minecraft.world.LightType;
-import net.minecraft.world.World;
-import net.minecraft.world.biome.Biome;
-import net.minecraft.world.biome.BiomeRegistry;
-import net.minecraft.world.chunk.AbstractChunkProvider;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.world.level.ColorResolver;
-import net.minecraft.world.lighting.WorldLightManager;
-import net.minecraft.world.storage.ISpawnWorldInfo;
-import net.minecraft.world.storage.MapData;
+import net.minecraft.world.level.GameRules;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LightLayer;
+import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.chunk.ChunkSource;
+import net.minecraft.world.level.dimension.DimensionType;
+import net.minecraft.world.level.entity.LevelEntityGetter;
+import net.minecraft.world.level.gameevent.GameEvent;
+import net.minecraft.world.level.lighting.LevelLightEngine;
+import net.minecraft.world.level.material.Fluid;
+import net.minecraft.world.level.material.FluidState;
+import net.minecraft.world.level.material.Fluids;
+import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
+import net.minecraft.world.level.storage.WritableLevelData;
+import net.minecraft.world.scores.Scoreboard;
+import net.minecraft.world.ticks.LevelTickAccess;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
 
@@ -43,29 +48,31 @@ import java.util.function.Supplier;
  * Date: 2022/04/26
  * Description:
  */
-public class DummyWorld extends World {
+@ParametersAreNonnullByDefault
+@MethodsReturnNonnullByDefault
+public class DummyWorld extends Level {
     public static final DimensionType DIMENSION_TYPE;
-    public static final ISpawnWorldInfo SPAWN_WORLD_INFO;
+    public static final WritableLevelData SPAWN_WORLD_INFO;
     static {
         DIMENSION_TYPE = DimensionTypeAccessor.getDEFAULT_OVERWORLD();
-        SPAWN_WORLD_INFO = new ISpawnWorldInfo() {
+        SPAWN_WORLD_INFO = new WritableLevelData() {
             @Override
-            public void setXSpawn(int pX) {
+            public void setXSpawn(int pXSpawn) {
+                
+            }
+
+            @Override
+            public void setYSpawn(int pYSpawn) {
 
             }
 
             @Override
-            public void setYSpawn(int pY) {
+            public void setZSpawn(int pZSpawn) {
 
             }
 
             @Override
-            public void setZSpawn(int pZ) {
-
-            }
-
-            @Override
-            public void setSpawnAngle(float pAngle) {
+            public void setSpawnAngle(float pSpawnAngle) {
 
             }
 
@@ -110,7 +117,7 @@ public class DummyWorld extends World {
             }
 
             @Override
-            public void setRaining(boolean pIsRaining) {
+            public void setRaining(boolean pRaining) {
 
             }
 
@@ -120,13 +127,11 @@ public class DummyWorld extends World {
             }
 
             @Override
-            @Nonnull
             public GameRules getGameRules() {
                 return new GameRules();
             }
 
             @Override
-            @Nonnull
             public Difficulty getDifficulty() {
                 return Difficulty.PEACEFUL;
             }
@@ -139,7 +144,7 @@ public class DummyWorld extends World {
 
     }
 
-    private static final IProfiler dummyProfiler = new IProfiler() {
+    private static final ProfilerFiller dummyProfiler = new ProfilerFiller() {
         @Override
         public void startTick() {
 
@@ -176,7 +181,17 @@ public class DummyWorld extends World {
         }
 
         @Override
+        public void markForCharting(MetricCategory pCategory) {
+            
+        }
+
+        @Override
         public void incrementCounter(String pEntryId) {
+
+        }
+
+        @Override
+        public void incrementCounter(String p_185258_, int p_185259_) {
 
         }
 
@@ -184,13 +199,19 @@ public class DummyWorld extends World {
         public void incrementCounter(Supplier<String> pEntryIdSupplier) {
 
         }
+
+        @Override
+        public void incrementCounter(Supplier<String> p_185260_,
+                                     int p_185261_) {
+
+        }
     };
 
-    protected DummyChunkProvider chunkProvider = new DummyChunkProvider(this);
+    protected DummyChunkSource chunkProvider = new DummyChunkSource(this);
 
     public DummyWorld() {
-        super(SPAWN_WORLD_INFO, null, DIMENSION_TYPE, ()-> dummyProfiler,true, false, 0);
-    };
+        super(SPAWN_WORLD_INFO, null, new Holder.Direct<>(DIMENSION_TYPE), ()-> dummyProfiler,true, false, 0);
+    }
 
     @Override
     public boolean setBlock(BlockPos pPos, BlockState pState, int pFlags, int pRecursionLeft) {
@@ -198,8 +219,7 @@ public class DummyWorld extends World {
     }
 
     @Override
-    public void setBlockEntity(BlockPos p_175690_1_, @Nullable TileEntity p_175690_2_) {
-        super.setBlockEntity(p_175690_1_, p_175690_2_);
+    public void setBlockEntity(BlockEntity pBlockEntity) {
     }
 
     @Override
@@ -207,9 +227,28 @@ public class DummyWorld extends World {
         return Blocks.AIR.defaultBlockState();
     }
 
+    @Override
+    public void playSound(@Nullable Player pPlayer,
+                          double pX, double pY, double pZ, SoundEvent pSound,
+                          SoundSource pCategory, float pVolume, float pPitch) {
+        
+    }
+
+    @Override
+    public void playSound(@Nullable Player pPlayer,
+                          Entity pEntity, SoundEvent pEvent,
+                          SoundSource pCategory, float pVolume, float pPitch) {
+
+    }
+
+    @Override
+    public String gatherChunkSourceStats() {
+        return null;
+    }
+
     @Nullable
     @Override
-    public TileEntity getBlockEntity(BlockPos pPos) {
+    public BlockEntity getBlockEntity(BlockPos pPos) {
         return null;
     }
 
@@ -231,18 +270,17 @@ public class DummyWorld extends World {
     }
 
     @Override
-    public WorldLightManager getLightEngine() {
+    public LevelLightEngine getLightEngine() {
         return null;
     }
 
     @Override
-    public int getBlockTint(@Nonnull BlockPos blockPos, @Nonnull
-            ColorResolver colorResolver) {
-        return colorResolver.getColor(BiomeRegistry.PLAINS, blockPos.getX(), blockPos.getY());
+    public int getBlockTint(@Nonnull BlockPos blockPos, @Nonnull ColorResolver colorResolver) {
+        return colorResolver.getColor(this.getBiome(blockPos).value(), blockPos.getX(), blockPos.getY());
     }
 
     @Override
-    public int getBrightness(@Nonnull LightType lightType, @Nonnull BlockPos pos) {
+    public int getBrightness(LightLayer pLightType, BlockPos pBlockPos) {
         return 15;
     }
 
@@ -262,8 +300,8 @@ public class DummyWorld extends World {
     }
 
     @Override
-    public Biome getUncachedNoiseBiome(int x, int y, int z) {
-        return null;
+    public Holder<Biome> getUncachedNoiseBiome(int x, int y, int z) {
+        return Holder.direct(null);
     }
 
 
@@ -273,12 +311,12 @@ public class DummyWorld extends World {
     }
 
     @Override
-    public MapData getMapData(String mapName) {
+    public MapItemSavedData getMapData(String mapName) {
         return null;
     }
 
     @Override
-    public void setMapData(MapData mapDataIn) {
+    public void setMapData(String pMapId, MapItemSavedData pData) {
 
     }
 
@@ -303,29 +341,20 @@ public class DummyWorld extends World {
     }
 
     @Override
-    public ITagCollectionSupplier getTagManager() {
+    protected LevelEntityGetter<Entity> getEntities() {
         return null;
     }
 
     @Override
-    public void playSound(PlayerEntity player, double x, double y, double z, SoundEvent soundIn, SoundCategory category, float volume, float pitch) {
-
-    }
-
-    @Override
-    public void playSound(PlayerEntity playerIn, Entity entityIn, SoundEvent eventIn, SoundCategory categoryIn, float volume, float pitch) {
-
-    }
-
-    @Override
-    public ITickList<Block> getBlockTicks() {
+    public LevelTickAccess<Block> getBlockTicks() {
         return null;
     }
 
     @Override
-    public ITickList<Fluid> getLiquidTicks() {
+    public LevelTickAccess<Fluid> getFluidTicks() {
         return null;
     }
+
 
     @Override
     public boolean isLoaded(BlockPos p_195588_1_) {
@@ -333,23 +362,28 @@ public class DummyWorld extends World {
     }
 
     @Override
-    public AbstractChunkProvider getChunkSource() {
+    public ChunkSource getChunkSource() {
         return chunkProvider;
     }
 
     @Override
-    public void levelEvent(PlayerEntity playerEntity, int i, BlockPos blockPos, int i1) {
+    public void levelEvent(@Nullable Player pPlayer, int pType, BlockPos pPos, int pData) {
 
     }
 
     @Override
-    public DynamicRegistries registryAccess() {
+    public void gameEvent(@Nullable Entity pEntity, GameEvent pEvent, BlockPos pPos) {
+
+    }
+
+    @Override
+    public RegistryAccess registryAccess() {
         return null;
     }
 
     @Override
-    public List<? extends PlayerEntity> players() {
-        return null;
+    public List<? extends Player> players() {
+        return Collections.EMPTY_LIST;
     }
 
     @Override

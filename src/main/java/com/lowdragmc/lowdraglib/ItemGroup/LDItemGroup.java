@@ -1,14 +1,14 @@
 package com.lowdragmc.lowdraglib.ItemGroup;
 
-import net.minecraft.item.ItemGroup;
-import net.minecraft.item.ItemStack;
+import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 import javax.annotation.Nonnull;
 import java.util.function.Supplier;
 
-public class LDItemGroup extends ItemGroup {
+public class LDItemGroup extends CreativeModeTab {
 
     protected String domain, id;
     protected Supplier<ItemStack> iconSupplier;

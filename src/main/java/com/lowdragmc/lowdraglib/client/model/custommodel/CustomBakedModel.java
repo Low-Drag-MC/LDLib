@@ -3,18 +3,18 @@ package com.lowdragmc.lowdraglib.client.model.custommodel;
 import com.google.common.collect.Table;
 import com.google.common.collect.Tables;
 import com.lowdragmc.lowdraglib.client.bakedpipeline.VertexBuilder;
-import mcp.MethodsReturnNonnullByDefault;
-import net.minecraft.block.BlockState;
+import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+import com.mojang.blaze3d.vertex.VertexFormat;
+import com.mojang.blaze3d.vertex.VertexFormatElement;
+import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.model.BakedQuad;
-import net.minecraft.client.renderer.model.IBakedModel;
-import net.minecraft.client.renderer.model.ItemCameraTransforms;
-import net.minecraft.client.renderer.model.ItemOverrideList;
+import net.minecraft.client.renderer.block.model.BakedQuad;
+import net.minecraft.client.renderer.block.model.ItemOverrides;
+import net.minecraft.client.renderer.block.model.ItemTransforms;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
-import net.minecraft.client.renderer.vertex.VertexFormat;
-import net.minecraft.client.renderer.vertex.VertexFormatElement;
-import net.minecraft.util.Direction;
+import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.core.Direction;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.MinecraftForgeClient;
@@ -22,7 +22,12 @@ import net.minecraftforge.client.model.pipeline.BakedQuadBuilder;
 
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
-import java.util.*;
+import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
 
 /**
  * Used to baked the model with emissive effect. or multi-layer
@@ -32,12 +37,12 @@ import java.util.*;
 @OnlyIn(Dist.CLIENT)
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class CustomBakedModel implements IBakedModel {
-    private final IBakedModel parent;
+public class CustomBakedModel implements BakedModel {
+    private final BakedModel parent;
     private final Table<RenderType, Direction, List<BakedQuad>> sideCache;
     private final Map<RenderType, List<BakedQuad>> noSideCache;
 
-    public CustomBakedModel(IBakedModel parent) {
+    public CustomBakedModel(BakedModel parent) {
         this.parent = parent;
         this.noSideCache = new HashMap<>(RenderType.chunkBufferLayers().size());
         this.sideCache = Tables.newCustomTable(new HashMap<>(RenderType.chunkBufferLayers().size()), ()-> new EnumMap<>(Direction.class));
@@ -53,7 +58,7 @@ public class CustomBakedModel implements IBakedModel {
 
     @Override
     public List<BakedQuad> getQuads(@Nullable BlockState state, @Nullable Direction side, Random rand) {
-        RenderType currentLayer = MinecraftForgeClient.getRenderLayer();
+        RenderType currentLayer = MinecraftForgeClient.getRenderType();
         currentLayer = currentLayer == null ? RenderType.cutoutMipped() : currentLayer;
         if (side == null) {
             if (!noSideCache.containsKey(currentLayer)) {
@@ -88,7 +93,7 @@ public class CustomBakedModel implements IBakedModel {
     }
 
     public static BakedQuad reBakeEmissive(BakedQuad quad) {
-        VertexBuilder builder = new VertexBuilder(DefaultVertexFormats.BLOCK, quad.getSprite());
+        VertexBuilder builder = new VertexBuilder(DefaultVertexFormat.BLOCK, quad.getSprite());
         quad.pipe(builder);
         VertexFormat format = builder.vertexFormat;
 
@@ -101,7 +106,7 @@ public class CustomBakedModel implements IBakedModel {
         for (int v = 0; v < 4; v++) {
             for (int i = 0; i < format.getElements().size(); i++) {
                 VertexFormatElement ele = format.getElements().get(i);
-                if (ele == DefaultVertexFormats.ELEMENT_UV2) {
+                if (ele == DefaultVertexFormat.ELEMENT_UV2) {
                     unpackedBuilder.put(i, (15<<4)/32768.0f, (15<<4)/32768.0f, 0, 1);
                 } else {
                     unpackedBuilder.put(i, builder.data.get(ele).get(v));
@@ -137,12 +142,12 @@ public class CustomBakedModel implements IBakedModel {
     }
 
     @Override
-    public ItemCameraTransforms getTransforms() {
+    public ItemTransforms getTransforms() {
         return parent.getTransforms();
     }
 
     @Override
-    public ItemOverrideList getOverrides() {
+    public ItemOverrides getOverrides() {
         return parent.getOverrides();
     }
 }

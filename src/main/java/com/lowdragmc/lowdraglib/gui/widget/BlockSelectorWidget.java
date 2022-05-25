@@ -1,11 +1,11 @@
 package com.lowdragmc.lowdraglib.gui.widget;
 
 import com.lowdragmc.lowdraglib.gui.texture.ColorBorderTexture;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.item.BlockItem;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.items.IItemHandlerModifiable;
 import net.minecraftforge.items.ItemStackHandler;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -41,7 +41,7 @@ public class BlockSelectorWidget extends WidgetGroup {
                 .setClearSlotOnRightClick(true)
                 .setChangeListener(() -> {
                     ItemStack stack = handler.getStackInSlot(0);
-                    if (stack.isEmpty() || !(stack.getItem() instanceof BlockItem)) {
+                    if (stack.isEmpty() || !(stack.getItem() instanceof BlockItem itemBlock)) {
                         if (block != null) {
                             block = null;
                             meta = 0;
@@ -50,7 +50,6 @@ public class BlockSelectorWidget extends WidgetGroup {
                             onUpdate();
                         }
                     } else {
-                        BlockItem itemBlock = (BlockItem) stack.getItem();
                         block = itemBlock.getBlock();
                         meta = 0;
                         blockField.setCurrentString(block.getRegistryName() == null ? "" : block.getRegistryName().toString());

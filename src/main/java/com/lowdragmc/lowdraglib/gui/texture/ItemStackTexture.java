@@ -1,10 +1,9 @@
 package com.lowdragmc.lowdraglib.gui.texture;
 
 import com.lowdragmc.lowdraglib.gui.util.DrawerHelper;
-import com.mojang.blaze3d.matrix.MatrixStack;
-import com.mojang.blaze3d.platform.GlStateManager;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -33,7 +32,7 @@ public class ItemStackTexture implements IGuiTexture{
 
     @OnlyIn(Dist.CLIENT)
     @Override
-    public void draw(MatrixStack mStack, int mouseX, int mouseY, float x, float y, int width, int height) {
+    public void draw(PoseStack mStack, int mouseX, int mouseY, float x, float y, int width, int height) {
         if (itemStack.length == 0) return;
         mStack.pushPose();
         mStack.scale(width / 16f, height / 16f, (width + height) / 32f);

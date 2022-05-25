@@ -6,18 +6,18 @@ import com.lowdragmc.lowdraglib.gui.util.DrawerHelper;
 import com.lowdragmc.lowdraglib.gui.util.TextFormattingUtil;
 import com.lowdragmc.lowdraglib.utils.Position;
 import com.lowdragmc.lowdraglib.utils.Size;
-import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.FontRenderer;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.util.SoundCategory;
-import net.minecraft.util.SoundEvent;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.client.gui.Font;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.fluids.FluidActionResult;
@@ -45,7 +45,7 @@ public class TankWidget extends Widget implements IIngredientSlot {
 
     protected FluidStack lastFluidInTank;
     protected int lastTankCapacity;
-    protected BiConsumer<TankWidget, List<ITextComponent>> onAddedTooltips;
+    protected BiConsumer<TankWidget, List<Component>> onAddedTooltips;
 
     public TankWidget(IFluidTank fluidTank, int x, int y, boolean allowClickContainerFilling, boolean allowClickContainerEmptying) {
         super(new Position(x, y), new Size(18, 18));
@@ -56,7 +56,7 @@ public class TankWidget extends Widget implements IIngredientSlot {
         this.drawHoverTips = true;
     }
 
-    public TankWidget setOnAddedTooltips(BiConsumer<TankWidget, List<ITextComponent>> onAddedTooltips) {
+    public TankWidget setOnAddedTooltips(BiConsumer<TankWidget, List<Component>> onAddedTooltips) {
         this.onAddedTooltips = onAddedTooltips;
         return this;
     }
@@ -108,7 +108,7 @@ public class TankWidget extends Widget implements IIngredientSlot {
         return null;
     }
 
-    private List<ITextComponent> getToolTips(List<ITextComponent> list) {
+    private List<Component> getToolTips(List<Component> list) {
         if (this.onAddedTooltips != null) {
             this.onAddedTooltips.accept(this, list);
         }
@@ -117,7 +117,7 @@ public class TankWidget extends Widget implements IIngredientSlot {
 
     @Override
     @OnlyIn(Dist.CLIENT)
-    public void drawInBackground(@Nonnull MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
+    public void drawInBackground(@Nonnull PoseStack matrixStack, int mouseX, int mouseY, float partialTicks) {
         super.drawInBackground(matrixStack, mouseX, mouseY, partialTicks);
         if (isClientSideWidget) {
             FluidStack fluidStack = fluidTank.getFluid();
@@ -142,13 +142,13 @@ public class TankWidget extends Widget implements IIngredientSlot {
                 matrixStack.pushPose();
                 matrixStack.scale(0.5F, 0.5F, 1);
                 String s = TextFormattingUtil.formatLongToCompactStringBuckets(lastFluidInTank.getAmount(), 3) + "B";
-                FontRenderer fontRenderer = Minecraft.getInstance().font;
+                Font fontRenderer = Minecraft.getInstance().font;
                 fontRenderer.drawShadow(matrixStack, s, (pos.x + (size.width / 3f)) * 2 - fontRenderer.width(s) + 21, (pos.y + (size.height / 3f) + 6) * 2, 0xFFFFFF);
                 matrixStack.popPose();
             }
 
             RenderSystem.enableBlend();
-            RenderSystem.color4f(1, 1, 1, 1);
+            RenderSystem.setShaderColor(1, 1, 1, 1);
         }
         if (overlay != null) {
             overlay.draw(matrixStack, mouseX, mouseY, pos.x, pos.y, size.width, size.height);
@@ -157,24 +157,24 @@ public class TankWidget extends Widget implements IIngredientSlot {
 
     @Override
     @OnlyIn(Dist.CLIENT)
-    public void drawInForeground(@Nonnull MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
+    public void drawInForeground(@Nonnull PoseStack matrixStack, int mouseX, int mouseY, float partialTicks) {
         if (drawHoverTips && isMouseOverElement(mouseX, mouseY)) {
-            List<ITextComponent> tooltips = new ArrayList<>();
+            List<Component> tooltips = new ArrayList<>();
             if (lastFluidInTank != null && !lastFluidInTank.isEmpty()) {
                 FluidAttributes fluid = lastFluidInTank.getFluid().getAttributes();
                 tooltips.add(fluid.getDisplayName(lastFluidInTank));
-                tooltips.add(new TranslationTextComponent("ldlib.fluid.amount", lastFluidInTank.getAmount(), lastTankCapacity));
-                tooltips.add(new TranslationTextComponent("ldlib.fluid.temperature", fluid.getTemperature(lastFluidInTank)));
-                tooltips.add(new TranslationTextComponent(fluid.isGaseous(lastFluidInTank) ? "ldlib.fluid.state_gas" : "ldlib.fluid.state_liquid"));
+                tooltips.add(new TranslatableComponent("ldlib.fluid.amount", lastFluidInTank.getAmount(), lastTankCapacity));
+                tooltips.add(new TranslatableComponent("ldlib.fluid.temperature", fluid.getTemperature(lastFluidInTank)));
+                tooltips.add(new TranslatableComponent(fluid.isGaseous(lastFluidInTank) ? "ldlib.fluid.state_gas" : "ldlib.fluid.state_liquid"));
             } else {
-                tooltips.add(new TranslationTextComponent("ldlib.fluid.empty"));
-                tooltips.add(new TranslationTextComponent("ldlib.fluid.amount", 0, lastTankCapacity));
+                tooltips.add(new TranslatableComponent("ldlib.fluid.empty"));
+                tooltips.add(new TranslatableComponent("ldlib.fluid.amount", 0, lastTankCapacity));
             }
             if (gui != null) {
                 setHoverTooltips(getToolTips(tooltips));
                 super.drawInForeground(matrixStack, mouseX, mouseY, partialTicks);
             }
-            RenderSystem.color4f(1.0f, 1.0f, 1.0f, 1f);
+            RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1f);
         }
     }
 
@@ -187,7 +187,7 @@ public class TankWidget extends Widget implements IIngredientSlot {
         }
         if (!fluidStack.isFluidEqual(lastFluidInTank)) {
             this.lastFluidInTank = fluidStack.copy();
-            CompoundNBT fluidStackTag = fluidStack.writeToNBT(new CompoundNBT());
+            CompoundTag fluidStackTag = fluidStack.writeToNBT(new CompoundTag());
             writeUpdateInfo(2, buffer -> buffer.writeNbt(fluidStackTag));
         } else if (fluidStack.getAmount() != lastFluidInTank.getAmount()) {
             this.lastFluidInTank.setAmount(fluidStack.getAmount());
@@ -196,23 +196,23 @@ public class TankWidget extends Widget implements IIngredientSlot {
     }
 
     @Override
-    public void writeInitialData(PacketBuffer buffer) {
+    public void writeInitialData(FriendlyByteBuf buffer) {
         this.lastTankCapacity = fluidTank.getCapacity();
         buffer.writeVarInt(lastTankCapacity);
         FluidStack fluidStack = fluidTank.getFluid();
         this.lastFluidInTank = fluidStack.copy();
-        buffer.writeNbt(fluidStack.writeToNBT(new CompoundNBT()));
+        buffer.writeNbt(fluidStack.writeToNBT(new CompoundTag()));
     }
 
     @Override
-    public void readInitialData(PacketBuffer buffer) {
+    public void readInitialData(FriendlyByteBuf buffer) {
         this.lastTankCapacity = buffer.readVarInt();
         readUpdateInfo(2, buffer);
     }
 
     @Override
     @OnlyIn(Dist.CLIENT)
-    public void readUpdateInfo(int id, PacketBuffer buffer) {
+    public void readUpdateInfo(int id, FriendlyByteBuf buffer) {
         if (id == 0) {
             this.lastTankCapacity = buffer.readVarInt();
         } else if (id == 1) {
@@ -222,15 +222,15 @@ public class TankWidget extends Widget implements IIngredientSlot {
         } else if (id == 3 && lastFluidInTank != null) {
             this.lastFluidInTank.setAmount(buffer.readVarInt());
         } else if (id == 4) {
-            ItemStack currentStack = gui.entityPlayer.inventory.getCarried();
+            ItemStack currentStack = gui.getModularUIContainer().getCarried();
             int newStackSize = buffer.readVarInt();
             currentStack.setCount(newStackSize);
-            gui.entityPlayer.inventory.setCarried(currentStack);
+            gui.getModularUIContainer().setCarried(currentStack);
         }
     }
 
     @Override
-    public void handleClientAction(int id, PacketBuffer buffer) {
+    public void handleClientAction(int id, FriendlyByteBuf buffer) {
         super.handleClientAction(id, buffer);
         if (id == 1) {
             boolean isShiftKeyDown = buffer.readBoolean();
@@ -242,8 +242,8 @@ public class TankWidget extends Widget implements IIngredientSlot {
     }
 
     private int tryClickContainer(boolean isShiftKeyDown) {
-        PlayerEntity player = gui.entityPlayer;
-        ItemStack currentStack = player.inventory.getCarried();
+        Player player = gui.entityPlayer;
+        ItemStack currentStack = gui.getModularUIContainer().getCarried();
         if (currentStack.getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY).isPresent()) return -1;
         int maxAttempts = isShiftKeyDown ? currentStack.getCount() : 1;
 
@@ -255,7 +255,7 @@ public class TankWidget extends Widget implements IIngredientSlot {
                         (IFluidHandler) fluidTank, Integer.MAX_VALUE, null, false);
                 if (!result.isSuccess()) break;
                 ItemStack remainingStack = result.getResult();
-                if (!remainingStack.isEmpty() && !player.inventory.add(remainingStack))
+                if (!remainingStack.isEmpty() && !player.getInventory().add(remainingStack))
                     break; //do not continue if we can't add resulting container into inventory
                 FluidUtil.tryFillContainer(currentStack, (IFluidHandler) fluidTank, Integer.MAX_VALUE, null, true);
                 currentStack.shrink(1);
@@ -263,8 +263,8 @@ public class TankWidget extends Widget implements IIngredientSlot {
             }
             if (performedFill) {
                 SoundEvent soundevent = initialFluid.getFluid().getAttributes().getFillSound(initialFluid);
-                player.level.playSound(null, player.position().x, player.position().y + 0.5, player.position().z, soundevent, SoundCategory.BLOCKS, 1.0F, 1.0F);
-                gui.entityPlayer.inventory.setCarried(currentStack);
+                player.level.playSound(null, player.position().x, player.position().y + 0.5, player.position().z, soundevent, SoundSource.BLOCKS, 1.0F, 1.0F);
+                gui.getModularUIContainer().setCarried(currentStack);
                 return currentStack.getCount();
             }
         }
@@ -276,7 +276,7 @@ public class TankWidget extends Widget implements IIngredientSlot {
                         (IFluidHandler) fluidTank, Integer.MAX_VALUE, null, false);
                 if (!result.isSuccess()) break;
                 ItemStack remainingStack = result.getResult();
-                if (!remainingStack.isEmpty() && !player.inventory.add(remainingStack))
+                if (!remainingStack.isEmpty() && !player.getInventory().add(remainingStack))
                     break; //do not continue if we can't add resulting container into inventory
                 FluidUtil.tryEmptyContainer(currentStack, (IFluidHandler) fluidTank, Integer.MAX_VALUE, null, true);
                 currentStack.shrink(1);
@@ -285,8 +285,8 @@ public class TankWidget extends Widget implements IIngredientSlot {
             FluidStack filledFluid = fluidTank.getFluid();
             if (performedEmptying) {
                 SoundEvent soundevent = filledFluid.getFluid().getAttributes().getEmptySound(filledFluid);
-                player.level.playSound(null, player.position().x, player.position().y + 0.5, player.position().z, soundevent, SoundCategory.BLOCKS, 1.0F, 1.0F);
-                gui.entityPlayer.inventory.setCarried(currentStack);
+                player.level.playSound(null, player.position().x, player.position().y + 0.5, player.position().z, soundevent, SoundSource.BLOCKS, 1.0F, 1.0F);
+                gui.getModularUIContainer().setCarried(currentStack);
                 return currentStack.getCount();
             }
         }
@@ -297,7 +297,7 @@ public class TankWidget extends Widget implements IIngredientSlot {
     @OnlyIn(Dist.CLIENT)
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if ((allowClickEmptying || allowClickFilling) && isMouseOverElement(mouseX, mouseY)) {
-            ItemStack currentStack = gui.entityPlayer.inventory.getCarried();
+            ItemStack currentStack = gui.getModularUIContainer().getCarried();
             if (button == 0 && currentStack.getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY).isPresent()) {
                 boolean isShiftKeyDown = isShiftDown();
                 writeClientAction(1, writer -> writer.writeBoolean(isShiftKeyDown));

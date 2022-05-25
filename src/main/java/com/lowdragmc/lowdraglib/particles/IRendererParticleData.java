@@ -3,12 +3,12 @@ package com.lowdragmc.lowdraglib.particles;
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.serialization.Codec;
-import mcp.MethodsReturnNonnullByDefault;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.particles.IParticleData;
-import net.minecraft.particles.ParticleType;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.registry.Registry;
+import net.minecraft.MethodsReturnNonnullByDefault;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Registry;
+import net.minecraft.core.particles.ParticleOptions;
+import net.minecraft.core.particles.ParticleType;
+import net.minecraft.network.FriendlyByteBuf;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -19,16 +19,19 @@ import javax.annotation.ParametersAreNonnullByDefault;
  */
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class IRendererParticleData implements IParticleData {
-    public static final IParticleData.IDeserializer<IRendererParticleData> DESERIALIZER = new IParticleData.IDeserializer<IRendererParticleData>() {
+public class IRendererParticleData implements ParticleOptions {
+    public static final ParticleOptions.Deserializer<IRendererParticleData> DESERIALIZER = new ParticleOptions.Deserializer<IRendererParticleData>() {
         public IRendererParticleData fromCommand(ParticleType<IRendererParticleData> pParticleType, StringReader pReader) throws CommandSyntaxException {
             pReader.expect(' ');
             return new IRendererParticleData(pParticleType, BlockPos.ZERO);
         }
 
-        public IRendererParticleData fromNetwork(ParticleType<IRendererParticleData> pParticleType, PacketBuffer pBuffer) {
+        @Override
+        public IRendererParticleData fromNetwork(ParticleType<IRendererParticleData> pParticleType, FriendlyByteBuf pBuffer) {
             return new IRendererParticleData(pParticleType, pBuffer.readBlockPos());
+
         }
+
     };
 
     public static Codec<IRendererParticleData> codec(ParticleType<IRendererParticleData> type) {
@@ -49,7 +52,7 @@ public class IRendererParticleData implements IParticleData {
     }
 
     @Override
-    public void writeToNetwork(PacketBuffer pBuffer) {
+    public void writeToNetwork(FriendlyByteBuf pBuffer) {
         pBuffer.writeBlockPos(pos);
     }
 

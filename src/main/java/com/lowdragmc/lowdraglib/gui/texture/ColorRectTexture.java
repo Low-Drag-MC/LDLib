@@ -1,7 +1,7 @@
 package com.lowdragmc.lowdraglib.gui.texture;
 
 import com.lowdragmc.lowdraglib.gui.util.DrawerHelper;
-import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -28,7 +28,7 @@ public class ColorRectTexture implements IGuiTexture{
 
     @OnlyIn(Dist.CLIENT)
     @Override
-    public void draw(MatrixStack stack, int mouseX, int mouseY, float x, float y, int width, int height) {
+    public void draw(PoseStack stack, int mouseX, int mouseY, float x, float y, int width, int height) {
         DrawerHelper.drawSolidRect(stack, (int) x, (int) y, width, height, color);
     }
 }

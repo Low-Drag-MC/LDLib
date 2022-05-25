@@ -18,7 +18,6 @@ public class LDLMod {
     public static final Logger LOGGER = LogManager.getLogger("LowDragLib");
     public static final String MODID_JEI = "jei";
     public static final Random random = new Random();
-    public static final Random RNG = new Random();
 
     public LDLMod() {
         System.setProperty("java.awt.headless", "false");

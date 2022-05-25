@@ -7,18 +7,22 @@ import com.lowdragmc.lowdraglib.client.shader.management.ShaderManager;
 import com.lowdragmc.lowdraglib.client.shader.management.ShaderProgram;
 import com.lowdragmc.lowdraglib.client.shader.uniform.UniformCache;
 import com.lowdragmc.lowdraglib.gui.util.DrawerHelper;
-import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.BufferBuilder;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.Tesselator;
+import com.mojang.blaze3d.vertex.VertexFormat;
+import com.mojang.math.Matrix4f;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.BufferBuilder;
-import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.vector.Matrix4f;
+import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 import java.util.function.Consumer;
+
+import static com.mojang.blaze3d.vertex.DefaultVertexFormat.POSITION_TEX;
 
 public class ShaderTexture implements IGuiTexture {
     @OnlyIn(Dist.CLIENT)
@@ -103,7 +107,7 @@ public class ShaderTexture implements IGuiTexture {
 
     @Override
     @OnlyIn(Dist.CLIENT)
-    public void draw(MatrixStack stack, int mouseX, int mouseY, float x, float y, int width, int height) {
+    public void draw(PoseStack stack, int mouseX, int mouseY, float x, float y, int width, int height) {
         if (program != null) {
             program.use(cache->{
                 Minecraft mc = Minecraft.getInstance();
@@ -113,8 +117,8 @@ public class ShaderTexture implements IGuiTexture {
                 } else {
                     time = System.currentTimeMillis() / 1000f;
                 }
-                float mX = MathHelper.clamp((mouseX - x), 0, width);
-                float mY = MathHelper.clamp((mouseY - y), 0, height);
+                float mX = Mth.clamp((mouseX - x), 0, width);
+                float mY = Mth.clamp((mouseY - y), 0, height);
                 cache.glUniform2F("iResolution", width * resolution, height * resolution);
                 cache.glUniform2F("iMouse", mX * resolution, mY * resolution);
                 cache.glUniform1F("iTime", time);
@@ -122,10 +126,11 @@ public class ShaderTexture implements IGuiTexture {
                     uniformCache.accept(cache);
                 }
             });
-            Tessellator tessellator = Tessellator.getInstance();
+            Tesselator tessellator = Tesselator.getInstance();
             BufferBuilder buffer = tessellator.getBuilder();
+            RenderSystem.setShader(GameRenderer::getPositionTexShader);
             Matrix4f mat = stack.last().pose();
-            buffer.begin(7, DefaultVertexFormats.POSITION_TEX);
+            buffer.begin(VertexFormat.Mode.QUADS, POSITION_TEX);
             buffer.vertex(mat, x, y + height, 0).uv(0, 0).endVertex();
             buffer.vertex(mat, x + width, y + height, 0).uv(1, 0).endVertex();
             buffer.vertex(mat, x + width, y, 0).uv(1, 1).endVertex();

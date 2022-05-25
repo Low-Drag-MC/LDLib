@@ -1,12 +1,12 @@
 package com.lowdragmc.lowdraglib.gui.ingredient;
 
-import net.minecraft.client.renderer.Rectangle2d;
+import net.minecraft.client.renderer.Rect2i;
 
 import javax.annotation.Nonnull;
 import java.util.function.Consumer;
 
 public interface Target extends Consumer<Object> {
     @Nonnull
-    Rectangle2d getArea();
+    Rect2i getArea();
     void accept(Object var1);
 }

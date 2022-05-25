@@ -6,17 +6,17 @@ import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.util.DrawerHelper;
 import com.lowdragmc.lowdraglib.utils.Position;
 import com.lowdragmc.lowdraglib.utils.Size;
-import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.util.InputMappings;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.inventory.IInventory;
-import net.minecraft.inventory.container.ClickType;
-import net.minecraft.inventory.container.Container;
-import net.minecraft.inventory.container.Slot;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.text.ITextComponent;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.world.Container;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.items.IItemHandler;
@@ -33,16 +33,16 @@ public class SlotWidget extends Widget implements IIngredientSlot {
     protected final Slot slotReference;
     protected final boolean canTakeItems;
     protected final boolean canPutItems;
-    public boolean isPlayerInventory;
+    public boolean isPlayerContainer;
     public boolean isPlayerHotBar;
     public boolean drawOverlay = true;
     public boolean drawHoverTips = true;
 
     protected Runnable changeListener;
-    protected BiConsumer<SlotWidget, List<ITextComponent>> onAddedTooltips;
+    protected BiConsumer<SlotWidget, List<TextComponent>> onAddedTooltips;
     protected Function<ItemStack, ItemStack> itemHook;
 
-    public SlotWidget(IInventory inventory, int slotIndex, int xPosition, int yPosition, boolean canTakeItems, boolean canPutItems) {
+    public SlotWidget(Container inventory, int slotIndex, int xPosition, int yPosition, boolean canTakeItems, boolean canPutItems) {
         super(new Position(xPosition, yPosition), new Size(18, 18));
         this.canTakeItems = canTakeItems;
         this.canPutItems = canPutItems;
@@ -61,7 +61,7 @@ public class SlotWidget extends Widget implements IIngredientSlot {
         return this;
     }
 
-    protected Slot createSlot(IInventory inventory, int index) {
+    protected Slot createSlot(Container inventory, int index) {
         return new WidgetSlot(inventory, index, 0, 0);
     }
 
@@ -69,7 +69,7 @@ public class SlotWidget extends Widget implements IIngredientSlot {
         return new WidgetSlotItemHandler(itemHandler, index, 0, 0);
     }
 
-    public SlotWidget setOnAddedTooltips(BiConsumer<SlotWidget, List<ITextComponent>> onAddedTooltips) {
+    public SlotWidget setOnAddedTooltips(BiConsumer<SlotWidget, List<TextComponent>> onAddedTooltips) {
         this.onAddedTooltips = onAddedTooltips;
         return this;
     }
@@ -86,11 +86,11 @@ public class SlotWidget extends Widget implements IIngredientSlot {
 
     @Override
     @OnlyIn(Dist.CLIENT)
-    public void drawInForeground(@Nonnull MatrixStack mStack, int mouseX, int mouseY, float partialTicks) {
+    public void drawInForeground(@Nonnull PoseStack mStack, int mouseX, int mouseY, float partialTicks) {
         if (drawHoverTips && isMouseOverElement(mouseX, mouseY) && isActive()) {
             ItemStack stack = slotReference.getItem();
-            if (!stack.isEmpty()) {
-                setHoverTooltips(getToolTips(DrawerHelper.getItemToolTip(stack)));
+            if (!stack.isEmpty() && gui != null) {
+                setHoverTooltips(gui.getModularUIGui().getTooltipFromItem(stack));
                 super.drawInForeground(mStack, mouseX, mouseY, partialTicks);
             }
         }
@@ -110,17 +110,17 @@ public class SlotWidget extends Widget implements IIngredientSlot {
 
     @Override
     @OnlyIn(Dist.CLIENT)
-    public void drawInBackground(@Nonnull MatrixStack mStack, int mouseX, int mouseY, float partialTicks) {
+    public void drawInBackground(@Nonnull PoseStack mStack, int mouseX, int mouseY, float partialTicks) {
         super.drawInBackground(mStack, mouseX, mouseY, partialTicks);
         Position pos = getPosition();
         ItemStack itemStack = getRealStack(slotReference.getItem());
         ModularUIGuiContainer modularUIGui = gui == null ? null : gui.getModularUIGui();
         if (itemStack.isEmpty() && modularUIGui!= null && modularUIGui.getQuickCrafting() && modularUIGui.getQuickCraftSlots().contains(slotReference)) { // draw split
             int splitSize = modularUIGui.getQuickCraftSlots().size();
-            itemStack = gui.entityPlayer.inventory.getCarried();
-            if (!itemStack.isEmpty() && splitSize > 1 && Container.canItemQuickReplace(slotReference, itemStack, true)) {
+            itemStack = gui.getModularUIContainer().getCarried();
+            if (!itemStack.isEmpty() && splitSize > 1 && AbstractContainerMenu.canItemQuickReplace(slotReference, itemStack, true)) {
                 itemStack = itemStack.copy();
-                Container.getQuickCraftSlotCount(modularUIGui.getQuickCraftSlots(), modularUIGui.dragSplittingLimit, itemStack, slotReference.getItem().isEmpty() ? 0 : slotReference.getItem().getCount());
+                AbstractContainerMenu.getQuickCraftSlotCount(modularUIGui.getQuickCraftSlots(), modularUIGui.dragSplittingLimit, itemStack, slotReference.getItem().isEmpty() ? 0 : slotReference.getItem().getCount());
                 int k = Math.min(itemStack.getMaxStackSize(), slotReference.getMaxStackSize(itemStack));
                 if (itemStack.getCount() > k) {
                     itemStack.setCount(k);
@@ -138,7 +138,7 @@ public class SlotWidget extends Widget implements IIngredientSlot {
         if (isMouseOverElement(mouseX, mouseY) && gui != null && (canPutItems || canTakeItems)) {
             ModularUIGuiContainer modularUIGui = gui.getModularUIGui();
             boolean last = modularUIGui.getQuickCrafting();
-            InputMappings.Input mouseKey = InputMappings.Type.MOUSE.getOrCreate(button);
+            InputConstants.Key mouseKey = InputConstants.Type.MOUSE.getOrCreate(button);
             gui.getModularUIGui().superMouseClicked(mouseX, mouseY, button);
             if (last != modularUIGui.getQuickCrafting()) {
                 modularUIGui.dragSplittingButton = button;
@@ -195,7 +195,7 @@ public class SlotWidget extends Widget implements IIngredientSlot {
         this(itemHandler, slotIndex, xPosition, yPosition, true, true);
     }
 
-    public SlotWidget(IInventory inventory, int slotIndex, int xPosition, int yPosition) {
+    public SlotWidget(Container inventory, int slotIndex, int xPosition, int yPosition) {
         this(inventory, slotIndex, xPosition, yPosition, true, true);
     }
 
@@ -208,7 +208,7 @@ public class SlotWidget extends Widget implements IIngredientSlot {
         return isEnabled() && canPutItems;
     }
 
-    public boolean canTakeStack(PlayerEntity player) {
+    public boolean canTakeStack(Player player) {
         return isEnabled() && canTakeItems;
     }
 
@@ -225,7 +225,7 @@ public class SlotWidget extends Widget implements IIngredientSlot {
         gui.holder.markAsDirty();
     }
 
-    public ItemStack slotClick(int dragType, ClickType clickTypeIn, PlayerEntity player) {
+    public ItemStack slotClick(int dragType, ClickType clickTypeIn, Player player) {
         return null;
     }
 
@@ -233,17 +233,13 @@ public class SlotWidget extends Widget implements IIngredientSlot {
         return slotReference;
     }
 
-    public Widget setLocationInfo(boolean isPlayerInventory, boolean isPlayerHotBar) {
+    public Widget setLocationInfo(boolean isPlayerContainer, boolean isPlayerHotBar) {
         this.isPlayerHotBar = isPlayerHotBar;
-        this.isPlayerInventory = isPlayerInventory;
+        this.isPlayerContainer = isPlayerContainer;
         return this;
     }
 
-    public ItemStack onItemTake(PlayerEntity player, ItemStack stack, boolean simulate) {
-        return stack;
-    }
-
-    private List<ITextComponent> getToolTips(List<ITextComponent> list) {
+    private List<TextComponent> getToolTips(List<TextComponent> list) {
         if (this.onAddedTooltips != null) {
             this.onAddedTooltips.accept(this, list);
         }
@@ -266,7 +262,7 @@ public class SlotWidget extends Widget implements IIngredientSlot {
 
     protected class WidgetSlot extends Slot {
 
-        public WidgetSlot(IInventory inventory, int index, int xPosition, int yPosition) {
+        public WidgetSlot(Container inventory, int index, int xPosition, int yPosition) {
             super(inventory, index, xPosition, yPosition);
         }
 
@@ -276,7 +272,7 @@ public class SlotWidget extends Widget implements IIngredientSlot {
         }
 
         @Override
-        public boolean mayPickup(@Nonnull PlayerEntity playerIn) {
+        public boolean mayPickup(@Nonnull Player playerIn) {
             return SlotWidget.this.canTakeStack(playerIn) && super.mayPickup(playerIn);
         }
 
@@ -287,12 +283,6 @@ public class SlotWidget extends Widget implements IIngredientSlot {
             if (changeListener != null) {
                 changeListener.run();
             }
-        }
-
-        @Nonnull
-        @Override
-        public final ItemStack onTake(@Nonnull PlayerEntity thePlayer, @Nonnull ItemStack stack) {
-            return onItemTake(thePlayer, super.onTake(thePlayer, stack), false);
         }
 
         @Override
@@ -319,7 +309,7 @@ public class SlotWidget extends Widget implements IIngredientSlot {
         }
 
         @Override
-        public boolean mayPickup(PlayerEntity playerIn) {
+        public boolean mayPickup(Player playerIn) {
             return SlotWidget.this.canTakeStack(playerIn) && super.mayPickup(playerIn);
         }
 
@@ -330,12 +320,6 @@ public class SlotWidget extends Widget implements IIngredientSlot {
             if (changeListener != null) {
                 changeListener.run();
             }
-        }
-
-        @Nonnull
-        @Override
-        public final ItemStack onTake(@Nonnull PlayerEntity thePlayer, @Nonnull ItemStack stack) {
-            return onItemTake(thePlayer, super.onTake(thePlayer, stack), false);
         }
 
         @Override

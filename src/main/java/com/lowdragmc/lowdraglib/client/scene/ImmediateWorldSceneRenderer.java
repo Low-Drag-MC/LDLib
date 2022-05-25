@@ -1,10 +1,10 @@
 package com.lowdragmc.lowdraglib.client.scene;
 
 import com.lowdragmc.lowdraglib.utils.PositionedRect;
+import com.mojang.blaze3d.platform.Window;
 import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.client.MainWindow;
 import net.minecraft.client.Minecraft;
-import net.minecraft.world.World;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.lwjgl.opengl.GL11;
@@ -19,13 +19,13 @@ import org.lwjgl.opengl.GL11;
 @OnlyIn(Dist.CLIENT)
 public class ImmediateWorldSceneRenderer extends WorldSceneRenderer {
 
-    public ImmediateWorldSceneRenderer(World world) {
+    public ImmediateWorldSceneRenderer(Level world) {
         super(world);
     }
 
     @Override
     protected PositionedRect getPositionedRect(int x, int y, int width, int height) {
-        MainWindow window = Minecraft.getInstance().getWindow();
+        Window window = Minecraft.getInstance().getWindow();
         //compute window size from scaled width & height
         int windowWidth = (int) (width / (window.getGuiScaledWidth() * 1.0) * window.getWidth());
         int windowHeight = (int) (height / (window.getGuiScaledHeight() * 1.0) * window.getHeight());

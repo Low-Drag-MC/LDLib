@@ -1,17 +1,18 @@
 package com.lowdragmc.lowdraglib.client.utils;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
-import com.mojang.blaze3d.platform.GlStateManager;
+import com.mojang.blaze3d.platform.Window;
 import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.client.MainWindow;
+import com.mojang.blaze3d.vertex.BufferBuilder;
+import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.Tesselator;
+import com.mojang.blaze3d.vertex.VertexFormat;
+import com.mojang.math.Matrix4f;
+import com.mojang.math.Vector3f;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.BufferBuilder;
-import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.vector.Matrix4f;
-import net.minecraft.util.math.vector.Vector3f;
+import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.lwjgl.opengl.GL11;
@@ -36,7 +37,7 @@ public class RenderUtils {
     private static int[] peekFirstScissorOrFullScreen() {
         int[] currentTopFrame = scissorFrameStack.isEmpty() ? null : scissorFrameStack.peek();
         if (currentTopFrame == null) {
-            MainWindow window = Minecraft.getInstance().getWindow();
+            Window window = Minecraft.getInstance().getWindow();
             return new int[]{0, 0, window.getWidth(), window.getHeight()};
         }
         return currentTopFrame;
@@ -93,13 +94,13 @@ public class RenderUtils {
     //applies scissor with gui-space coordinates and sizes
     private static void applyScissor(int x, int y, int w, int h) {
         //translate upper-left to bottom-left
-        MainWindow window = Minecraft.getInstance().getWindow();
+        Window window = Minecraft.getInstance().getWindow();
         double s = window.getGuiScale();
         int translatedY = window.getGuiScaledHeight() - y - h;
         GL11.glScissor((int)(x * s), (int)(translatedY * s), (int)(w * s), (int)(h * s));
     }
 
-    public static void renderBlockOverLay(MatrixStack matrixStack, BlockPos pos, float r, float g, float b, float scale) {
+    public static void renderBlockOverLay(PoseStack matrixStack, BlockPos pos, float r, float g, float b, float scale) {
         if (pos == null) return;
         RenderSystem.enableBlend();
         RenderSystem.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE);
@@ -108,10 +109,11 @@ public class RenderUtils {
         matrixStack.translate((pos.getX() + 0.5), (pos.getY() + 0.5), (pos.getZ() + 0.5));
         matrixStack.scale(scale, scale, scale);
 
-        Tessellator tessellator = Tessellator.getInstance();
+        Tesselator tessellator = Tesselator.getInstance();
         RenderSystem.disableTexture();
         BufferBuilder buffer = tessellator.getBuilder();
-        buffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_COLOR);
+        RenderSystem.setShader(GameRenderer::getPositionColorShader);
+        buffer.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
         RenderUtils.renderCubeFace(matrixStack, buffer, -0.5f, -0.5f, -0.5f, 0.5f, 0.5f, 0.5f, r, g, b, 1);
         tessellator.end();
 
@@ -119,10 +121,10 @@ public class RenderUtils {
 
         RenderSystem.enableTexture();
         RenderSystem.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-        RenderSystem.color4f(1, 1, 1, 1);
+        RenderSystem.setShaderColor(1, 1, 1, 1);
     }
 
-    public static void renderCubeFace(MatrixStack matrixStack, BufferBuilder buffer, float minX, float minY, float minZ, float maxX, float maxY, float maxZ, float r, float g, float b, float a) {
+    public static void renderCubeFace(PoseStack matrixStack, BufferBuilder buffer, float minX, float minY, float minZ, float maxX, float maxY, float maxZ, float r, float g, float b, float a) {
         Matrix4f mat = matrixStack.last().pose();
         buffer.vertex(mat, minX, minY, minZ).color(r, g, b, a).endVertex();
         buffer.vertex(mat, minX, minY, maxZ).color(r, g, b, a).endVertex();
@@ -155,25 +157,11 @@ public class RenderUtils {
         buffer.vertex(mat, minX, maxY, maxZ).color(r, g, b, a).endVertex();
     }
 
-    public static void useLightMap(float x, float y, Runnable codeBlock){
-        /* hack the lightmap */
-        GL11.glPushAttrib(GL11.GL_LIGHTING_BIT);
-        float lastBrightnessX = GlStateManager.lastBrightnessX;
-        float lastBrightnessY = GlStateManager.lastBrightnessY;
-        RenderSystem.glMultiTexCoord2f(33986, x, y);
-        if (codeBlock != null) {
-            codeBlock.run();
-        }
-        /* restore the lightmap  */
-        RenderSystem.glMultiTexCoord2f(33986, lastBrightnessX, lastBrightnessY);
-        GL11.glPopAttrib();
-    }
-
-    public static void moveToFace(MatrixStack matrixStack, double x, double y, double z, Direction face) {
+    public static void moveToFace(PoseStack matrixStack, double x, double y, double z, Direction face) {
         matrixStack.translate(x + 0.5 + face.getStepX() * 0.5, y + 0.5 + face.getStepY() * 0.5, z + 0.5 + face.getStepZ() * 0.5);
     }
 
-    public static void rotateToFace(MatrixStack matrixStack, Direction face, @Nullable Direction spin) {
+    public static void rotateToFace(PoseStack matrixStack, Direction face, @Nullable Direction spin) {
         int angle = spin == Direction.EAST ? 90 : spin == Direction.SOUTH ? 180 : spin == Direction.WEST ? -90 : 0;
         switch (face) {
             case UP:

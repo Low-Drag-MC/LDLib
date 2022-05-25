@@ -3,15 +3,15 @@ package com.lowdragmc.lowdraglib.gui.widget;
 import com.google.common.collect.Lists;
 import com.lowdragmc.lowdraglib.gui.ingredient.IGhostIngredientTarget;
 import com.lowdragmc.lowdraglib.gui.ingredient.Target;
+import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.MouseHelper;
-import net.minecraft.client.renderer.Rectangle2d;
-import net.minecraft.client.util.InputMappings;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.inventory.container.ClickType;
-import net.minecraft.inventory.container.Slot;
-import net.minecraft.item.ItemStack;
-import net.minecraft.network.PacketBuffer;
+import net.minecraft.client.MouseHandler;
+import net.minecraft.client.renderer.Rect2i;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.items.IItemHandlerModifiable;
@@ -37,8 +37,8 @@ public class PhantomSlotWidget extends SlotWidget implements IGhostIngredientTar
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (isMouseOverElement(mouseX, mouseY) && gui != null) {
-            if (isClientSideWidget && !gui.entityPlayer.inventory.getCarried().isEmpty()) {
-                slotReference.set(gui.entityPlayer.inventory.getCarried());
+            if (isClientSideWidget && !gui.getModularUIContainer().getCarried().isEmpty()) {
+                slotReference.set(gui.getModularUIContainer().getCarried());
             } else if (button == 1 && clearSlotOnRightClick && !slotReference.getItem().isEmpty()) {
                 slotReference.set(ItemStack.EMPTY);
                 writeClientAction(2, buf -> {
@@ -52,9 +52,12 @@ public class PhantomSlotWidget extends SlotWidget implements IGhostIngredientTar
     }
 
     @Override
-    public ItemStack slotClick(int dragType, ClickType clickTypeIn, PlayerEntity player) {
-        ItemStack stackHeld = player.inventory.getCarried();
-        return slotClickPhantom(slotReference, dragType, clickTypeIn, stackHeld);
+    public ItemStack slotClick(int dragType, ClickType clickTypeIn, Player player) {
+        if (gui != null) {
+            ItemStack stackHeld = gui.getModularUIContainer().getCarried();
+            return slotClickPhantom(slotReference, dragType, clickTypeIn, stackHeld);
+        }
+        return ItemStack.EMPTY;
     }
 
     @Override
@@ -68,21 +71,21 @@ public class PhantomSlotWidget extends SlotWidget implements IGhostIngredientTar
         if (!(ingredient instanceof ItemStack)) {
             return Collections.emptyList();
         }
-        Rectangle2d rectangle = toRectangleBox();
+        Rect2i rectangle = toRectangleBox();
         return Lists.newArrayList(new Target() {
             @Nonnull
             @Override
-            public Rectangle2d getArea() {
+            public Rect2i getArea() {
                 return rectangle;
             }
 
             @Override
             public void accept(@Nonnull Object ingredient) {
                 if (ingredient instanceof ItemStack) {
-                    MouseHelper mouseHelper = Minecraft.getInstance().mouseHandler;
+                    MouseHandler mouseHelper = Minecraft.getInstance().mouseHandler;
                     long id = Minecraft.getInstance().getWindow().getWindow();
                     int mouseButton = mouseHelper.isLeftPressed() ? 0 : mouseHelper.isRightPressed() ? 1 : 2;
-                    boolean shiftDown = InputMappings.isKeyDown(id, GLFW.GLFW_KEY_LEFT_SHIFT) || InputMappings.isKeyDown(id, GLFW.GLFW_KEY_LEFT_SHIFT);
+                    boolean shiftDown = InputConstants.isKeyDown(id, GLFW.GLFW_KEY_LEFT_SHIFT) || InputConstants.isKeyDown(id, GLFW.GLFW_KEY_LEFT_SHIFT);
                     ClickType clickType = shiftDown ? ClickType.QUICK_MOVE : ClickType.PICKUP;
                     slotClickPhantom(slotReference, mouseButton, clickType, (ItemStack) ingredient);
                     writeClientAction(1, buffer -> {
@@ -96,7 +99,7 @@ public class PhantomSlotWidget extends SlotWidget implements IGhostIngredientTar
     }
 
     @Override
-    public void handleClientAction(int id, PacketBuffer buffer) {
+    public void handleClientAction(int id, FriendlyByteBuf buffer) {
         if (id == 1) {
             ItemStack stackHeld;
             stackHeld = buffer.readItem();

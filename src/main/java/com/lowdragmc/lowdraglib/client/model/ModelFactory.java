@@ -2,16 +2,15 @@ package com.lowdragmc.lowdraglib.client.model;
 
 import com.google.gson.JsonParseException;
 import com.mojang.datafixers.util.Either;
-import net.minecraft.client.renderer.model.BlockModel;
-import net.minecraft.client.renderer.model.IUnbakedModel;
-import net.minecraft.client.renderer.model.ModelRotation;
-import net.minecraft.client.renderer.model.RenderMaterial;
-import net.minecraft.client.renderer.texture.AtlasTexture;
-import net.minecraft.util.Direction;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.client.renderer.texture.TextureAtlas;
+import net.minecraft.client.resources.model.BlockModelRotation;
+import net.minecraft.client.resources.model.Material;
+import net.minecraft.client.resources.model.UnbakedModel;
+import net.minecraft.core.Direction;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.client.model.ModelLoader;
+import net.minecraftforge.client.model.ForgeModelBakery;
 
 /**
  * Author: KilaBash
@@ -21,23 +20,23 @@ import net.minecraftforge.client.model.ModelLoader;
 @OnlyIn(Dist.CLIENT)
 public class ModelFactory {
 
-    public static IUnbakedModel getUnBakedModel(ResourceLocation modelLocation) {
-        return ModelLoader.instance().getModelOrMissing(modelLocation);
+    public static UnbakedModel getUnBakedModel(ResourceLocation modelLocation) {
+        return ForgeModelBakery.instance().getModelOrMissing(modelLocation);
     }
 
-    public static ModelRotation getRotation(Direction facing) {
+    public static BlockModelRotation getRotation(Direction facing) {
         switch (facing) {
-            case DOWN:  return ModelRotation.X90_Y0;
-            case UP:    return ModelRotation.X270_Y0;
-            case NORTH: return ModelRotation.X0_Y0;
-            case SOUTH: return ModelRotation.X0_Y180;
-            case WEST:  return ModelRotation.X0_Y270;
-            case EAST:  return ModelRotation.X0_Y90;
+            case DOWN:  return BlockModelRotation.X90_Y0;
+            case UP:    return BlockModelRotation.X270_Y0;
+            case NORTH: return BlockModelRotation.X0_Y0;
+            case SOUTH: return BlockModelRotation.X0_Y180;
+            case WEST:  return BlockModelRotation.X0_Y270;
+            case EAST:  return BlockModelRotation.X0_Y90;
         }
         throw new IllegalArgumentException(String.valueOf(facing));
     }
 
-    public static Either<RenderMaterial, String> parseTextureLocationOrReference(ResourceLocation pLocation, String pName) {
+    public static Either<Material, String> parseTextureLocationOrReference(ResourceLocation pLocation, String pName) {
         if (isTextureReference(pName)) {
             return Either.right(pName.substring(1));
         } else {
@@ -45,12 +44,12 @@ public class ModelFactory {
             if (resourcelocation == null) {
                 throw new JsonParseException(pName + " is not valid resource location");
             } else {
-                return Either.left(new RenderMaterial(pLocation, resourcelocation));
+                return Either.left(new Material(pLocation, resourcelocation));
             }
         }
     }
 
-    public static Either<RenderMaterial, String> parseBlockTextureLocationOrReference(String pName) {
+    public static Either<Material, String> parseBlockTextureLocationOrReference(String pName) {
         if (isTextureReference(pName)) {
             return Either.right(pName.substring(1));
         } else {
@@ -58,7 +57,7 @@ public class ModelFactory {
             if (resourcelocation == null) {
                 throw new JsonParseException(pName + " is not valid resource location");
             } else {
-                return Either.left(new RenderMaterial(AtlasTexture.LOCATION_BLOCKS, resourcelocation));
+                return Either.left(new Material(TextureAtlas.LOCATION_BLOCKS, resourcelocation));
             }
         }
     }

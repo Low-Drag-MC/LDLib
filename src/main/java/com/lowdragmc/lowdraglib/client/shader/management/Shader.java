@@ -3,8 +3,8 @@ package com.lowdragmc.lowdraglib.client.shader.management;
 import com.lowdragmc.lowdraglib.LDLMod;
 import com.mojang.blaze3d.platform.GlStateManager;
 import net.minecraft.client.Minecraft;
-import net.minecraft.resources.IResource;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.packs.resources.Resource;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.apache.commons.io.IOUtils;
@@ -63,7 +63,7 @@ public class Shader {
     }
 
     public static Shader loadShader(ShaderType type, ResourceLocation resourceLocation) throws IOException {
-        IResource iresource = Minecraft.getInstance().getResourceManager().getResource(resourceLocation);
+        Resource iresource = Minecraft.getInstance().getResourceManager().getResource(resourceLocation);
         InputStream stream = iresource.getInputStream();
         StringBuilder sb = new StringBuilder();
         BufferedReader bin = new BufferedReader(new InputStreamReader(stream));

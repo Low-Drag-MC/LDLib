@@ -4,8 +4,8 @@ import com.lowdragmc.lowdraglib.LDLMod;
 import com.lowdragmc.lowdraglib.networking.c2s.CPacketUIClientAction;
 import com.lowdragmc.lowdraglib.networking.s2c.SPacketUIOpen;
 import com.lowdragmc.lowdraglib.networking.s2c.SPacketUIWidgetUpdate;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
 
 /**
  * Author: KilaBash
@@ -30,7 +30,7 @@ public class LDLNetworking {
         network.sendToAll(packet);
     }
 
-    public static void sendToPlayer(IPacket packet, ServerPlayerEntity player) {
+    public static void sendToPlayer(IPacket packet, ServerPlayer player) {
         network.sendToPlayer(packet, player);
     }
 

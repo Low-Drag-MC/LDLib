@@ -5,7 +5,7 @@ import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 import com.lowdragmc.lowdraglib.utils.Position;
 import com.lowdragmc.lowdraglib.utils.Size;
-import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -33,9 +33,9 @@ public final class ModularUI {
      * UIHolder of this modular UI
      */
     public final IUIHolder holder;
-    public final PlayerEntity entityPlayer;
+    public final Player entityPlayer;
 
-    public ModularUI(int width, int height, IUIHolder holder, PlayerEntity entityPlayer) {
+    public ModularUI(int width, int height, IUIHolder holder, Player entityPlayer) {
         this.mainGroup = new WidgetGroup(Position.ORIGIN, new Size(width, height));
         this.width = width;
         this.height = height;
@@ -69,7 +69,7 @@ public final class ModularUI {
     @OnlyIn(Dist.CLIENT)
     public void setModularUIGui(ModularUIGuiContainer modularUIGuiContainer) {
         this.guiContainer = modularUIGuiContainer;
-        setModularUIContainer(guiContainer.getMenu());
+        setModularUIContainer(modularUIGuiContainer.getMenu());
     }
 
     public List<Widget> getFlatVisibleWidgetCollection() {

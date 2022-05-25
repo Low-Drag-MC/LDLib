@@ -1,6 +1,6 @@
 package com.lowdragmc.lowdraglib.gui.util;
 
-import net.minecraft.world.World;
+import net.minecraft.world.level.Level;
 
 public class PerTickIntCounter {
 
@@ -15,7 +15,7 @@ public class PerTickIntCounter {
         this.currentValue = defaultValue;
     }
 
-    private void checkValueState(World world) {
+    private void checkValueState(Level world) {
         long currentWorldTime = world.getGameTime();
         if (currentWorldTime != lastUpdatedWorldTime) {
             this.lastUpdatedWorldTime = currentWorldTime;
@@ -23,12 +23,12 @@ public class PerTickIntCounter {
         }
     }
 
-    public int get(World world) {
+    public int get(Level world) {
         checkValueState(world);
         return currentValue;
     }
 
-    public void increment(World world, int value) {
+    public void increment(Level world, int value) {
         checkValueState(world);
         this.currentValue += value;
     }

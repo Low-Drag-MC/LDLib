@@ -6,8 +6,10 @@ import com.lowdragmc.lowdraglib.client.particle.DiggingIRendererParticle;
 import com.lowdragmc.lowdraglib.client.renderer.IRenderer;
 import com.lowdragmc.lowdraglib.client.shader.Shaders;
 import com.lowdragmc.lowdraglib.jei.JEIClientEventHandler;
+import com.lowdragmc.lowdraglib.test.TestBlock;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.texture.AtlasTexture;
+import net.minecraft.client.renderer.ItemBlockRenderTypes;
+import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.event.ParticleFactoryRegisterEvent;
@@ -25,7 +27,7 @@ public class ClientProxy extends CommonProxy {
 
     @SubscribeEvent
     public void onParticleFactoryRegister(ParticleFactoryRegisterEvent event) {
-        Minecraft.getInstance().particleEngine.register(IRENDERER_PARTICLE.get(), new DiggingIRendererParticle.Factory());
+        Minecraft.getInstance().particleEngine.register(IRENDERER_PARTICLE.get(), new DiggingIRendererParticle.Provider());
     }
     public ClientProxy() {
         super();
@@ -36,12 +38,15 @@ public class ClientProxy extends CommonProxy {
 
     @SubscribeEvent
     public void clientSetup(final FMLClientSetupEvent e) {
-        e.enqueueWork(Shaders::init);
+        e.enqueueWork(()->{
+            Shaders.init();
+            ItemBlockRenderTypes.setRenderLayer(TestBlock.BLOCK, x->true);
+        });
     }
 
     @SubscribeEvent
     public void registerTextures(TextureStitchEvent.Pre event) {
-        if (event.getMap().location().equals(AtlasTexture.LOCATION_BLOCKS)) {
+        if (event.getAtlas().location().equals(TextureAtlas.LOCATION_BLOCKS)) {
             for (IRenderer renderer : renderers) {
                 renderer.onTextureSwitchEvent(event);
             }

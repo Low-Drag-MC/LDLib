@@ -4,8 +4,8 @@ import com.lowdragmc.lowdraglib.client.utils.RenderUtils;
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.utils.Position;
 import com.lowdragmc.lowdraglib.utils.Size;
-import com.mojang.blaze3d.matrix.MatrixStack;
-import net.minecraft.util.math.MathHelper;
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.util.Mth;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -228,7 +228,7 @@ public class DraggableScrollableWidgetGroup extends WidgetGroup {
 
     @Override
     @OnlyIn(Dist.CLIENT)
-    public void drawInForeground(@Nonnull MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
+    public void drawInForeground(@Nonnull PoseStack matrixStack, int mouseX, int mouseY, float partialTicks) {
         if (isMouseOverElement(mouseX, mouseY)) {
             super.drawInForeground(matrixStack, mouseX, mouseY, partialTicks);
         }
@@ -236,7 +236,7 @@ public class DraggableScrollableWidgetGroup extends WidgetGroup {
 
     @Override
     @OnlyIn(Dist.CLIENT)
-    public void drawInBackground(@Nonnull MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
+    public void drawInBackground(@Nonnull PoseStack matrixStack, int mouseX, int mouseY, float partialTicks) {
         int x = getPosition().x;
         int y = getPosition().y;
         int width = getSize().width;
@@ -344,9 +344,9 @@ public class DraggableScrollableWidgetGroup extends WidgetGroup {
             }
             setFocus(true);
             if (isFocus()) {
-                int moveDelta = (int) (-MathHelper.clamp(wheelDelta, -1, 1) * 13);
+                int moveDelta = (int) (-Mth.clamp(wheelDelta, -1, 1) * 13);
                 if (getMaxHeight() - getSize().height > 0 || scrollYOffset > getMaxHeight() - getSize().height) {
-                    setScrollYOffset(MathHelper.clamp(scrollYOffset + moveDelta, 0, getMaxHeight() - getSize().height));
+                    setScrollYOffset(Mth.clamp(scrollYOffset + moveDelta, 0, getMaxHeight() - getSize().height));
                 }
             }
             return true;
@@ -359,10 +359,10 @@ public class DraggableScrollableWidgetGroup extends WidgetGroup {
     @OnlyIn(Dist.CLIENT)
     public boolean mouseDragged(double mouseX, double mouseY, int button, double deltaX, double deltaY) {
         if (draggedOnXScrollBar && (getMaxWidth() - getSize().width > 0 || scrollYOffset > getMaxWidth() - getSize().width)) {
-            setScrollXOffset((int) MathHelper.clamp(scrollXOffset + deltaX * getMaxWidth() / getSize().width, 0, getMaxWidth() - getSize().width));
+            setScrollXOffset((int) Mth.clamp(scrollXOffset + deltaX * getMaxWidth() / getSize().width, 0, getMaxWidth() - getSize().width));
             return true;
         } else if (draggedOnYScrollBar && (getMaxHeight() - getSize().height > 0 || scrollYOffset > getMaxHeight() - getSize().height)) {
-            setScrollYOffset((int) MathHelper.clamp(scrollYOffset + deltaY * getMaxHeight() / getSize().height, 0, getMaxHeight() - getSize().height));
+            setScrollYOffset((int) Mth.clamp(scrollYOffset + deltaY * getMaxHeight() / getSize().height, 0, getMaxHeight() - getSize().height));
             return true;
         } else if (draggedWidget != null) {
             if (((IDraggable)draggedWidget).dragging(mouseX, mouseY, deltaX, deltaY)) {
@@ -381,8 +381,8 @@ public class DraggableScrollableWidgetGroup extends WidgetGroup {
             computeMax();
             return true;
         } else if (draggedPanel) {
-            setScrollXOffset((int) MathHelper.clamp(scrollXOffset - deltaX, 0, Math.max(getMaxWidth() - yBarWidth - getSize().width, 0)));
-            setScrollYOffset((int) MathHelper.clamp(scrollYOffset - deltaY, 0, Math.max(getMaxHeight() - xBarHeight - getSize().height, 0)));
+            setScrollXOffset((int) Mth.clamp(scrollXOffset - deltaX, 0, Math.max(getMaxWidth() - yBarWidth - getSize().width, 0)));
+            setScrollYOffset((int) Mth.clamp(scrollYOffset - deltaY, 0, Math.max(getMaxHeight() - xBarHeight - getSize().height, 0)));
             return true;
         }
         return super.mouseDragged(mouseX, mouseY, button, deltaX, deltaY);

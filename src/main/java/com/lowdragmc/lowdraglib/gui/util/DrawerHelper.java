@@ -1,39 +1,38 @@
 package com.lowdragmc.lowdraglib.gui.util;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.BufferBuilder;
+import com.mojang.blaze3d.vertex.BufferUploader;
+import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.Tesselator;
+import com.mojang.blaze3d.vertex.VertexFormat;
+import com.mojang.math.Matrix4f;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.AbstractGui;
-import net.minecraft.client.gui.FontRenderer;
-import net.minecraft.client.renderer.BufferBuilder;
-import net.minecraft.client.renderer.ItemRenderer;
-import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.texture.AtlasTexture;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.Gui;
+import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.renderer.entity.ItemRenderer;
+import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
-import net.minecraft.client.util.ITooltipFlag;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.vector.Matrix4f;
-import net.minecraft.util.math.vector.Vector2f;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.ITextProperties;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.phys.Vec2;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.fluids.FluidAttributes;
 import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fml.client.gui.GuiUtils;
-import org.lwjgl.opengl.GL11;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
 
 public class DrawerHelper {
 
     @OnlyIn(Dist.CLIENT)
-    public static void drawFluidTexture(MatrixStack mStack, float xCoord, float yCoord, TextureAtlasSprite textureSprite, int maskTop, int maskRight, float zLevel) {
+    public static void drawFluidTexture(PoseStack poseStack, float xCoord, float yCoord, TextureAtlasSprite textureSprite, int maskTop, int maskRight, float zLevel, int fluidColor) {
         float uMin = textureSprite.getU0();
         float uMax = textureSprite.getU1();
         float vMin = textureSprite.getV0();
@@ -41,24 +40,25 @@ public class DrawerHelper {
         uMax = uMax - maskRight / 16f * (uMax - uMin);
         vMax = vMax - maskTop / 16f * (vMax - vMin);
 
-        Tessellator tessellator = Tessellator.getInstance();
-        BufferBuilder buffer = tessellator.getBuilder();
-        buffer.begin(7, DefaultVertexFormats.POSITION_TEX);
-        Matrix4f mat = mStack.last().pose();
-        buffer.vertex(mat, xCoord, yCoord + 16, zLevel).uv(uMin, vMax).endVertex();
-        buffer.vertex(mat, xCoord + 16 - maskRight, yCoord + 16, zLevel).uv(uMax, vMax).endVertex();
-        buffer.vertex(mat, xCoord + 16 - maskRight, yCoord + maskTop, zLevel).uv(uMax, vMin).endVertex();
+        BufferBuilder buffer = Tesselator.getInstance().getBuilder();
+        RenderSystem.setShader(GameRenderer::getPositionTexColorShader);
+        buffer.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR);
+        Matrix4f mat = poseStack.last().pose();
+        buffer.vertex(mat, xCoord, yCoord + 16, zLevel).uv(uMin, vMax).color(fluidColor).endVertex();
+        buffer.vertex(mat, xCoord + 16 - maskRight, yCoord + 16, zLevel).uv(uMax, vMax).color(fluidColor).endVertex();
+        buffer.vertex(mat, xCoord + 16 - maskRight, yCoord + maskTop, zLevel).uv(uMax, vMin).color(fluidColor).endVertex();
         buffer.vertex(mat, xCoord, yCoord + maskTop, zLevel).uv(uMin, vMin).endVertex();
-        tessellator.end();
+        buffer.end();
+        BufferUploader.end(buffer);
     }
 
     @OnlyIn(Dist.CLIENT)
-    public static void drawFluidForGui(MatrixStack mStack, FluidStack contents, int tankCapacity, int startX, int startY, int widthT, int heightT) {
-        ResourceLocation LOCATION_BLOCKS_TEXTURE = AtlasTexture.LOCATION_BLOCKS;
+    public static void drawFluidForGui(PoseStack poseStack, FluidStack contents, int tankCapacity, int startX, int startY, int widthT, int heightT) {
+        ResourceLocation LOCATION_BLOCKS_TEXTURE = TextureAtlas.LOCATION_BLOCKS;
         FluidAttributes fluid = contents.getFluid().getAttributes();
         ResourceLocation fluidStill = fluid.getStillTexture();
         TextureAtlasSprite fluidStillSprite = Minecraft.getInstance().getTextureAtlas(LOCATION_BLOCKS_TEXTURE).apply(fluidStill);
-        int fluidColor = fluid.getColor(contents);
+        int fluidColor = fluid.getColor(contents) | 0xff000000;
         int scaledAmount = contents.getAmount() * heightT / tankCapacity;
         if (contents.getAmount() > 0 && scaledAmount < 1) {
             scaledAmount = 1;
@@ -67,12 +67,7 @@ public class DrawerHelper {
             scaledAmount = heightT;
         }
         RenderSystem.enableBlend();
-        Minecraft.getInstance().textureManager.bind(LOCATION_BLOCKS_TEXTURE);
-
-        int i = (fluidColor & 0xFF0000) >> 16;
-        int j = (fluidColor & 0xFF00) >> 8;
-        int k = (fluidColor & 0xFF);
-        RenderSystem.color4f(i / 255.0f, j / 255.0f, k / 255.0f, 1);
+        RenderSystem.setShaderTexture(0, LOCATION_BLOCKS_TEXTURE);
 
         final int xTileCount = widthT / 16;
         final int xRemainder = widthT - xTileCount * 16;
@@ -90,134 +85,125 @@ public class DrawerHelper {
                 if (width > 0 && height > 0) {
                     int maskTop = 16 - height;
                     int maskRight = 16 - width;
-
-                    drawFluidTexture(mStack, x, y, fluidStillSprite, maskTop, maskRight, 0);
+                    drawFluidTexture(poseStack, x, y, fluidStillSprite, maskTop, maskRight, 0, fluidColor);
                 }
             }
         }
         RenderSystem.enableBlend();
     }
 
-
     @OnlyIn(Dist.CLIENT)
-    public static void drawHoveringText(MatrixStack mStack, @Nonnull final ItemStack stack, List<? extends ITextProperties> textLines, int mouseX, int mouseY, int screenWidth, int screenHeight, int maxTextWidth) {
-        Minecraft mc = Minecraft.getInstance();
-        FontRenderer fontRenderer = stack.getItem().getFontRenderer(stack);
-        GuiUtils.drawHoveringText(stack, mStack, textLines, mouseX, mouseY, screenWidth, screenHeight, maxTextWidth, fontRenderer == null ?  mc.font : fontRenderer);
+    public static void drawBorder(PoseStack poseStack, int x, int y, int width, int height, int color, int border) {
+        drawSolidRect(poseStack,x - border, y - border, width + 2 * border, border, color);
+        drawSolidRect(poseStack,x - border, y + height, width + 2 * border, border, color);
+        drawSolidRect(poseStack,x - border, y, border, height, color);
+        drawSolidRect(poseStack,x + width, y, border, height, color);
     }
 
     @OnlyIn(Dist.CLIENT)
-    public static void drawBorder(MatrixStack mStack, int x, int y, int width, int height, int color, int border) {
-        drawSolidRect(mStack,x - border, y - border, width + 2 * border, border, color);
-        drawSolidRect(mStack,x - border, y + height, width + 2 * border, border, color);
-        drawSolidRect(mStack,x - border, y, border, height, color);
-        drawSolidRect(mStack,x + width, y, border, height, color);
-    }
-
-    @OnlyIn(Dist.CLIENT)
-    public static void drawStringSized(MatrixStack mStack, String text, float x, float y, int color, boolean dropShadow, float scale, boolean center) {
-        mStack.pushPose();
-        FontRenderer fontRenderer = Minecraft.getInstance().font;
+    public static void drawStringSized(PoseStack poseStack, String text, float x, float y, int color, boolean dropShadow, float scale, boolean center) {
+        poseStack.pushPose();
+        Font fontRenderer = Minecraft.getInstance().font;
         double scaledTextWidth = center ? fontRenderer.width(text) * scale : 0.0;
-        mStack.translate(x - scaledTextWidth / 2.0, y, 0.0f);
-        mStack.scale(scale, scale, scale);
+        poseStack.translate(x - scaledTextWidth / 2.0, y, 0.0f);
+        poseStack.scale(scale, scale, scale);
         if (dropShadow) {
-            fontRenderer.drawShadow(mStack, text, 0, 0, color);
+            fontRenderer.drawShadow(poseStack, text, 0, 0, color);
         } else {
-            fontRenderer.draw(mStack, text, 0, 0, color);
+            fontRenderer.draw(poseStack, text, 0, 0, color);
         }
-        mStack.popPose();
+        poseStack.popPose();
     }
 
     @OnlyIn(Dist.CLIENT)
-    public static void drawStringFixedCorner(MatrixStack mStack, String text, float x, float y, int color, boolean dropShadow, float scale) {
-        FontRenderer fontRenderer = Minecraft.getInstance().font;
+    public static void drawStringFixedCorner(PoseStack poseStack, String text, float x, float y, int color, boolean dropShadow, float scale) {
+        Font fontRenderer = Minecraft.getInstance().font;
         float scaledWidth = fontRenderer.width(text) * scale;
         float scaledHeight = fontRenderer.lineHeight * scale;
-        drawStringSized(mStack, text, x - scaledWidth, y - scaledHeight, color, dropShadow, scale, false);
+        drawStringSized(poseStack, text, x - scaledWidth, y - scaledHeight, color, dropShadow, scale, false);
     }
 
     @OnlyIn(Dist.CLIENT)
-    public static void drawText(MatrixStack mStack, String text, float x, float y, float scale, int color) {
-        drawText(mStack, text, x, y, scale, color, false);
+    public static void drawText(PoseStack poseStack, String text, float x, float y, float scale, int color) {
+        drawText(poseStack, text, x, y, scale, color, false);
     }
 
     @OnlyIn(Dist.CLIENT)
-    public static void drawText(MatrixStack mStack, String text, float x, float y, float scale, int color, boolean shadow) {
-        FontRenderer fontRenderer = Minecraft.getInstance().font;
+    public static void drawText(PoseStack poseStack, String text, float x, float y, float scale, int color, boolean shadow) {
+        Font fontRenderer = Minecraft.getInstance().font;
         RenderSystem.disableBlend();
-        mStack.pushPose();
-        mStack.scale(scale, scale, 0f);
+        poseStack.pushPose();
+        poseStack.scale(scale, scale, 0f);
         float sf = 1 / scale;
         if (shadow) {
-            fontRenderer.drawShadow(mStack, text, x * sf, y * sf, color);
+            fontRenderer.drawShadow(poseStack, text, x * sf, y * sf, color);
         } else {
-            fontRenderer.draw(mStack, text, x * sf, y * sf, color);
+            fontRenderer.draw(poseStack, text, x * sf, y * sf, color);
         }
-        mStack.popPose();
+        poseStack.popPose();
         RenderSystem.enableBlend();
     }
 
     @OnlyIn(Dist.CLIENT)
-    public static void drawItemStack(MatrixStack mStack, ItemStack itemStack, int x, int y, @Nullable String altTxt) {
+    public static void drawItemStack(PoseStack poseStack, ItemStack itemStack, int x, int y, @Nullable String altTxt) {
+        PoseStack posestack = RenderSystem.getModelViewStack();
+        posestack.pushPose();
 
-        RenderSystem.pushMatrix();
-        RenderSystem.multMatrix(mStack.last().pose());
-//        RenderSystem.translatef(0, 0, -400);
+        posestack.translate(0.0D, 0.0D, 32.0D);
+        RenderSystem.applyModelViewMatrix();
+        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+        RenderSystem.setShader(GameRenderer::getPositionTexShader);
 
-        RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
-        RenderSystem.enableRescaleNormal();
-        RenderSystem.glMultiTexCoord2f(33986, 240.0F, 240.0F); // light map
         RenderSystem.enableDepthTest();
         RenderSystem.depthMask(true);
 
         Minecraft mc = Minecraft.getInstance();
         ItemRenderer itemRenderer = mc.getItemRenderer();
 
-        itemRenderer.blitOffset = 200f;
-        FontRenderer font = itemStack.getItem().getFontRenderer(itemStack);
+        itemRenderer.blitOffset = 200.0F;
+        net.minecraft.client.gui.Font font = net.minecraftforge.client.RenderProperties.get(itemStack).getFont(itemStack);
+        if (font == null) font = mc.font;
         itemRenderer.renderAndDecorateItem(itemStack, x, y);
-        itemRenderer.renderGuiItemDecorations(font == null ? mc.font : font, itemStack, x, y, altTxt);
-        itemRenderer.blitOffset = 0;
+        itemRenderer.renderGuiItemDecorations(font, itemStack, x, y, altTxt);
+        itemRenderer.blitOffset = 0.0F;
 
         RenderSystem.depthMask(false);
-        RenderSystem.disableRescaleNormal();
-        RenderSystem.color4f(1F, 1F, 1F, 1F);
-        RenderSystem.popMatrix();
+        RenderSystem.setShaderColor(1F, 1F, 1F, 1F);
+        posestack.popPose();
+        RenderSystem.applyModelViewMatrix();
+        RenderSystem.enableDepthTest();
         RenderSystem.enableBlend();
         RenderSystem.disableDepthTest();
-        RenderSystem.enableAlphaTest();
     }
 
     @OnlyIn(Dist.CLIENT)
-    public static List<ITextComponent> getItemToolTip(ItemStack itemStack) {
+    public static List<Component> getItemToolTip(ItemStack itemStack) {
         Minecraft mc = Minecraft.getInstance();
-        return itemStack.getTooltipLines(mc.player, mc.options.advancedItemTooltips ? ITooltipFlag.TooltipFlags.ADVANCED : ITooltipFlag.TooltipFlags.NORMAL);
+        return itemStack.getTooltipLines(mc.player, mc.options.advancedItemTooltips ?  TooltipFlag.Default.ADVANCED : TooltipFlag.Default.NORMAL);
     }
 
     @OnlyIn(Dist.CLIENT)
-    public static void drawSolidRect(MatrixStack mStack, int x, int y, int width, int height, int color) {
-        AbstractGui.fill(mStack, x, y, x + width, y + height, color);
+    public static void drawSolidRect(PoseStack poseStack, int x, int y, int width, int height, int color) {
+        Gui.fill(poseStack, x, y, x + width, y + height, color);
         RenderSystem.enableBlend();
     }
 
     @OnlyIn(Dist.CLIENT)
-    public static void drawRectShadow(MatrixStack mStack, int x, int y, int width, int height, int distance) {
-        drawGradientRect(mStack, x + distance, y + height, width - distance, distance, 0x4f000000, 0, false);
-        drawGradientRect(mStack, x + width, y + distance, distance, height - distance, 0x4f000000, 0, true);
+    public static void drawRectShadow(PoseStack poseStack, int x, int y, int width, int height, int distance) {
+        drawGradientRect(poseStack, x + distance, y + height, width - distance, distance, 0x4f000000, 0, false);
+        drawGradientRect(poseStack, x + width, y + distance, distance, height - distance, 0x4f000000, 0, true);
 
         float startAlpha = (float) (0x4f) / 255.0F;
         RenderSystem.disableTexture();
         RenderSystem.enableBlend();
-        RenderSystem.disableAlphaTest();
         RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
-        RenderSystem.shadeModel(GL11.GL_SMOOTH);
-        Tessellator tessellator = Tessellator.getInstance();
-        BufferBuilder buffer = tessellator.getBuilder();
-        buffer.begin(GL11.GL_TRIANGLES, DefaultVertexFormats.POSITION_COLOR);
+        Tesselator tesselator = Tesselator.getInstance();
+        BufferBuilder buffer = tesselator.getBuilder();
+        RenderSystem.setShader(GameRenderer::getPositionColorShader);
+        buffer.begin(VertexFormat.Mode.TRIANGLES, DefaultVertexFormat.POSITION_COLOR);
         x += width;
         y += height;
-        Matrix4f mat = mStack.last().pose();
+        Matrix4f mat = poseStack.last().pose();
         buffer.vertex(mat, x, y, 0).color(0, 0, 0, startAlpha).endVertex();
         buffer.vertex(mat, x, y + distance, 0).color(0, 0, 0, 0).endVertex();
         buffer.vertex(mat, x + distance, y + distance, 0).color(0, 0, 0, 0).endVertex();
@@ -225,147 +211,74 @@ public class DrawerHelper {
         buffer.vertex(mat, x, y, 0).color(0, 0, 0, startAlpha).endVertex();
         buffer.vertex(mat, x + distance, y + distance, 0).color(0, 0, 0, 0).endVertex();
         buffer.vertex(mat, x + distance, y, 0).color(0, 0, 0, 0).endVertex();
-        tessellator.end();
-        RenderSystem.shadeModel(GL11.GL_FLAT);
-        RenderSystem.enableAlphaTest();
+        tesselator.end();
         RenderSystem.enableTexture();
     }
 
     @OnlyIn(Dist.CLIENT)
-    public static void drawGradientRect(MatrixStack mStack, int x, int y, int width, int height, int startColor, int endColor) {
-        drawGradientRect(mStack, x, y, width, height, startColor, endColor, false);
+    public static void drawGradientRect(PoseStack poseStack, int x, int y, int width, int height, int startColor, int endColor) {
+        drawGradientRect(poseStack, x, y, width, height, startColor, endColor, false);
     }
 
     @OnlyIn(Dist.CLIENT)
-    public static void drawGradientRect(MatrixStack mStack, float x, float y, float width, float height, int startColor, int endColor, boolean horizontal) {
-        float startAlpha = (float) (startColor >> 24 & 255) / 255.0F;
-        float startRed = (float) (startColor >> 16 & 255) / 255.0F;
-        float startGreen = (float) (startColor >> 8 & 255) / 255.0F;
-        float startBlue = (float) (startColor & 255) / 255.0F;
-        float endAlpha = (float) (endColor >> 24 & 255) / 255.0F;
-        float endRed = (float) (endColor >> 16 & 255) / 255.0F;
-        float endGreen = (float) (endColor >> 8 & 255) / 255.0F;
-        float endBlue = (float) (endColor & 255) / 255.0F;
+    public static void drawGradientRect(PoseStack poseStack, float x, float y, float width, float height, int startColor, int endColor, boolean horizontal) {
+        float startAlpha = (float)(startColor >> 24 & 255) / 255.0F;
+        float startRed   = (float)(startColor >> 16 & 255) / 255.0F;
+        float startGreen = (float)(startColor >>  8 & 255) / 255.0F;
+        float startBlue  = (float)(startColor       & 255) / 255.0F;
+        float endAlpha   = (float)(endColor   >> 24 & 255) / 255.0F;
+        float endRed     = (float)(endColor   >> 16 & 255) / 255.0F;
+        float endGreen   = (float)(endColor   >>  8 & 255) / 255.0F;
+        float endBlue    = (float)(endColor         & 255) / 255.0F;
         RenderSystem.disableTexture();
         RenderSystem.enableBlend();
-        RenderSystem.disableAlphaTest();
         RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
-        RenderSystem.shadeModel(GL11.GL_SMOOTH);
-        Matrix4f mat = mStack.last().pose();
-        Tessellator tessellator = Tessellator.getInstance();
-        BufferBuilder buffer = tessellator.getBuilder();
-        buffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_COLOR);
+        Matrix4f mat = poseStack.last().pose();
+        Tesselator tesselator = Tesselator.getInstance();
+        BufferBuilder buffer = tesselator.getBuilder();
+        RenderSystem.setShader(GameRenderer::getPositionColorShader);
+        buffer.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
         if (horizontal) {
             buffer.vertex(mat,x + width, y, 0).color(endRed, endGreen, endBlue, endAlpha).endVertex();
             buffer.vertex(mat,x, y, 0).color(startRed, startGreen, startBlue, startAlpha).endVertex();
             buffer.vertex(mat,x, y + height, 0).color(startRed, startGreen, startBlue, startAlpha).endVertex();
             buffer.vertex(mat,x + width, y + height, 0).color(endRed, endGreen, endBlue, endAlpha).endVertex();
-            tessellator.end();
+            tesselator.end();
         } else {
             buffer.vertex(mat,x + width, y, 0).color(startRed, startGreen, startBlue, startAlpha).endVertex();
             buffer.vertex(mat,x, y, 0).color(startRed, startGreen, startBlue, startAlpha).endVertex();
             buffer.vertex(mat,x, y + height, 0).color(endRed, endGreen, endBlue, endAlpha).endVertex();
             buffer.vertex(mat,x + width, y + height, 0).color(endRed, endGreen, endBlue, endAlpha).endVertex();
-            tessellator.end();
+            tesselator.end();
         }
-        RenderSystem.shadeModel(GL11.GL_FLAT);
-        RenderSystem.enableAlphaTest();
         RenderSystem.enableTexture();
     }
 
     @OnlyIn(Dist.CLIENT)
-    public static void setColor(int color) { // ARGB
-        RenderSystem.color4f((color >> 16 & 255) / 255.0F,
-                (color >> 8 & 255) / 255.0F,
-                (color & 255) / 255.0F,
-                (color >> 24 & 255) / 255.0F);
-    }
-
-    @OnlyIn(Dist.CLIENT)
-    public static void drawCircle(MatrixStack mStack, float x, float y, float r, int color, int segments) {
-        if (color == 0) return;
-        Tessellator tessellator = Tessellator.getInstance();
-        BufferBuilder bufferbuilder = tessellator.getBuilder();
-        RenderSystem.enableBlend();
-        RenderSystem.disableTexture();
-        RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
-        Matrix4f mat = mStack.last().pose();
-        setColor(color);
-        bufferbuilder.begin(GL11.GL_POLYGON, DefaultVertexFormats.POSITION);
-        for (int i = 0; i < segments; i++) {
-            bufferbuilder.vertex(mat, x + r * (float) Math.cos(-2 * Math.PI * i / segments), y + r * (float) Math.sin(-2 * Math.PI * i / segments), 0).endVertex();
-        }
-        tessellator.end();
-        RenderSystem.enableTexture();
-        RenderSystem.color4f(1,1,1,1);
-    }
-
-    @OnlyIn(Dist.CLIENT)
-    public static void drawSector(MatrixStack mStack, float x, float y, float r, int color, int segments, int from, int to) {
-        if (from > to || from < 0 || color == 0) return;
-        if(to > segments) to = segments;
-        Tessellator tessellator = Tessellator.getInstance();
-        BufferBuilder bufferbuilder = tessellator.getBuilder();
-        RenderSystem.enableBlend();
-        RenderSystem.disableTexture();
-        RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
-        setColor(color);
-        Matrix4f mat = mStack.last().pose();
-        bufferbuilder.begin(GL11.GL_TRIANGLES, DefaultVertexFormats.POSITION);
-        for (int i = from; i < to; i++) {
-            bufferbuilder.vertex(mat, x + r * (float) Math.cos(-2 * Math.PI * i / segments), y + r * (float) Math.sin(-2 * Math.PI * i / segments), 0).endVertex();
-            bufferbuilder.vertex(mat,x + r * (float) Math.cos(-2 * Math.PI * (i + 1) / segments), y + r * (float) Math.sin(-2 * Math.PI * (i + 1) / segments), 0).endVertex();
-            bufferbuilder.vertex(mat,x, y, 0).endVertex();
-        }
-        tessellator.end();
-        RenderSystem.enableTexture();
-        RenderSystem.color4f(1, 1, 1, 1);
-    }
-
-    public static void drawTorus(MatrixStack mStack, float x, float y, float outer, float inner, int color, int segments, int from, int to) {
-        Tessellator tessellator = Tessellator.getInstance();
-        BufferBuilder bufferbuilder = tessellator.getBuilder();
-        RenderSystem.enableBlend();
-        RenderSystem.disableTexture();
-        RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
-        setColor(color);
-        Matrix4f mat = mStack.last().pose();
-        bufferbuilder.begin(GL11.GL_QUAD_STRIP, DefaultVertexFormats.POSITION);
-        for (int i = from; i <= to; i++) {
-            float angle = (i / (float) segments) * 3.14159f * 2.0f;
-            bufferbuilder.vertex(mat,x + inner * (float) Math.cos(-angle), y + inner * (float) Math.sin(-angle), 0).endVertex();
-            bufferbuilder.vertex(mat,x + outer * (float) Math.cos(-angle), y + outer * (float) Math.sin(-angle), 0).endVertex();
-        }
-        tessellator.end();
-        RenderSystem.enableTexture();
-        RenderSystem.color4f(1, 1, 1, 1);
-    }
-
-    @OnlyIn(Dist.CLIENT)
-    public static void drawLines(MatrixStack mStack, List<Vector2f> points, int startColor, int endColor, float width) {
-        Tessellator tessellator = Tessellator.getInstance();
-        BufferBuilder bufferbuilder = tessellator.getBuilder();
+    public static void drawLines(PoseStack poseStack, List<Vec2> points, int startColor, int endColor, float width) {
+        Tesselator tesselator = Tesselator.getInstance();
+        BufferBuilder bufferbuilder = tesselator.getBuilder();
         RenderSystem.enableBlend();
         RenderSystem.disableTexture();
         RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
         RenderSystem.lineWidth(width);
-        Matrix4f mat = mStack.last().pose();
+        Matrix4f mat = poseStack.last().pose();
+        RenderSystem.setShader(GameRenderer::getPositionColorShader);
         if (startColor == endColor) {
-            setColor(startColor);
-            bufferbuilder.begin(GL11.GL_LINE_STRIP, DefaultVertexFormats.POSITION);
-            for (Vector2f point : points) {
-                bufferbuilder.vertex(mat, point.x, point.y, 0).endVertex();
+            bufferbuilder.begin(VertexFormat.Mode.LINE_STRIP, DefaultVertexFormat.POSITION_COLOR);
+            for (Vec2 point : points) {
+                bufferbuilder.vertex(mat, point.x, point.y, 0).color(startColor).endVertex();
             }
         } else {
-            float startAlpha = (float) (startColor >> 24 & 255) / 255.0F;
-            float startRed = (float) (startColor >> 16 & 255) / 255.0F;
-            float startGreen = (float) (startColor >> 8 & 255) / 255.0F;
-            float startBlue = (float) (startColor & 255) / 255.0F;
-            float endAlpha = (float) (endColor >> 24 & 255) / 255.0F;
-            float endRed = (float) (endColor >> 16 & 255) / 255.0F;
-            float endGreen = (float) (endColor >> 8 & 255) / 255.0F;
-            float endBlue = (float) (endColor & 255) / 255.0F;
-            bufferbuilder.begin(GL11.GL_LINE_STRIP, DefaultVertexFormats.POSITION_COLOR);
+            float startAlpha = (float)(startColor >> 24 & 255) / 255.0F;
+            float startRed   = (float)(startColor >> 16 & 255) / 255.0F;
+            float startGreen = (float)(startColor >>  8 & 255) / 255.0F;
+            float startBlue  = (float)(startColor       & 255) / 255.0F;
+            float endAlpha   = (float)(endColor   >> 24 & 255) / 255.0F;
+            float endRed     = (float)(endColor   >> 16 & 255) / 255.0F;
+            float endGreen   = (float)(endColor   >>  8 & 255) / 255.0F;
+            float endBlue    = (float)(endColor         & 255) / 255.0F;
+            bufferbuilder.begin(VertexFormat.Mode.LINE_STRIP, DefaultVertexFormat.POSITION_COLOR);
             int size = points.size();
 
             for (int i = 0; i < size; i++) {
@@ -378,22 +291,22 @@ public class DrawerHelper {
                         .endVertex();
             }
         }
-        tessellator.end();
+        tesselator.end();
         RenderSystem.enableTexture();
-        RenderSystem.color4f(1, 1, 1, 1);
     }
 
     @OnlyIn(Dist.CLIENT)
-    public static void drawTextureRect(MatrixStack mStack, float x, float y, float width, float height) {
-        Tessellator tessellator = Tessellator.getInstance();
-        BufferBuilder buffer = tessellator.getBuilder();
-        Matrix4f mat = mStack.last().pose();
-        buffer.begin(7, DefaultVertexFormats.POSITION_TEX);
+    public static void drawTextureRect(PoseStack poseStack, float x, float y, float width, float height) {
+        Tesselator tesselator = Tesselator.getInstance();
+        BufferBuilder buffer = tesselator.getBuilder();
+        Matrix4f mat = poseStack.last().pose();
+        RenderSystem.setShader(GameRenderer::getPositionTexShader);
+        buffer.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
         buffer.vertex(mat, x, y + height, 0).uv(0, 0).endVertex();
         buffer.vertex(mat, x + width, y + height, 0).uv(1, 0).endVertex();
         buffer.vertex(mat, x + width, y, 0).uv(1, 1).endVertex();
         buffer.vertex(mat, x, y, 0).uv(0, 1).endVertex();
-        tessellator.end();
+        tesselator.end();
     }
 
 }

@@ -2,7 +2,7 @@ package com.lowdragmc.lowdraglib.jei;
 
 import mezz.jei.gui.recipes.RecipeLayout;
 import mezz.jei.gui.recipes.RecipesGui;
-import net.minecraftforge.client.event.GuiScreenEvent;
+import net.minecraftforge.client.event.ScreenEvent;
 import net.minecraftforge.client.event.RecipesUpdatedEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -21,9 +21,9 @@ public class JEIClientEventHandler {
     }
 
     @SubscribeEvent
-    public static void onMouseClickedEventPre(GuiScreenEvent.MouseClickedEvent.Pre event) {
-        if (event.getGui() instanceof RecipesGui) {
-            for (RecipeLayout<?> recipeLayout : JEIPlugin.getRecipeLayouts((RecipesGui) event.getGui())) {
+    public static void onMouseClickedEventPre(ScreenEvent.MouseClickedEvent.Pre event) {
+        if (event.getScreen() instanceof RecipesGui) {
+            for (RecipeLayout<?> recipeLayout : JEIPlugin.getRecipeLayouts((RecipesGui) event.getScreen())) {
                 Object recipe = recipeLayout.getRecipe();
                 if (recipe instanceof ModularWrapper) {
                     if (((ModularWrapper<?>) recipe).mouseClicked(event.getMouseX(), event.getMouseY(), event.getButton())) {
@@ -35,9 +35,9 @@ public class JEIClientEventHandler {
     }
 
     @SubscribeEvent
-    public static void onMouseReleasedEventPre(GuiScreenEvent.MouseReleasedEvent.Pre event) {
-        if (event.getGui() instanceof RecipesGui) {
-            for (RecipeLayout<?> recipeLayout : JEIPlugin.getRecipeLayouts((RecipesGui) event.getGui())) {
+    public static void onMouseReleasedEventPre(ScreenEvent.MouseReleasedEvent.Pre event) {
+        if (event.getScreen() instanceof RecipesGui) {
+            for (RecipeLayout<?> recipeLayout : JEIPlugin.getRecipeLayouts((RecipesGui) event.getScreen())) {
                 Object recipe = recipeLayout.getRecipe();
                 if (recipe instanceof ModularWrapper) {
                     if (((ModularWrapper<?>) recipe).mouseReleased(event.getMouseX(), event.getMouseY(), event.getButton())) {
@@ -49,9 +49,9 @@ public class JEIClientEventHandler {
     }
 
     @SubscribeEvent
-    public static void onMouseDragEventPre(GuiScreenEvent.MouseDragEvent.Pre event) {
-        if (event.getGui() instanceof RecipesGui) {
-            for (RecipeLayout<?> recipeLayout : JEIPlugin.getRecipeLayouts((RecipesGui) event.getGui())) {
+    public static void onMouseDragEventPre(ScreenEvent.MouseDragEvent.Pre event) {
+        if (event.getScreen() instanceof RecipesGui) {
+            for (RecipeLayout<?> recipeLayout : JEIPlugin.getRecipeLayouts((RecipesGui) event.getScreen())) {
                 Object recipe = recipeLayout.getRecipe();
                 if (recipe instanceof ModularWrapper) {
                     if (((ModularWrapper<?>) recipe).mouseDragged(event.getMouseX(), event.getMouseY(), event.getMouseButton(), event.getDragX(), event.getDragY())) {
@@ -62,9 +62,9 @@ public class JEIClientEventHandler {
         }
     }
     @SubscribeEvent
-    public static void onMouseScrollEventPre(GuiScreenEvent.MouseScrollEvent.Pre event) {
-        if (event.getGui() instanceof RecipesGui) {
-            for (RecipeLayout<?> recipeLayout : JEIPlugin.getRecipeLayouts((RecipesGui) event.getGui())) {
+    public static void onMouseScrollEventPre(ScreenEvent.MouseScrollEvent.Pre event) {
+        if (event.getScreen() instanceof RecipesGui) {
+            for (RecipeLayout<?> recipeLayout : JEIPlugin.getRecipeLayouts((RecipesGui) event.getScreen())) {
                 Object recipe = recipeLayout.getRecipe();
                 if (recipe instanceof ModularWrapper) {
                     if (((ModularWrapper<?>) recipe).mouseScrolled(event.getMouseX(), event.getMouseY(), event.getScrollDelta())) {
@@ -76,9 +76,9 @@ public class JEIClientEventHandler {
     }
 
     @SubscribeEvent
-    public static void onKeyboardKeyPressedEventPre(GuiScreenEvent.KeyboardKeyPressedEvent event) {
-        if (event.getGui() instanceof RecipesGui) {
-            for (RecipeLayout<?> recipeLayout : JEIPlugin.getRecipeLayouts((RecipesGui) event.getGui())) {
+    public static void onKeyboardKeyPressedEventPre(ScreenEvent.KeyboardKeyPressedEvent event) {
+        if (event.getScreen() instanceof RecipesGui) {
+            for (RecipeLayout<?> recipeLayout : JEIPlugin.getRecipeLayouts((RecipesGui) event.getScreen())) {
                 Object recipe = recipeLayout.getRecipe();
                 if (recipe instanceof ModularWrapper) {
                     if (((ModularWrapper<?>) recipe).keyPressed(event.getKeyCode(), event.getScanCode(), event.getModifiers())) {
@@ -90,9 +90,9 @@ public class JEIClientEventHandler {
     }
 
     @SubscribeEvent
-    public static void onKeyboardKeyReleasedEventEventPre(GuiScreenEvent.KeyboardKeyReleasedEvent event) {
-        if (event.getGui() instanceof RecipesGui) {
-            for (RecipeLayout<?> recipeLayout : JEIPlugin.getRecipeLayouts((RecipesGui) event.getGui())) {
+    public static void onKeyboardKeyReleasedEventEventPre(ScreenEvent.KeyboardKeyReleasedEvent event) {
+        if (event.getScreen() instanceof RecipesGui) {
+            for (RecipeLayout<?> recipeLayout : JEIPlugin.getRecipeLayouts((RecipesGui) event.getScreen())) {
                 Object recipe = recipeLayout.getRecipe();
                 if (recipe instanceof ModularWrapper) {
                     if (((ModularWrapper<?>) recipe).keyReleased(event.getKeyCode(), event.getScanCode(), event.getModifiers())) {
@@ -104,9 +104,9 @@ public class JEIClientEventHandler {
     }
 
     @SubscribeEvent
-    public static void onKeyboardCharTypedEventEventPre(GuiScreenEvent.KeyboardCharTypedEvent event) {
-        if (event.getGui() instanceof RecipesGui) {
-            for (RecipeLayout<?> recipeLayout : JEIPlugin.getRecipeLayouts((RecipesGui) event.getGui())) {
+    public static void onKeyboardCharTypedEventEventPre(ScreenEvent.KeyboardCharTypedEvent event) {
+        if (event.getScreen() instanceof RecipesGui) {
+            for (RecipeLayout<?> recipeLayout : JEIPlugin.getRecipeLayouts((RecipesGui) event.getScreen())) {
                 Object recipe = recipeLayout.getRecipe();
                 if (recipe instanceof ModularWrapper) {
                     if (((ModularWrapper<?>) recipe).charTyped(event.getCodePoint(), event.getModifiers())) {

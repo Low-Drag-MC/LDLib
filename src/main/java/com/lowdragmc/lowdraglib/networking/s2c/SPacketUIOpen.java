@@ -4,27 +4,27 @@ import com.lowdragmc.lowdraglib.gui.factory.UIFactory;
 import com.lowdragmc.lowdraglib.networking.IPacket;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-import net.minecraft.network.PacketBuffer;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.fml.network.NetworkEvent;
+import net.minecraftforge.network.NetworkEvent;
 
 public class SPacketUIOpen implements IPacket {
     private int uiFactoryId;
-    private PacketBuffer serializedHolder;
+    private FriendlyByteBuf serializedHolder;
     private int windowId;
 
     public SPacketUIOpen() {
     }
 
-    public SPacketUIOpen(int uiFactoryId, PacketBuffer serializedHolder, int windowId) {
+    public SPacketUIOpen(int uiFactoryId, FriendlyByteBuf serializedHolder, int windowId) {
         this.uiFactoryId = uiFactoryId;
         this.serializedHolder = serializedHolder;
         this.windowId = windowId;
     }
 
     @Override
-    public void encode(PacketBuffer buf) {
+    public void encode(FriendlyByteBuf buf) {
         buf.writeVarInt(serializedHolder.readableBytes());
         buf.writeBytes(serializedHolder);
 
@@ -33,11 +33,11 @@ public class SPacketUIOpen implements IPacket {
     }
 
     @Override
-    public void decode(PacketBuffer buf) {
+    public void decode(FriendlyByteBuf buf) {
         ByteBuf directSliceBuffer = buf.readBytes(buf.readVarInt());
         ByteBuf copiedDataBuffer = Unpooled.copiedBuffer(directSliceBuffer);
         directSliceBuffer.release();
-        this.serializedHolder = new PacketBuffer(copiedDataBuffer);
+        this.serializedHolder = new FriendlyByteBuf(copiedDataBuffer);
 
         this.uiFactoryId = buf.readVarInt();
         this.windowId = buf.readVarInt();

@@ -1,15 +1,15 @@
 package com.lowdragmc.lowdraglib.networking;
 
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.world.server.ServerWorld;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.phys.AABB;
 import net.minecraftforge.common.util.FakePlayer;
-import net.minecraftforge.fml.network.NetworkDirection;
-import net.minecraftforge.fml.network.NetworkEvent;
-import net.minecraftforge.fml.network.NetworkRegistry;
-import net.minecraftforge.fml.network.simple.SimpleChannel;
-import net.minecraftforge.fml.server.ServerLifecycleHooks;
+import net.minecraftforge.network.NetworkDirection;
+import net.minecraftforge.network.NetworkEvent;
+import net.minecraftforge.network.NetworkRegistry;
+import net.minecraftforge.network.simple.SimpleChannel;
+import net.minecraftforge.server.ServerLifecycleHooks;
 
 import java.util.Optional;
 
@@ -55,19 +55,19 @@ public class Networking {
         network.sendToServer(msg);
     }
 
-    public void sendToPlayer(IPacket msg, ServerPlayerEntity player) {
+    public void sendToPlayer(IPacket msg, ServerPlayer player) {
         if (!(player instanceof FakePlayer))
             network.sendTo(msg, player.connection.connection, NetworkDirection.PLAY_TO_CLIENT);
     }
 
     public void sendToAll(IPacket msg) {
-        for (ServerPlayerEntity player : ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayers()) {
+        for (ServerPlayer player : ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayers()) {
             sendToPlayer(msg, player);
         }
     }
 
-    public void sendToAllAround(IPacket msg, ServerWorld world, AxisAlignedBB alignedBB) {
-        for (ServerPlayerEntity player : world.getEntitiesOfClass(ServerPlayerEntity.class, alignedBB)) {
+    public void sendToAllAround(IPacket msg, ServerLevel world, AABB alignedBB) {
+        for (ServerPlayer player : world.getEntitiesOfClass(ServerPlayer.class, alignedBB)) {
             sendToPlayer(msg, player);
         }
     }

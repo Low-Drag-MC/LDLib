@@ -1,14 +1,13 @@
 package com.lowdragmc.lowdraglib.gui.texture;
 
 import com.lowdragmc.lowdraglib.gui.util.DrawerHelper;
-import com.mojang.blaze3d.matrix.MatrixStack;
-import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.FontRenderer;
-import net.minecraft.client.resources.I18n;
-import net.minecraft.util.text.ITextProperties;
-import net.minecraft.util.text.Style;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.resources.language.I18n;
+import net.minecraft.network.chat.FormattedText;
+import net.minecraft.network.chat.Style;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.fml.loading.FMLEnvironment;
@@ -86,7 +85,7 @@ public class TextTexture implements IGuiTexture{
                 texts = Minecraft.getInstance()
                         .font.getSplitter()
                         .splitLines(text, width, Style.EMPTY)
-                        .stream().map(ITextProperties::getString)
+                        .stream().map(FormattedText::getString)
                         .collect(Collectors.toList());
                 if (texts.size() == 0) {
                     texts = Collections.singletonList(text);
@@ -105,13 +104,13 @@ public class TextTexture implements IGuiTexture{
 
     @OnlyIn(Dist.CLIENT)
     @Override
-    public void draw(MatrixStack stack, int mouseX, int mouseY, float x, float y, int width, int height) {
+    public void draw(PoseStack stack, int mouseX, int mouseY, float x, float y, int width, int height) {
         if (backgroundColor != 0) {
             DrawerHelper.drawSolidRect(stack, (int) x, (int) y, width, height, backgroundColor);
         }
         stack.pushPose();
         stack.translate(0, 0, 400);
-        FontRenderer fontRenderer = Minecraft.getInstance().font;
+        Font fontRenderer = Minecraft.getInstance().font;
         int textH = fontRenderer.lineHeight;
         if (type == TextType.NORMAL) {
             textH *= texts.size();
@@ -172,7 +171,7 @@ public class TextTexture implements IGuiTexture{
             }
         }
         stack.popPose();
-        GlStateManager._color4f(1, 1, 1, 1);
+        RenderSystem.setShaderColor(1, 1, 1, 1);
     }
 
     public enum TextType{

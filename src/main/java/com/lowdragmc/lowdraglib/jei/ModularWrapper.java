@@ -3,18 +3,16 @@ package com.lowdragmc.lowdraglib.jei;
 import com.lowdragmc.lowdraglib.gui.modular.IUIHolder;
 import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
 import com.lowdragmc.lowdraglib.gui.modular.ModularUIGuiContainer;
-import com.lowdragmc.lowdraglib.gui.util.DrawerHelper;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import com.lowdragmc.lowdraglib.utils.Position;
-import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
-import mezz.jei.gui.recipes.RecipeLayout;
+import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
-import net.minecraft.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 import javax.annotation.Nonnull;
+import java.util.Optional;
 
 @OnlyIn(Dist.CLIENT)
 public class ModularWrapper<T extends Widget> extends ModularUIGuiContainer {
@@ -29,31 +27,32 @@ public class ModularWrapper<T extends Widget> extends ModularUIGuiContainer {
     }
 
     private static int lastTick;
-    private RecipeLayout<?> layout;
+    private int left, top;
 
     public T getWidget() {
         return widget;
     }
 
-    public void setRecipeLayout(RecipeLayout<?> layout) {
+    public void setRecipeLayout(int left, int top) {
         modularUI.initWidgets();
-        this.layout = layout;
+        this.left = left;
+        this.top = top;
         this.width = minecraft.getWindow().getGuiScaledWidth();
         this.height = minecraft.getWindow().getGuiScaledHeight();
         modularUI.updateScreenSize(this.width, this.height);
-        Position displayOffset = new Position(modularUI.getGuiLeft(), layout.getPosY());
+        Position displayOffset = new Position(modularUI.getGuiLeft(), top);
         modularUI.mainGroup.setParentPosition(displayOffset);
 //        this.menu.slots.clear();
     }
 
-    public void draw(MatrixStack matrixStack, int mouseX, int mouseY) {
+    public void draw(PoseStack matrixStack, int mouseX, int mouseY) {
         if (minecraft.player.tickCount != lastTick) {
             updateScreen();
             lastTick = minecraft.player.tickCount;
         }
-        matrixStack.translate(-layout.getPosX(), -layout.getPosY(),0);
-        render(matrixStack, mouseX + layout.getPosX(), mouseY + layout.getPosY(), minecraft.getDeltaFrameTime());
-        matrixStack.translate(layout.getPosX(), layout.getPosY(),0);
+        matrixStack.translate(-left, -top,0);
+        render(matrixStack, mouseX + left, mouseY + top, minecraft.getDeltaFrameTime());
+        matrixStack.translate(left, top,0);
     }
 
     public void updateScreen() {
@@ -61,10 +60,9 @@ public class ModularWrapper<T extends Widget> extends ModularUIGuiContainer {
     }
 
     @Override
-    public void render(@Nonnull MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
+    public void render(@Nonnull PoseStack matrixStack, int mouseX, int mouseY, float partialTicks) {
         this.hoveredSlot = null;
 
-        RenderSystem.disableRescaleNormal();
         RenderSystem.disableDepthTest();
 
         tooltipTexts = null;
@@ -73,7 +71,7 @@ public class ModularWrapper<T extends Widget> extends ModularUIGuiContainer {
         modularUI.mainGroup.drawInForeground(matrixStack, mouseX, mouseY, partialTicks);
 
         if (tooltipTexts != null && tooltipTexts.size() > 0) {
-            DrawerHelper.drawHoveringText(matrixStack, ItemStack.EMPTY, tooltipTexts, mouseX, mouseY, width, height, 300);
+            renderTooltip(matrixStack, tooltipTexts, Optional.empty(), mouseX, mouseY);
         }
 
         RenderSystem.depthMask(true);

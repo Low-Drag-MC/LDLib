@@ -9,22 +9,21 @@ import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.utils.Position;
 import com.lowdragmc.lowdraglib.utils.Size;
-import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.platform.InputConstants;
+import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.audio.SimpleSound;
-import net.minecraft.client.renderer.Rectangle2d;
-import net.minecraft.client.util.InputMappings;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.util.SoundEvents;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.client.renderer.Rect2i;
+import net.minecraft.client.resources.sounds.SimpleSoundInstance;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.sounds.SoundEvents;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.lwjgl.glfw.GLFW;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.awt.Rectangle;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -49,7 +48,7 @@ public class Widget {
     private boolean isActive;
     private boolean isFocus;
     protected boolean isClientSideWidget;
-    protected List<ITextComponent> tooltipTexts;
+    protected List<Component> tooltipTexts;
     protected IGuiTexture backgroundTexture;
     protected IGuiTexture hoverTexture;
     protected WidgetGroup parent;
@@ -75,16 +74,17 @@ public class Widget {
     }
 
     public Widget setHoverTooltips(String... tooltipText) {
-        tooltipTexts = Arrays.stream(tooltipText).filter(Objects::nonNull).filter(s->!s.isEmpty()).map(TranslationTextComponent::new).collect(Collectors.toList());
+        tooltipTexts = Arrays.stream(tooltipText).filter(Objects::nonNull).filter(s->!s.isEmpty()).map(
+                TranslatableComponent::new).collect(Collectors.toList());
         return this;
     }
 
-    public Widget setHoverTooltips(ITextComponent... tooltipText) {
+    public Widget setHoverTooltips(Component... tooltipText) {
         tooltipTexts = Arrays.stream(tooltipText).filter(Objects::nonNull).collect(Collectors.toList());
         return this;
     }
 
-    public Widget setHoverTooltips(List<ITextComponent> tooltipText) {
+    public Widget setHoverTooltips(List<Component> tooltipText) {
         tooltipTexts = tooltipText;
         return this;
     }
@@ -164,10 +164,10 @@ public class Widget {
     }
 
     @OnlyIn(Dist.CLIENT)
-    public Rectangle2d toRectangleBox() {
+    public Rect2i toRectangleBox() {
         Position pos = getPosition();
         Size size = getSize();
-        return new Rectangle2d(pos.x, pos.y, size.width, size.height);
+        return new Rect2i(pos.x, pos.y, size.width, size.height);
     }
 
     protected void recomputePosition() {
@@ -210,10 +210,10 @@ public class Widget {
         initialized = true;
     }
 
-    public void writeInitialData(PacketBuffer buffer) {
+    public void writeInitialData(FriendlyByteBuf buffer) {
     }
 
-    public void readInitialData(PacketBuffer buffer) {
+    public void readInitialData(FriendlyByteBuf buffer) {
         
     }
     
@@ -240,7 +240,7 @@ public class Widget {
      * Called each draw tick to draw this widget in GUI
      */
     @OnlyIn(Dist.CLIENT)
-    public void drawInForeground(@Nonnull MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
+    public void drawInForeground(@Nonnull PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
         if (tooltipTexts != null && isMouseOverElement(mouseX, mouseY) && tooltipTexts.size() > 0 && gui != null &&  gui.getModularUIGui() != null) {
             gui.getModularUIGui().setHoverTooltip(tooltipTexts);
         }
@@ -250,15 +250,15 @@ public class Widget {
      * Called each draw tick to draw this widget in GUI
      */
     @OnlyIn(Dist.CLIENT)
-    public void drawInBackground(@Nonnull MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
+    public void drawInBackground(@Nonnull PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
         if (hoverTexture != null && isMouseOverElement(mouseX, mouseY)) {
             Position pos = getPosition();
             Size size = getSize();
-            hoverTexture.draw(matrixStack, mouseX, mouseY, pos.x, pos.y, size.width, size.height);
+            hoverTexture.draw(poseStack, mouseX, mouseY, pos.x, pos.y, size.width, size.height);
         } else if (backgroundTexture != null) {
             Position pos = getPosition();
             Size size = getSize();
-            backgroundTexture.draw(matrixStack, mouseX, mouseY, pos.x, pos.y, size.width, size.height);
+            backgroundTexture.draw(poseStack, mouseX, mouseY, pos.x, pos.y, size.width, size.height);
         }
     }
 
@@ -354,10 +354,10 @@ public class Widget {
      * Read data received from server's {@link #writeUpdateInfo}
      */
     @OnlyIn(Dist.CLIENT)
-    public void readUpdateInfo(int id, PacketBuffer buffer) {
+    public void readUpdateInfo(int id, FriendlyByteBuf buffer) {
     }
 
-    public void handleClientAction(int id, PacketBuffer buffer) {
+    public void handleClientAction(int id, FriendlyByteBuf buffer) {
     }
 
     public List<SlotWidget> getNativeWidgets() {
@@ -370,34 +370,34 @@ public class Widget {
     /**
      * Writes data to be sent to client's {@link #readUpdateInfo}
      */
-    protected final void writeUpdateInfo(int id, Consumer<PacketBuffer> packetBufferWriter) {
+    protected final void writeUpdateInfo(int id, Consumer<FriendlyByteBuf> FriendlyByteBufWriter) {
         if (uiAccess != null && gui != null) {
-            uiAccess.writeUpdateInfo(this, id, packetBufferWriter);
+            uiAccess.writeUpdateInfo(this, id, FriendlyByteBufWriter);
         }
     }
 
     @OnlyIn(Dist.CLIENT)
-    protected final void writeClientAction(int id, Consumer<PacketBuffer> packetBufferWriter) {
+    protected final void writeClientAction(int id, Consumer<FriendlyByteBuf> FriendlyByteBufWriter) {
         if (uiAccess != null && !isClientSideWidget) {
-            uiAccess.writeClientAction(this, id, packetBufferWriter);
+            uiAccess.writeClientAction(this, id, FriendlyByteBufWriter);
         }
     }
 
     @OnlyIn(Dist.CLIENT)
     protected static void playButtonClickSound() {
-        Minecraft.getInstance().getSoundManager().play(SimpleSound.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
+        Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
     }
 
     @OnlyIn(Dist.CLIENT)
     protected static boolean isShiftDown() {
         long id = Minecraft.getInstance().getWindow().getWindow();
-        return InputMappings.isKeyDown(id, GLFW.GLFW_KEY_LEFT_SHIFT) || InputMappings.isKeyDown(id, GLFW.GLFW_KEY_LEFT_SHIFT);
+        return InputConstants.isKeyDown(id, GLFW.GLFW_KEY_LEFT_SHIFT) || InputConstants.isKeyDown(id, GLFW.GLFW_KEY_LEFT_SHIFT);
     }
 
     @OnlyIn(Dist.CLIENT)
     protected static boolean isCtrlDown() {
         long id = Minecraft.getInstance().getWindow().getWindow();
-        return InputMappings.isKeyDown(id, GLFW.GLFW_KEY_LEFT_CONTROL) || InputMappings.isKeyDown(id, GLFW.GLFW_KEY_RIGHT_CONTROL);
+        return InputConstants.isKeyDown(id, GLFW.GLFW_KEY_LEFT_CONTROL) || InputConstants.isKeyDown(id, GLFW.GLFW_KEY_RIGHT_CONTROL);
     }
 
     public boolean isRemote() {

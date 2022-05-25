@@ -1,7 +1,7 @@
 package com.lowdragmc.lowdraglib.utils;
 
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 
 import javax.annotation.Nullable;
 

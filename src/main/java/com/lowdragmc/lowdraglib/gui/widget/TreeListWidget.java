@@ -4,14 +4,14 @@ import com.lowdragmc.lowdraglib.client.utils.RenderUtils;
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.util.DrawerHelper;
 import com.lowdragmc.lowdraglib.gui.util.TreeNode;
-import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.FontRenderer;
-import net.minecraft.client.resources.I18n;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.text.ITextProperties;
-import net.minecraft.util.text.Style;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.resources.language.I18n;
+import net.minecraft.network.chat.FormattedText;
+import net.minecraft.network.chat.Style;
+import net.minecraft.util.Mth;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -98,8 +98,8 @@ public class TreeListWidget<K, T> extends Widget {
     @OnlyIn(Dist.CLIENT)
     public boolean mouseWheelMove(double mouseX, double mouseY, double wheelDelta) {
         if (this.isMouseOverElement(mouseX, mouseY)) {
-            int moveDelta = (int) (-MathHelper.clamp(wheelDelta, -1, 1) * 5);
-            this.scrollOffset = MathHelper.clamp(scrollOffset + moveDelta, 0, Math.max(list.size() * ITEM_HEIGHT - getSize().height, 0));
+            int moveDelta = (int) (-Mth.clamp(wheelDelta, -1, 1) * 5);
+            this.scrollOffset = Mth.clamp(scrollOffset + moveDelta, 0, Math.max(list.size() * ITEM_HEIGHT - getSize().height, 0));
             return true;
         }
         return false;
@@ -107,7 +107,7 @@ public class TreeListWidget<K, T> extends Widget {
 
     @Override
     @OnlyIn(Dist.CLIENT)
-    public void drawInBackground(@Nonnull MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
+    public void drawInBackground(@Nonnull PoseStack matrixStack, int mouseX, int mouseY, float partialTicks) {
         super.drawInBackground(matrixStack, mouseX, mouseY, partialTicks);
         int x = getPosition().x;
         int y = getPosition().y;
@@ -118,11 +118,11 @@ public class TreeListWidget<K, T> extends Widget {
         }
 
         RenderUtils.useScissor(x, y, width, height, ()->{
-            FontRenderer fr = Minecraft.getInstance().font;
+            Font fr = Minecraft.getInstance().font;
             int minToRender = scrollOffset / ITEM_HEIGHT;
             int maxToRender = Math.min(list.size(), height / ITEM_HEIGHT + 2 + minToRender);
             for (int i = minToRender; i < maxToRender; i++) {
-                RenderSystem.color4f(1,1,1,1);
+                RenderSystem.setShaderColor(1,1,1,1);
                 TreeNode<K, T> node = list.get(i);
                 int sX = x + 10 * node.dimension;
                 int sY = y - scrollOffset + i * ITEM_HEIGHT;
@@ -158,12 +158,12 @@ public class TreeListWidget<K, T> extends Widget {
                     DrawerHelper.drawSolidRect(matrixStack, x, sY, width, ITEM_HEIGHT, 0x7f000000);
                 }
                 int textW = Math.max(width - 10 * node.dimension, 10);
-                List<ITextProperties> list = fr.getSplitter().splitLines(I18n.get(name), textW, Style.EMPTY);
+                List<FormattedText> list = fr.getSplitter().splitLines(I18n.get(name), textW, Style.EMPTY);
                 fr.draw(matrixStack, list.get(Math.abs((tick / 20) % list.size())).getString(), sX, sY + 2, 0xff000000);
             }
         });
         RenderSystem.enableBlend();
-        RenderSystem.color4f(1,1,1,1);
+        RenderSystem.setShaderColor(1,1,1,1);
     }
 
     public TreeNode<K, T> jumpTo(List<K> path) {
@@ -197,7 +197,7 @@ public class TreeListWidget<K, T> extends Widget {
         }
         if (flag) {
             this.selected = node;
-            this.scrollOffset = MathHelper.clamp(ITEM_HEIGHT * (index - 1), 0, Math.max(list.size() * ITEM_HEIGHT - getSize().height, 0));
+            this.scrollOffset = Mth.clamp(ITEM_HEIGHT * (index - 1), 0, Math.max(list.size() * ITEM_HEIGHT - getSize().height, 0));
             return this.selected;
         }
         return null;

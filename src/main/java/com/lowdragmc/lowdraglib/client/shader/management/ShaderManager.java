@@ -3,12 +3,13 @@ package com.lowdragmc.lowdraglib.client.shader.management;
 import com.lowdragmc.lowdraglib.LDLMod;
 import com.lowdragmc.lowdraglib.client.shader.Shaders;
 import com.lowdragmc.lowdraglib.client.shader.uniform.UniformCache;
+import com.mojang.blaze3d.pipeline.RenderTarget;
+import com.mojang.blaze3d.vertex.BufferBuilder;
+import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+import com.mojang.blaze3d.vertex.Tesselator;
+import com.mojang.blaze3d.vertex.VertexFormat;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceMap;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
-import net.minecraft.client.renderer.BufferBuilder;
-import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
-import net.minecraft.client.shader.Framebuffer;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -62,7 +63,7 @@ public class ShaderManager {
 		this.programs = new Reference2ReferenceOpenHashMap<>();
 	}
 
-	public Framebuffer renderFullImageInFramebuffer(Framebuffer fbo, Shader frag, Consumer<UniformCache> consumeCache) {
+	public RenderTarget renderFullImageInFramebuffer(RenderTarget fbo, Shader frag, Consumer<UniformCache> consumeCache) {
 		if (fbo == null || frag == null || !allowedShader()) {
 			return fbo;
 		}
@@ -80,9 +81,10 @@ public class ShaderManager {
 				consumeCache.accept(cache);
 			}
 		});
-		Tessellator tessellator = Tessellator.getInstance();
+
+		Tesselator tessellator = Tesselator.getInstance();
 		BufferBuilder buffer = tessellator.getBuilder();
-		buffer.begin(7, DefaultVertexFormats.POSITION_TEX);
+		buffer.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
 		buffer.vertex(-1, 1, 0).uv(0, 0).endVertex();
 		buffer.vertex(-1, -1, 0).uv(0, 1).endVertex();
 		buffer.vertex(1, -1, 0).uv(1, 1).endVertex();

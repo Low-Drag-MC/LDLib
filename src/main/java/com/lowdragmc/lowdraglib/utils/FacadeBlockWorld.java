@@ -1,14 +1,15 @@
 package com.lowdragmc.lowdraglib.utils;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.DimensionType;
-import net.minecraft.world.LightType;
-import net.minecraft.world.World;
-import net.minecraft.world.biome.Biome;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
 import net.minecraft.world.level.ColorResolver;
-import net.minecraft.world.lighting.WorldLightManager;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LightLayer;
+import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.dimension.DimensionType;
+import net.minecraft.world.level.lighting.LevelLightEngine;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -24,12 +25,12 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @OnlyIn(Dist.CLIENT)
 public class FacadeBlockWorld extends DummyWorld {
 
-    public final World world;
+    public final Level world;
     public final BlockPos pos;
     public final BlockState state;
-    public final TileEntity tile;
+    public final BlockEntity tile;
 
-    public FacadeBlockWorld(World world, BlockPos pos, BlockState state, TileEntity tile) {
+    public FacadeBlockWorld(Level world, BlockPos pos, BlockState state, BlockEntity tile) {
         this.world = world;
         this.pos = pos;
         this.state = state;
@@ -38,7 +39,7 @@ public class FacadeBlockWorld extends DummyWorld {
 
     @Nullable
     @Override
-    public TileEntity getBlockEntity(BlockPos pPos) {
+    public BlockEntity getBlockEntity(BlockPos pPos) {
         return pPos.equals(pos) ? tile : world.getBlockEntity(pPos);
     }
 
@@ -50,12 +51,12 @@ public class FacadeBlockWorld extends DummyWorld {
     }
 
     @Override
-    public WorldLightManager getLightEngine() {
+    public LevelLightEngine getLightEngine() {
         return world.getLightEngine();
     }
 
     @Override
-    public int getBrightness(@Nonnull LightType lightType, @Nonnull BlockPos pos) {
+    public int getBrightness(@Nonnull LightLayer lightType, @Nonnull BlockPos pos) {
         return world.getBrightness(lightType, pos);
     }
 
@@ -83,8 +84,12 @@ public class FacadeBlockWorld extends DummyWorld {
     @Nonnull
     @Override
     @OnlyIn(Dist.CLIENT)
-    public Biome getBiome(@Nonnull BlockPos pos) {
+    public Holder<Biome> getBiome(@Nonnull BlockPos pos) {
         return world.getBiome(pos);
     }
-    
+
+    @Override
+    public @Nullable BlockEntity getExistingBlockEntity(BlockPos pos) {
+        return pos.equals(this.pos) ? tile : world.getExistingBlockEntity(pos);
+    }
 }

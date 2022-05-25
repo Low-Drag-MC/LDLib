@@ -3,34 +3,35 @@ package com.lowdragmc.lowdraglib.client.particle;
 import com.lowdragmc.lowdraglib.client.renderer.IBlockRendererProvider;
 import com.lowdragmc.lowdraglib.client.renderer.IRenderer;
 import com.lowdragmc.lowdraglib.particles.IRendererParticleData;
-import mcp.MethodsReturnNonnullByDefault;
-import net.minecraft.block.BlockState;
-import net.minecraft.client.particle.IParticleFactory;
-import net.minecraft.client.particle.IParticleRenderType;
+import net.minecraft.MethodsReturnNonnullByDefault;
+import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.Particle;
-import net.minecraft.client.particle.SpriteTexturedParticle;
-import net.minecraft.client.renderer.WorldRenderer;
-import net.minecraft.client.world.ClientWorld;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.client.particle.ParticleProvider;
+import net.minecraft.client.particle.ParticleRenderType;
+import net.minecraft.client.particle.TextureSheetParticle;
+import net.minecraft.client.renderer.LevelRenderer;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
  * @author KilaBash
  * @date 2022/05/18
- * @implNote DiggingTextureParticle for TextureAtlasSprite particle, see {@link net.minecraft.client.particle.DiggingParticle}
+ * @implNote DiggingTextureParticle for TextureAtlasSprite particle, see {@link net.minecraft.core.particles.BlockParticleOption}
  */
 @OnlyIn(Dist.CLIENT)
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class DiggingIRendererParticle extends SpriteTexturedParticle {
+public class DiggingIRendererParticle extends TextureSheetParticle {
     private BlockPos pos;
     private final float uo;
     private final float vo;
 
-    public DiggingIRendererParticle(ClientWorld pLevel, double pX, double pY, double pZ, double pXSpeed, double pYSpeed, double pZSpeed, IRenderer renderer) {
+    public DiggingIRendererParticle(ClientLevel pLevel, double pX, double pY, double pZ, double pXSpeed, double pYSpeed, double pZSpeed, IRenderer renderer) {
         super(pLevel, pX, pY, pZ, pXSpeed, pYSpeed, pZSpeed);
         this.setSprite(renderer.getParticleTexture());
         this.gravity = 1.0F;
@@ -42,8 +43,8 @@ public class DiggingIRendererParticle extends SpriteTexturedParticle {
         this.vo = this.random.nextFloat() * 3.0F;
     }
 
-    public IParticleRenderType getRenderType() {
-        return IParticleRenderType.TERRAIN_SHEET;
+    public ParticleRenderType getRenderType() {
+        return ParticleRenderType.TERRAIN_SHEET;
     }
 
     public DiggingIRendererParticle init(BlockPos p_174846_1_) {
@@ -75,16 +76,21 @@ public class DiggingIRendererParticle extends SpriteTexturedParticle {
     public int getLightColor(float pPartialTick) {
         int i = super.getLightColor(pPartialTick);
         int j = 0;
-        if (this.level.hasChunkAt(this.pos)) {
-            j = WorldRenderer.getLightColor(this.level, this.pos);
+        if (this.level.isLoaded(this.pos)) {
+            j = LevelRenderer.getLightColor(this.level, this.pos);
         }
 
         return i == 0 ? j : i;
     }
 
     @OnlyIn(Dist.CLIENT)
-    public static class Factory implements IParticleFactory<IRendererParticleData> {
-        public Particle createParticle(IRendererParticleData pType, ClientWorld pLevel, double pX, double pY, double pZ, double pXSpeed, double pYSpeed, double pZSpeed) {
+    public static class Provider implements ParticleProvider<IRendererParticleData> {
+        @Nullable
+        @Override
+        public Particle createParticle(IRendererParticleData pType,
+                                       ClientLevel pLevel, double pX, double pY,
+                                       double pZ, double pXSpeed,
+                                       double pYSpeed, double pZSpeed) {
             BlockPos pos = pType.getPos();
             BlockState blockstate = pLevel.getBlockState(pos);
             if (blockstate instanceof IBlockRendererProvider) {

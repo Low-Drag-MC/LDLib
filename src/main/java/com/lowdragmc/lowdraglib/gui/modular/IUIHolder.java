@@ -1,12 +1,12 @@
 package com.lowdragmc.lowdraglib.gui.modular;
 
 
-import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.world.entity.player.Player;
 
 public interface IUIHolder {
     IUIHolder EMPTY = new IUIHolder() {
         @Override
-        public ModularUI createUI(PlayerEntity entityPlayer) {
+        public ModularUI createUI(Player entityPlayer) {
             return null;
         }
 
@@ -26,7 +26,7 @@ public interface IUIHolder {
         }
     };
 
-    ModularUI createUI(PlayerEntity entityPlayer);
+    ModularUI createUI(Player entityPlayer);
 
     boolean isInvalid();
 

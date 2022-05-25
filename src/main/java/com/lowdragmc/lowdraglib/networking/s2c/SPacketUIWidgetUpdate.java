@@ -5,28 +5,27 @@ import com.lowdragmc.lowdraglib.networking.IPacket;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.screen.inventory.ContainerScreen;
-import net.minecraft.network.PacketBuffer;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.fml.network.NetworkEvent;
+import net.minecraftforge.network.NetworkEvent;
 
 public class SPacketUIWidgetUpdate implements IPacket {
 
     public int windowId;
-    public PacketBuffer updateData;
+    public FriendlyByteBuf updateData;
 
     public SPacketUIWidgetUpdate() {
     }
 
-    public SPacketUIWidgetUpdate(int windowId, PacketBuffer updateData) {
+    public SPacketUIWidgetUpdate(int windowId, FriendlyByteBuf updateData) {
         this.windowId = windowId;
         this.updateData = updateData;
     }
 
     @Override
-    public void encode(PacketBuffer buf) {
+    public void encode(FriendlyByteBuf buf) {
         buf.writeVarInt(updateData.readableBytes());
         buf.writeBytes(updateData);
 
@@ -34,11 +33,11 @@ public class SPacketUIWidgetUpdate implements IPacket {
     }
 
     @Override
-    public void decode(PacketBuffer buf) {
+    public void decode(FriendlyByteBuf buf) {
         ByteBuf directSliceBuffer = buf.readBytes(buf.readVarInt());
         ByteBuf copiedDataBuffer = Unpooled.copiedBuffer(directSliceBuffer);
         directSliceBuffer.release();
-        this.updateData = new PacketBuffer(copiedDataBuffer);
+        this.updateData = new FriendlyByteBuf(copiedDataBuffer);
 
         this.windowId = buf.readVarInt();
     }

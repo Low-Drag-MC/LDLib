@@ -1,13 +1,13 @@
 package com.lowdragmc.lowdraglib.utils;
 
 import com.google.gson.JsonObject;
-import mcp.MethodsReturnNonnullByDefault;
-import net.minecraft.resources.FilePack;
-import net.minecraft.resources.FolderPack;
-import net.minecraft.resources.IPackFinder;
-import net.minecraft.resources.IPackNameDecorator;
-import net.minecraft.resources.IResourcePack;
-import net.minecraft.resources.ResourcePackInfo;
+import net.minecraft.MethodsReturnNonnullByDefault;
+import net.minecraft.server.packs.FilePackResources;
+import net.minecraft.server.packs.FolderPackResources;
+import net.minecraft.server.packs.PackResources;
+import net.minecraft.server.packs.repository.Pack;
+import net.minecraft.server.packs.repository.PackSource;
+import net.minecraft.server.packs.repository.RepositorySource;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.io.File;
@@ -22,11 +22,11 @@ import java.util.function.Supplier;
  */
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class CustomResourcePack implements IPackFinder {
+public class CustomResourcePack implements RepositorySource {
     private final File location;
-    private final IPackNameDecorator packSource;
+    private final PackSource packSource;
 
-    public CustomResourcePack(File location, IPackNameDecorator packSource, String namespace, String description, int format) {
+    public CustomResourcePack(File location, PackSource packSource, String namespace, String description, int format) {
         this.location = location;
         this.packSource = packSource;
 
@@ -43,7 +43,7 @@ public class CustomResourcePack implements IPackFinder {
 
     }
 
-    public CustomResourcePack(File location, IPackNameDecorator packSource, String namespace, JsonObject meta) {
+    public CustomResourcePack(File location, PackSource packSource, String namespace, JsonObject meta) {
         this.location = location;
         this.packSource = packSource;
 
@@ -60,22 +60,22 @@ public class CustomResourcePack implements IPackFinder {
         return flag || flag1;
     };
 
-    public void loadPacks(Consumer<ResourcePackInfo> pInfoConsumer, ResourcePackInfo.IFactory pInfoFactory) {
+    private Supplier<PackResources> createSupplier(File pFile) {
+        return pFile.isDirectory() ? () -> new FolderPackResources(pFile) : () -> new FilePackResources(pFile);
+    }
+
+    @Override
+    public void loadPacks(Consumer<Pack> pInfoConsumer, Pack.PackConstructor pInfoFactory) {
         if (!this.location.isDirectory()) {
             this.location.mkdirs();
         }
 
         if (RESOURCEPACK_FILTER.accept(location)) {
             String s = "file/" + location.getName();
-            ResourcePackInfo resourcepackinfo = ResourcePackInfo.create(s, true, this.createSupplier(location), pInfoFactory, ResourcePackInfo.Priority.TOP, this.packSource);
+            Pack resourcepackinfo = Pack.create(s, true, this.createSupplier(location), pInfoFactory, Pack.Position.TOP, this.packSource);
             if (resourcepackinfo != null) {
                 pInfoConsumer.accept(resourcepackinfo);
             }
         }
-
-    }
-
-    private Supplier<IResourcePack> createSupplier(File pFile) {
-        return pFile.isDirectory() ? () -> new FolderPack(pFile) : () -> new FilePack(pFile);
     }
 }

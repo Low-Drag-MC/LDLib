@@ -1,13 +1,18 @@
 package com.lowdragmc.lowdraglib.utils;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.vector.Vector3f;
-import net.minecraft.world.World;
+import net.minecraft.MethodsReturnNonnullByDefault;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.ColorResolver;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.chunk.ChunkSource;
+import net.minecraft.world.level.material.FluidState;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Predicate;
@@ -17,14 +22,16 @@ import java.util.function.Predicate;
  * Date: 2021/08/25
  * Description: TrackedDummyWorld. Used to build a Fake World.
  */
+@ParametersAreNonnullByDefault
+@MethodsReturnNonnullByDefault
 public class TrackedDummyWorld extends DummyWorld {
 
     private Predicate<BlockPos> renderFilter;
-    public final World proxyWorld;
+    public final Level proxyWorld;
     public final Map<BlockPos, BlockInfo> renderedBlocks = new HashMap<>();
 
-    public final Vector3f minPos = new Vector3f(Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE);
-    public final Vector3f maxPos = new Vector3f(Integer.MIN_VALUE, Integer.MIN_VALUE, Integer.MIN_VALUE);
+    public final Vector3 minPos = new Vector3(Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE);
+    public final Vector3 maxPos = new Vector3(Integer.MIN_VALUE, Integer.MIN_VALUE, Integer.MIN_VALUE);
 
     public void setRenderFilter(Predicate<BlockPos> renderFilter) {
         this.renderFilter = renderFilter;
@@ -34,7 +41,7 @@ public class TrackedDummyWorld extends DummyWorld {
         this(null);
     }
 
-    public TrackedDummyWorld(World world){
+    public TrackedDummyWorld(@Nullable Level world){
         proxyWorld = world;
     }
 
@@ -49,37 +56,33 @@ public class TrackedDummyWorld extends DummyWorld {
     public void addBlock(BlockPos pos, BlockInfo blockInfo) {
         if (blockInfo.getBlockState().getBlock() == Blocks.AIR)
             return;
-        if (blockInfo.getTileEntity() != null) {
-            blockInfo.getTileEntity().setLevelAndPosition(this, pos);
-        }
         this.renderedBlocks.put(pos, blockInfo);
-        minPos.setX(Math.min(minPos.x(), pos.getX()));
-        minPos.setY(Math.min(minPos.y(), pos.getY()));
-        minPos.setZ(Math.min(minPos.z(), pos.getZ()));
-        maxPos.setX(Math.max(maxPos.x(), pos.getX()));
-        maxPos.setY(Math.max(maxPos.y(), pos.getY()));
-        maxPos.setZ(Math.max(maxPos.z(), pos.getZ()));
+        minPos.x = (Math.min(minPos.x, pos.getX()));
+        minPos.y = (Math.min(minPos.y, pos.getY()));
+        minPos.z = (Math.min(minPos.z, pos.getZ()));
+        maxPos.x = (Math.max(maxPos.x, pos.getX()));
+        maxPos.y = (Math.max(maxPos.y, pos.getY()));
+        maxPos.z = (Math.max(maxPos.z, pos.getZ()));
     }
 
     @Override
-    public void setBlockEntity(@Nonnull BlockPos pos, TileEntity tileEntity) {
-        renderedBlocks.put(pos, new BlockInfo(renderedBlocks.getOrDefault(pos, BlockInfo.EMPTY).getBlockState(), tileEntity));
+    public void setBlockEntity(@Nonnull BlockEntity pBlockEntity) {
+//        renderedBlocks.put(pBlockEntity.getBlockPos(), new BlockInfo(renderedBlocks.getOrDefault(pBlockEntity.getBlockPos(), BlockInfo.EMPTY).getBlockState(), pBlockEntity));
     }
 
     @Override
-    public boolean setBlock(@Nonnull BlockPos pos, BlockState state, int a, int b) {
-        renderedBlocks.put(pos, new BlockInfo(state, renderedBlocks.getOrDefault(pos, BlockInfo.EMPTY).getTileEntity()));
+    public boolean setBlock(@Nonnull BlockPos pos, @Nonnull BlockState state, int a, int b) {
+        renderedBlocks.put(pos, BlockInfo.fromBlockState(state));
         return true;
     }
 
     @Override
-    public TileEntity getBlockEntity(@Nonnull BlockPos pos) {
+    public BlockEntity getBlockEntity(@Nonnull BlockPos pos) {
         if (renderFilter != null && !renderFilter.test(pos))
             return null;
-        return proxyWorld != null ? proxyWorld.getBlockEntity(pos) : renderedBlocks.getOrDefault(pos, BlockInfo.EMPTY).getTileEntity();
+        return proxyWorld != null ? proxyWorld.getBlockEntity(pos) : renderedBlocks.getOrDefault(pos, BlockInfo.EMPTY).getBlockEntity(this, pos);
     }
 
-    @Nonnull
     @Override
     public BlockState getBlockState(@Nonnull BlockPos pos) {
         if (renderFilter != null && !renderFilter.test(pos))
@@ -87,20 +90,30 @@ public class TrackedDummyWorld extends DummyWorld {
         return proxyWorld != null ? proxyWorld.getBlockState(pos) : renderedBlocks.getOrDefault(pos, BlockInfo.EMPTY).getBlockState();
     }
 
-    public Vector3f getSize() {
-        Vector3f result = new Vector3f();
-        result.setX(maxPos.x() - minPos.x() + 1);
-        result.setY(maxPos.y() - minPos.y() + 1);
-        result.setZ(maxPos.z() - minPos.z() + 1);
-        return result;
+    public Vector3 getSize() {
+        return new Vector3(maxPos.x - minPos.x + 1, maxPos.y - minPos.y + 1, maxPos.z - minPos.z + 1);
     }
 
-    public Vector3f getMinPos() {
+    public Vector3 getMinPos() {
         return minPos;
     }
 
-    public Vector3f getMaxPos() {
+    public Vector3 getMaxPos() {
         return maxPos;
     }
 
+    @Override
+    public ChunkSource getChunkSource() {
+        return proxyWorld == null ? super.getChunkSource() : proxyWorld.getChunkSource();
+    }
+
+    @Override
+    public FluidState getFluidState(BlockPos pPos) {
+        return proxyWorld == null ? super.getFluidState(pPos) : proxyWorld.getFluidState(pPos);
+    }
+
+    @Override
+    public int getBlockTint(@Nonnull BlockPos blockPos, @Nonnull ColorResolver colorResolver) {
+        return  proxyWorld == null ? super.getBlockTint(blockPos, colorResolver) : proxyWorld.getBlockTint(blockPos, colorResolver);
+    }
 }

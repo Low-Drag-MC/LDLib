@@ -2,7 +2,7 @@ package com.lowdragmc.lowdraglib.gui.modular;
 
 import mezz.jei.api.gui.handlers.IGhostIngredientHandler;
 import mezz.jei.api.gui.handlers.IGuiContainerHandler;
-import net.minecraft.client.renderer.Rectangle2d;
+import net.minecraft.client.renderer.Rect2i;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -26,7 +26,7 @@ public class ModularUIJeiHandler implements IGuiContainerHandler<ModularUIGuiCon
         return targets.stream().map(target-> new Target<I>() {
             @Nonnull
             @Override
-            public Rectangle2d getArea() {
+            public Rect2i getArea() {
                 return target.getArea();
             }
 

@@ -1,12 +1,15 @@
 package com.lowdragmc.lowdraglib.utils;
 
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.item.ItemStack;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.EntityBlock;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
 
 /**
  * Author: KilaBash
@@ -17,33 +20,34 @@ public class BlockInfo {
     public static final BlockInfo EMPTY = new BlockInfo(Blocks.AIR);
 
     private BlockState blockState;
-    private TileEntity tileEntity;
+    private boolean hasBlockEntity;
     private final ItemStack itemStack;
+    private BlockEntity lastEntity;
 
     public BlockInfo(Block block) {
         this(block.defaultBlockState());
     }
 
     public BlockInfo(BlockState blockState) {
-        this(blockState, null);
+        this(blockState, false);
     }
 
-    public BlockInfo(BlockState blockState, TileEntity tileEntity) {
-        this(blockState, tileEntity, null);
+    public BlockInfo(BlockState blockState, boolean hasBlockEntity) {
+        this(blockState, hasBlockEntity, null);
     }
 
-    public BlockInfo(BlockState blockState, TileEntity tileEntity, ItemStack itemStack) {
+    public BlockInfo(BlockState blockState, boolean hasBlockEntity, ItemStack itemStack) {
         this.blockState = blockState;
-        this.tileEntity = tileEntity;
+        this.hasBlockEntity = hasBlockEntity;
         this.itemStack = itemStack;
     }
 
     public static BlockInfo fromBlockState(BlockState state) {
         try {
-            if (state.getBlock().hasTileEntity(state)) {
-                TileEntity tileEntity = state.getBlock().createTileEntity(state, new TrackedDummyWorld());
-                if (tileEntity != null) {
-                    return new BlockInfo(state, tileEntity);
+            if (state.getBlock() instanceof EntityBlock) {
+                BlockEntity blockEntity = ((EntityBlock) state.getBlock()).newBlockEntity(BlockPos.ZERO, state);
+                if (blockEntity != null) {
+                    return new BlockInfo(state, true);
                 }
             }
         } catch (Exception ignored){ }
@@ -58,23 +62,42 @@ public class BlockInfo {
         return blockState;
     }
 
-    public TileEntity getTileEntity() {
-        return tileEntity;
+    public boolean hasBlockEntity() {
+        return hasBlockEntity;
+    }
+
+    public BlockEntity getBlockEntity(BlockPos pos) {
+        if (hasBlockEntity && blockState.getBlock() instanceof EntityBlock entityBlock) {
+            if (lastEntity != null && lastEntity.getBlockPos().equals(pos)) {
+                return lastEntity;
+            }
+            return lastEntity = entityBlock.newBlockEntity(pos, blockState);
+        }
+        return null;
+    }
+
+    public BlockEntity getBlockEntity(Level level, BlockPos pos) {
+        BlockEntity entity = getBlockEntity(pos);
+        if (entity != null) {
+            entity.setLevel(level);
+        }
+        return entity;
     }
 
     public ItemStack getItemStackForm() {
         return itemStack == null ? new ItemStack(blockState.getBlock()) : itemStack;
     }
 
-    public void apply(World world, BlockPos pos) {
+    public void apply(Level world, BlockPos pos) {
         world.setBlockAndUpdate(pos, blockState);
-        if (tileEntity != null) {
-            world.setBlockEntity(pos, tileEntity);
+        BlockEntity blockEntity = getBlockEntity(pos);
+        if (blockEntity != null) {
+            world.setBlockEntity(blockEntity);
         }
     }
 
-    public void setTileEntity(TileEntity tileEntity) {
-        this.tileEntity = tileEntity;
+    public void setHasBlockEntity(boolean hasBlockEntity) {
+        this.hasBlockEntity = hasBlockEntity;
     }
 
     public void setBlockState(BlockState blockState) {

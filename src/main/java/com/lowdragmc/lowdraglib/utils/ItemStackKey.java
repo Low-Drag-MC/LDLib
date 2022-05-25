@@ -1,7 +1,7 @@
 package com.lowdragmc.lowdraglib.utils;
 
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 
 import java.util.Objects;
 

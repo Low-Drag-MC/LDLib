@@ -7,21 +7,19 @@ import com.lowdragmc.lowdraglib.networking.LDLNetworking;
 import com.lowdragmc.lowdraglib.networking.c2s.CPacketUIClientAction;
 import com.lowdragmc.lowdraglib.networking.s2c.SPacketUIWidgetUpdate;
 import io.netty.buffer.Unpooled;
-import net.minecraft.client.entity.player.ClientPlayerEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.inventory.IInventory;
-import net.minecraft.inventory.Inventory;
-import net.minecraft.inventory.container.ClickType;
-import net.minecraft.inventory.container.Container;
-import net.minecraft.inventory.container.IContainerListener;
-import net.minecraft.inventory.container.Slot;
-import net.minecraft.item.ItemStack;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.network.play.server.SSetSlotPacket;
+import net.minecraft.client.player.AbstractClientPlayer;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.Container;
+import net.minecraft.world.SimpleContainer;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.ContainerListener;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
 
 import javax.annotation.Nonnull;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -30,7 +28,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-public class ModularUIContainer extends Container implements WidgetUIAccess {
+public class ModularUIContainer extends AbstractContainerMenu implements WidgetUIAccess {
 
     protected final HashMap<Slot, SlotWidget> slotMap = new HashMap<>();
     private final ModularUI modularUI;
@@ -101,33 +99,15 @@ public class ModularUIContainer extends Container implements WidgetUIAccess {
     }
 
     @Override
-    public void removed(PlayerEntity playerIn) {
+    public void removed(@Nonnull Player playerIn) {
         super.removed(playerIn);
         modularUI.triggerCloseListeners();
     }
 
     @Override
-    public void addSlotListener(@Nonnull IContainerListener listener) {
-        super.addSlotListener(listener);
+    public void addSlotListener(@Nonnull ContainerListener pListener) {
+        super.addSlotListener(pListener);
         modularUI.mainGroup.detectAndSendChanges();
-    }
-
-    @Override
-    public void sendSlotUpdate(SlotWidget slot) {
-        Slot slotHandle = slot.getHandle();
-        for (IContainerListener listener : this.containerListeners) {
-            listener.slotChanged(this, slotHandle.index, slotHandle.getItem());
-        }
-    }
-
-    @Override
-    public void sendHeldItemUpdate() {
-        for (IContainerListener listener : this.containerListeners) {
-            if (listener instanceof ServerPlayerEntity) {
-                ServerPlayerEntity player = (ServerPlayerEntity) listener;
-                player.connection.send(new SSetSlotPacket(-1, -1, player.inventory.getCarried()));
-            }
-        }
     }
 
     @Override
@@ -139,21 +119,21 @@ public class ModularUIContainer extends Container implements WidgetUIAccess {
         modularUI.mainGroup.detectAndSendChanges();
     }
 
-    @Nonnull
     @Override
-    public ItemStack clicked(int slotId, int dragType, @Nonnull ClickType clickTypeIn, @Nonnull PlayerEntity player) {
+    public void clicked(int slotId, int dragType, @Nonnull ClickType clickTypeIn, @Nonnull Player player) {
         if (slotId >= 0 && slotId < slots.size()) {
             Slot slot = getSlot(slotId);
             ItemStack result = slotMap.get(slot).slotClick(dragType, clickTypeIn, player);
             if (result == null) {
-                return super.clicked(slotId, dragType, clickTypeIn, player);
+//                return super.clicked(slotId, dragType, clickTypeIn, player);
+                super.clicked(slotId, dragType, clickTypeIn, player);
             }
-            return result;
+//            return result;
         }
         if (slotId == -999) {
             super.clicked(slotId, dragType, clickTypeIn, player);
         }
-        return ItemStack.EMPTY;
+//        return ItemStack.EMPTY;
     }
 
     private final PerTickIntCounter transferredPerTick = new PerTickIntCounter(0);
@@ -161,7 +141,7 @@ public class ModularUIContainer extends Container implements WidgetUIAccess {
     private List<SlotWidget> getShiftClickSlots(ItemStack itemStack, boolean fromContainer) {
         return slotMap.values().stream()
                 .filter(it -> it.canMergeSlot(itemStack))
-                .filter(it -> it.isPlayerInventory == fromContainer)
+                .filter(it -> it.isPlayerContainer == fromContainer)
                 .sorted(Comparator.comparing(s -> (fromContainer ? -1 : 1) * s.getHandle().index))
                 .collect(Collectors.toList());
     }
@@ -227,7 +207,7 @@ public class ModularUIContainer extends Container implements WidgetUIAccess {
 
     @Nonnull
     @Override
-    public ItemStack quickMoveStack(@Nonnull PlayerEntity player, int index) {
+    public ItemStack quickMoveStack(@Nonnull Player player, int index) {
         Slot slot = slots.get(index);
         if (!slot.mayPickup(player)) {
             return ItemStack.EMPTY;
@@ -237,8 +217,9 @@ public class ModularUIContainer extends Container implements WidgetUIAccess {
             return ItemStack.EMPTY;
         }
         ItemStack stackInSlot = slot.getItem();
-        ItemStack stackToMerge = slotMap.get(slot).onItemTake(player, stackInSlot.copy(), true);
-        boolean fromContainer = !slotMap.get(slot).isPlayerInventory;
+//        ItemStack stackToMerge = slotMap.get(slot).onItemTake(player, stackInSlot.copy(), true);
+        ItemStack stackToMerge = stackInSlot.copy();
+        boolean fromContainer = !slotMap.get(slot).isPlayerContainer;
         if (!attemptMergeStack(stackToMerge, fromContainer, true)) {
             return ItemStack.EMPTY;
         }
@@ -263,7 +244,7 @@ public class ModularUIContainer extends Container implements WidgetUIAccess {
         } else {
             slot.setChanged();
         }
-        extractedStack = slotMap.get(slot).onItemTake(player, extractedStack, false);
+//        extractedStack = slotMap.get(slot).onItemTake(player, extractedStack, false);
         ItemStack resultStack = extractedStack.copy();
         if (!attemptMergeStack(extractedStack, fromContainer, false)) {
             resultStack = ItemStack.EMPTY;
@@ -281,28 +262,28 @@ public class ModularUIContainer extends Container implements WidgetUIAccess {
     }
 
     @Override
-    public boolean stillValid(@Nonnull PlayerEntity playerIn) {
+    public boolean stillValid(@Nonnull Player playerIn) {
         return true;
     }
 
     @Override
-    public void writeClientAction(Widget widget, int updateId, Consumer<PacketBuffer> payloadWriter) {
-        PacketBuffer packetBuffer = new PacketBuffer(Unpooled.buffer());
+    public void writeClientAction(Widget widget, int updateId, Consumer<FriendlyByteBuf> payloadWriter) {
+        FriendlyByteBuf packetBuffer = new FriendlyByteBuf(Unpooled.buffer());
         packetBuffer.writeVarInt(updateId);
         payloadWriter.accept(packetBuffer);
-        if (modularUI.entityPlayer instanceof ClientPlayerEntity) {
+        if (modularUI.entityPlayer instanceof AbstractClientPlayer) {
             LDLNetworking.sendToServer(new CPacketUIClientAction(containerId, packetBuffer));
         }
     }
 
     @Override
-    public void writeUpdateInfo(Widget widget, int updateId, Consumer<PacketBuffer> payloadWriter) {
-        PacketBuffer packetBuffer = new PacketBuffer(Unpooled.buffer());
+    public void writeUpdateInfo(Widget widget, int updateId, Consumer<FriendlyByteBuf> payloadWriter) {
+        FriendlyByteBuf packetBuffer = new FriendlyByteBuf(Unpooled.buffer());
         packetBuffer.writeVarInt(updateId);
         payloadWriter.accept(packetBuffer);
-        if (modularUI.entityPlayer instanceof ServerPlayerEntity) {
+        if (modularUI.entityPlayer instanceof ServerPlayer) {
             SPacketUIWidgetUpdate widgetUpdate = new SPacketUIWidgetUpdate(containerId, packetBuffer);
-            LDLNetworking.sendToPlayer(widgetUpdate, (ServerPlayerEntity) modularUI.entityPlayer);
+            LDLNetworking.sendToPlayer(widgetUpdate, (ServerPlayer) modularUI.entityPlayer);
         }
     }
 
@@ -315,7 +296,7 @@ public class ModularUIContainer extends Container implements WidgetUIAccess {
 
     private static class EmptySlotPlaceholder extends Slot {
 
-        private static final IInventory EMPTY_INVENTORY = new Inventory(0);
+        private static final Container EMPTY_INVENTORY = new SimpleContainer(0);
 
         public EmptySlotPlaceholder() {
             super(EMPTY_INVENTORY, 0, -100000, -100000);
@@ -338,7 +319,7 @@ public class ModularUIContainer extends Container implements WidgetUIAccess {
         }
 
         @Override
-        public boolean mayPickup(@Nonnull PlayerEntity playerIn) {
+        public boolean mayPickup(@Nonnull Player playerIn) {
             return false;
         }
 

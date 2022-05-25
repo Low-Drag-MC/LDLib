@@ -7,8 +7,8 @@ import com.google.gson.JsonParseException;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.JsonToNBT;
+import net.minecraft.nbt.TagParser;
+import net.minecraft.world.item.ItemStack;
 
 import java.lang.reflect.Type;
 
@@ -21,7 +21,7 @@ public class ItemStackTypeAdapter implements JsonDeserializer<ItemStack>, JsonSe
     @Override
     public ItemStack deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
         try {
-            return ItemStack.of(JsonToNBT.parseTag(json.getAsString()));
+            return ItemStack.of(TagParser.parseTag(json.getAsString()));
         } catch (Exception e) {
             return null;
         }

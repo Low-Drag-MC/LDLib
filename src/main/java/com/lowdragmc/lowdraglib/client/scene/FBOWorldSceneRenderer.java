@@ -1,18 +1,20 @@
 package com.lowdragmc.lowdraglib.client.scene;
 
 import com.lowdragmc.lowdraglib.LDLMod;
+import com.mojang.blaze3d.pipeline.MainTarget;
+import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.BufferBuilder;
+import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+import com.mojang.blaze3d.vertex.Tesselator;
+import com.mojang.blaze3d.vertex.VertexFormat;
+import com.mojang.math.Vector3f;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.BufferBuilder;
-import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
-import net.minecraft.client.shader.Framebuffer;
-import net.minecraft.client.shader.FramebufferConstants;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.RayTraceResult;
-import net.minecraft.util.math.vector.Vector3f;
-import net.minecraft.world.World;
+import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.BlockHitResult;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.lwjgl.opengl.EXTFramebufferObject;
@@ -33,14 +35,14 @@ import org.lwjgl.opengl.GL11;
 public class FBOWorldSceneRenderer extends WorldSceneRenderer {
     private int resolutionWidth = 1080;
     private int resolutionHeight = 1080;
-    private Framebuffer fbo;
+    private RenderTarget fbo;
 
-    public FBOWorldSceneRenderer(World world, int resolutionWidth, int resolutionHeight) {
+    public FBOWorldSceneRenderer(Level world, int resolutionWidth, int resolutionHeight) {
         super(world);
         setFBOSize(resolutionWidth, resolutionHeight);
     }
 
-    public FBOWorldSceneRenderer(World world, Framebuffer fbo) {
+    public FBOWorldSceneRenderer(Level world, RenderTarget fbo) {
         super(world);
         this.fbo = fbo;
     }
@@ -61,15 +63,15 @@ public class FBOWorldSceneRenderer extends WorldSceneRenderer {
         this.resolutionHeight = resolutionHeight;
         releaseFBO();
         try {
-            fbo = new Framebuffer(resolutionWidth, resolutionHeight, true, Minecraft.ON_OSX);
+            fbo = new MainTarget(resolutionWidth, resolutionHeight);
         } catch (Exception e) {
             LDLMod.LOGGER.error(e);
         }
     }
 
-    public RayTraceResult screenPos2BlockPosFace(int mouseX, int mouseY) {
+    public BlockHitResult screenPos2BlockPosFace(int mouseX, int mouseY) {
         int lastID = bindFBO();
-        RayTraceResult looking = super.screenPos2BlockPosFace(mouseX, mouseY, 0, 0, this.resolutionWidth, this.resolutionHeight);
+        BlockHitResult looking = super.screenPos2BlockPosFace(mouseX, mouseY, 0, 0, this.resolutionWidth, this.resolutionHeight);
         unbindFBO(lastID);
         return looking;
     }
@@ -90,15 +92,16 @@ public class FBOWorldSceneRenderer extends WorldSceneRenderer {
 
         // bind FBO as texture
         RenderSystem.enableTexture();
-        RenderSystem.disableLighting();
+//        RenderSystem.disableLighting();
         lastID = GL11.glGetInteger(GL11.GL_TEXTURE_2D);
         fbo.bindRead();
-        RenderSystem.color4f(1,1,1,1);
+        RenderSystem.setShaderColor(1,1,1,1);
 
         // render rect with FBO texture
-        Tessellator tessellator = Tessellator.getInstance();
+        Tesselator tessellator = Tesselator.getInstance();
         BufferBuilder bufferbuilder = tessellator.getBuilder();
-        bufferbuilder.begin(7, DefaultVertexFormats.POSITION_TEX);
+        RenderSystem.setShader(GameRenderer::getPositionTexShader);
+        bufferbuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
 
         bufferbuilder.vertex(x + width, y + height, 0).uv(1, 0).endVertex();
         bufferbuilder.vertex(x + width, y, 0).uv(1, 1).endVertex();
@@ -118,14 +121,14 @@ public class FBOWorldSceneRenderer extends WorldSceneRenderer {
         fbo.setClearColor(0.0F, 0.0F, 0.0F, 0.0F);
         fbo.clear(Minecraft.ON_OSX);
         fbo.bindWrite(true);
-        RenderSystem.pushMatrix();
+//        RenderSystem.pushMatrix();
         return lastID;
     }
 
     private void unbindFBO(int lastID){
-        RenderSystem.popMatrix();
+//        RenderSystem.popMatrix();
         fbo.unbindRead();
-        GlStateManager._glBindFramebuffer(FramebufferConstants.GL_FRAMEBUFFER, lastID);
+        GlStateManager._glBindFramebuffer(36160, lastID);
     }
 
     public void releaseFBO() {

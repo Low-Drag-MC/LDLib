@@ -1,8 +1,9 @@
 package com.lowdragmc.lowdraglib.client.renderer;
 
-import net.minecraft.item.ItemStack;
+import net.minecraft.world.item.ItemStack;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * Author: KilaBash
@@ -12,6 +13,6 @@ import javax.annotation.Nonnull;
 public interface IItemRendererProvider {
     ThreadLocal<Boolean> disabled = ThreadLocal.withInitial(()->false);
 
-    @Nonnull
+    @Nullable
     IRenderer getRenderer(ItemStack stack);
 }

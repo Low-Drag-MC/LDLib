@@ -3,42 +3,43 @@ package com.lowdragmc.lowdraglib.gui.modular;
 import com.lowdragmc.lowdraglib.gui.util.DrawerHelper;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import com.lowdragmc.lowdraglib.networking.s2c.SPacketUIWidgetUpdate;
-import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.client.gui.screen.inventory.ContainerScreen;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.container.Slot;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.Util;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.util.text.TextFormatting;
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.ChatFormatting;
+import net.minecraft.Util;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 @OnlyIn(Dist.CLIENT)
-public class ModularUIGuiContainer extends ContainerScreen<ModularUIContainer> {
+public class ModularUIGuiContainer extends AbstractContainerScreen<ModularUIContainer> {
 
     public final ModularUI modularUI;
     public Widget lastFocus;
     public boolean focused;
     public int dragSplittingLimit;
     public int dragSplittingButton;
-    public List<ITextComponent> tooltipTexts;
+    public List<Component> tooltipTexts;
 
     public ModularUIGuiContainer(ModularUI modularUI, int windowId) {
-        super(new ModularUIContainer(modularUI, windowId), modularUI.entityPlayer.inventory, new StringTextComponent("modularUI"));
+        super(new ModularUIContainer(modularUI, windowId), modularUI.entityPlayer.getInventory(), new TextComponent("modularUI"));
         this.modularUI = modularUI;
         modularUI.setModularUIGui(this);
     }
 
-    public void setHoverTooltip(List<ITextComponent> tooltipTexts) {
+    public void setHoverTooltip(List<Component> tooltipTexts) {
         if (this.tooltipTexts != null) return;
         this.tooltipTexts = tooltipTexts;
     }
@@ -59,8 +60,8 @@ public class ModularUIGuiContainer extends ContainerScreen<ModularUIContainer> {
     }
 
     @Override
-    public void tick() {
-        super.tick();
+    public void containerTick() {
+        super.containerTick();
         if (modularUI.holder.isInvalid()) {
             modularUI.entityPlayer.closeContainer();
         }
@@ -75,37 +76,38 @@ public class ModularUIGuiContainer extends ContainerScreen<ModularUIContainer> {
     }
 
     @Override
-    public void render(@Nonnull MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
+    public void render(@Nonnull PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
         this.hoveredSlot = null;
         
-        RenderSystem.disableRescaleNormal();
         RenderSystem.disableDepthTest();
         RenderSystem.depthMask(false);
 
         tooltipTexts = null;
 
-        DrawerHelper.drawGradientRect(matrixStack, 0, 0, this.width, this.height, -1072689136, -804253680);
-        modularUI.mainGroup.drawInBackground(matrixStack, mouseX, mouseY, partialTicks);
-        modularUI.mainGroup.drawInForeground(matrixStack, mouseX, mouseY, partialTicks);
+        DrawerHelper.drawGradientRect(poseStack, 0, 0, this.width, this.height, -1072689136, -804253680);
+        modularUI.mainGroup.drawInBackground(poseStack, mouseX, mouseY, partialTicks);
+        modularUI.mainGroup.drawInForeground(poseStack, mouseX, mouseY, partialTicks);
 
         if (tooltipTexts != null && tooltipTexts.size() > 0) {
-            DrawerHelper.drawHoveringText(matrixStack, ItemStack.EMPTY, tooltipTexts, mouseX, mouseY, width, height, 300);
+            renderTooltip(poseStack, tooltipTexts, Optional.empty(), mouseX, mouseY);
         }
 
-        RenderSystem.pushMatrix();
-        RenderSystem.translatef(leftPos, topPos, 0.0F);
-        RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
-        RenderSystem.enableRescaleNormal();
-        RenderSystem.glMultiTexCoord2f(33986, 240.0F, 240.0F); // light map
-        RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
-
-        net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(new net.minecraftforge.client.event.GuiContainerEvent.DrawForeground(this, matrixStack, mouseX, mouseY));
-
         RenderSystem.depthMask(true);
+
+        PoseStack posestack = RenderSystem.getModelViewStack();
+        posestack.pushPose();
+        posestack.translate(leftPos, topPos, 0.0D);
+        RenderSystem.applyModelViewMatrix();
+        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+        this.hoveredSlot = null;
+
+        net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(new net.minecraftforge.client.event.ContainerScreenEvent.DrawForeground(this, poseStack, mouseX, mouseY));
+
         renderItemStackOnMouse(mouseX, mouseY);
         renderReturningItemStack();
-        
-        RenderSystem.popMatrix();
+
+        posestack.popPose();
+        RenderSystem.applyModelViewMatrix();
         RenderSystem.enableDepthTest();
     }
 
@@ -116,19 +118,18 @@ public class ModularUIGuiContainer extends ContainerScreen<ModularUIContainer> {
     private void renderItemStackOnMouse(int mouseX, int mouseY) {
         if (minecraft == null || minecraft.player == null) return;
         ItemStack draggedStack = this.draggingItem;
-        PlayerInventory playerinventory = this.minecraft.player.inventory;
-        ItemStack itemstack = draggedStack.isEmpty() ? playerinventory.getCarried() : draggedStack;
+        ItemStack itemstack = draggedStack.isEmpty() ? getMenu().getCarried() : draggedStack;
         if (!itemstack.isEmpty()) {
             int k2 = draggedStack.isEmpty() ? 8 : 16;
             String s = null;
             if (!draggedStack.isEmpty() && this.isSplittingStack) {
                 itemstack = itemstack.copy();
-                itemstack.setCount(MathHelper.ceil((float)itemstack.getCount() / 2.0F));
+                itemstack.setCount((int) Math.ceil((float)itemstack.getCount() / 2.0F));
             } else if (this.isQuickCrafting && this.quickCraftSlots.size() > 1) {
                 itemstack = itemstack.copy();
                 itemstack.setCount(this.quickCraftingRemainder);
                 if (itemstack.isEmpty()) {
-                    s = "" + TextFormatting.YELLOW + "0";
+                    s = "" + ChatFormatting.YELLOW + "0";
                 }
             }
             this.renderFloatingItem(itemstack, mouseX - leftPos - 8, mouseY - topPos - k2, s);
@@ -137,10 +138,12 @@ public class ModularUIGuiContainer extends ContainerScreen<ModularUIContainer> {
     }
 
     public void renderFloatingItem(ItemStack stack, int pX, int pY, @Nullable String text) {
-        RenderSystem.translatef(0.0F, 0.0F, 232.0F);
-        this.setBlitOffset(200); // zlevel
+        PoseStack posestack = RenderSystem.getModelViewStack();
+        posestack.translate(0.0D, 0.0D, 232.0D);
+        RenderSystem.applyModelViewMatrix();
+        this.setBlitOffset(200);
         this.itemRenderer.blitOffset = 200.0F;
-        net.minecraft.client.gui.FontRenderer font = stack.getItem().getFontRenderer(stack);
+        net.minecraft.client.gui.Font font = net.minecraftforge.client.RenderProperties.get(stack).getFont(stack);
         if (font == null) font = this.font;
         this.itemRenderer.renderAndDecorateItem(stack, pX, pY);
         this.itemRenderer.renderGuiItemDecorations(font, stack, pX, pY - (this.draggingItem.isEmpty() ? 0 : 8), text);
@@ -268,7 +271,7 @@ public class ModularUIGuiContainer extends ContainerScreen<ModularUIContainer> {
     }
 
     @Override
-    protected void renderBg(@Nonnull MatrixStack pMatrixStack, float pPartialTicks, int pX, int pY) {
+    protected void renderBg(@Nonnull PoseStack pPoseStack, float pPartialTicks, int pX, int pY) {
         
     }
 }

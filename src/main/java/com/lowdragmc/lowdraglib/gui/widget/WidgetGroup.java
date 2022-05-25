@@ -7,10 +7,10 @@ import com.lowdragmc.lowdraglib.gui.ingredient.Target;
 import com.lowdragmc.lowdraglib.gui.modular.WidgetUIAccess;
 import com.lowdragmc.lowdraglib.utils.Position;
 import com.lowdragmc.lowdraglib.utils.Size;
-import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.item.ItemStack;
-import net.minecraft.network.PacketBuffer;
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -43,7 +43,7 @@ public class WidgetGroup extends Widget implements IGhostIngredientTarget, IIngr
     }
 
     @Override
-    public void writeInitialData(PacketBuffer buffer) {
+    public void writeInitialData(FriendlyByteBuf buffer) {
         for (Widget widget : widgets) {
             if (widget.isInitialized() && !widget.isClientSideWidget) {
                 widget.writeInitialData(buffer);
@@ -52,7 +52,7 @@ public class WidgetGroup extends Widget implements IGhostIngredientTarget, IIngr
     }
 
     @Override
-    public void readInitialData(PacketBuffer buffer) {
+    public void readInitialData(FriendlyByteBuf buffer) {
         for (Widget widget : widgets) {
             if (widget.isInitialized() && !widget.isClientSideWidget) {
                 widget.readInitialData(buffer);
@@ -277,26 +277,26 @@ public class WidgetGroup extends Widget implements IGhostIngredientTarget, IIngr
 
     @Override
     @OnlyIn(Dist.CLIENT)
-    public void drawInForeground(@Nonnull MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
-        super.drawInForeground(matrixStack, mouseX, mouseY, partialTicks);
+    public void drawInForeground(@Nonnull PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
+        super.drawInForeground(poseStack, mouseX, mouseY, partialTicks);
         for (Widget widget : widgets) {
             if (widget.isVisible()) {
-                RenderSystem.color4f(1, 1, 1, 1);
+                RenderSystem.setShaderColor(1, 1, 1, 1);
                 RenderSystem.enableBlend();
-                widget.drawInForeground(matrixStack, mouseX, mouseY, partialTicks);
+                widget.drawInForeground(poseStack, mouseX, mouseY, partialTicks);
             }
         }
     }
 
     @Override
     @OnlyIn(Dist.CLIENT)
-    public void drawInBackground(@Nonnull MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
-        super.drawInBackground(matrixStack, mouseX, mouseY, partialTicks);
+    public void drawInBackground(@Nonnull PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
+        super.drawInBackground(poseStack, mouseX, mouseY, partialTicks);
         for (Widget widget : widgets) {
             if (widget.isVisible()) {
-                RenderSystem.color4f(1, 1, 1, 1);
+                RenderSystem.setShaderColor(1, 1, 1, 1);
                 RenderSystem.enableBlend();
-                widget.drawInBackground(matrixStack, mouseX, mouseY, partialTicks);
+                widget.drawInBackground(poseStack, mouseX, mouseY, partialTicks);
             }
         }
     }
@@ -396,7 +396,7 @@ public class WidgetGroup extends Widget implements IGhostIngredientTarget, IIngr
 
     @Override
     @OnlyIn(Dist.CLIENT)
-    public void readUpdateInfo(int id, PacketBuffer buffer) {
+    public void readUpdateInfo(int id, FriendlyByteBuf buffer) {
         if (id == 1) {
             int widgetIndex = buffer.readVarInt();
             int widgetUpdateId = buffer.readVarInt();
@@ -411,7 +411,7 @@ public class WidgetGroup extends Widget implements IGhostIngredientTarget, IIngr
     }
 
     @Override
-    public void handleClientAction(int id, PacketBuffer buffer) {
+    public void handleClientAction(int id, FriendlyByteBuf buffer) {
         if (id == 1) {
             int widgetIndex = buffer.readVarInt();
             int widgetUpdateId = buffer.readVarInt();
@@ -445,22 +445,6 @@ public class WidgetGroup extends Widget implements IGhostIngredientTarget, IIngr
         }
 
         @Override
-        public void sendSlotUpdate(SlotWidget slot) {
-            WidgetUIAccess uiAccess = WidgetGroup.this.uiAccess;
-            if (uiAccess != null) {
-                uiAccess.sendSlotUpdate(slot);
-            }
-        }
-
-        @Override
-        public void sendHeldItemUpdate() {
-            WidgetUIAccess uiAccess = WidgetGroup.this.uiAccess;
-            if (uiAccess != null) {
-                uiAccess.sendHeldItemUpdate();
-            }
-        }
-
-        @Override
         public void notifyWidgetChange() {
             WidgetUIAccess uiAccess = WidgetGroup.this.uiAccess;
             if (uiAccess != null) {
@@ -470,7 +454,7 @@ public class WidgetGroup extends Widget implements IGhostIngredientTarget, IIngr
         }
 
         @Override
-        public void writeClientAction(Widget widget, int updateId, Consumer<PacketBuffer> dataWriter) {
+        public void writeClientAction(Widget widget, int updateId, Consumer<FriendlyByteBuf> dataWriter) {
             WidgetGroup.this.writeClientAction(1, buffer -> {
                 buffer.writeVarInt(widgets.indexOf(widget));
                 buffer.writeVarInt(updateId);
@@ -479,7 +463,7 @@ public class WidgetGroup extends Widget implements IGhostIngredientTarget, IIngr
         }
 
         @Override
-        public void writeUpdateInfo(Widget widget, int updateId, Consumer<PacketBuffer> dataWriter) {
+        public void writeUpdateInfo(Widget widget, int updateId, Consumer<FriendlyByteBuf> dataWriter) {
             WidgetGroup.this.writeUpdateInfo(1, buffer -> {
                 buffer.writeVarInt(widgets.indexOf(widget));
                 buffer.writeVarInt(updateId);

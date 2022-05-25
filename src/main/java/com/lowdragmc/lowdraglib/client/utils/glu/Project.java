@@ -31,6 +31,9 @@
  */
 package com.lowdragmc.lowdraglib.client.utils.glu;
 
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.math.Matrix4f;
+import net.minecraft.util.Mth;
 import org.lwjgl.BufferUtils;
 
 import java.nio.FloatBuffer;
@@ -189,7 +192,7 @@ public class Project extends Util {
 	 */
 	public static void gluPerspective(float fovy, float aspect, float zNear, float zFar) {
 		float sine, cotangent, deltaZ;
-		float radians = fovy / 2 * GLU.PI / 180;
+		float radians = fovy / 2 * Mth.PI / 180;
 
 		deltaZ = zFar - zNear;
 		sine = (float) Math.sin(radians);
@@ -271,6 +274,71 @@ public class Project extends Util {
 
 		glMultMatrixf(matrix);
 		glTranslatef(-eyex, -eyey, -eyez);
+	}
+
+	/**
+	 * Method gluLookAt
+	 *
+	 * @param poseStack
+	 * @param eyex
+	 * @param eyey
+	 * @param eyez
+	 * @param centerx
+	 * @param centery
+	 * @param centerz
+	 * @param upx
+	 * @param upy
+	 * @param upz
+	 */
+	public static void gluLookAt(
+			PoseStack poseStack,
+			float eyex,
+			float eyey,
+			float eyez,
+			float centerx,
+			float centery,
+			float centerz,
+			float upx,
+			float upy,
+			float upz) {
+		float[] forward = Project.forward;
+		float[] side = Project.side;
+		float[] up = Project.up;
+
+		forward[0] = centerx - eyex;
+		forward[1] = centery - eyey;
+		forward[2] = centerz - eyez;
+
+		up[0] = upx;
+		up[1] = upy;
+		up[2] = upz;
+
+		normalize(forward);
+
+		/* Side = forward x up */
+		cross(forward, up, side);
+		normalize(side);
+
+		/* Recompute up as: up = side x forward */
+		cross(side, forward, up);
+
+		__gluMakeIdentityf(matrix);
+		matrix.put(0 * 4 + 0, side[0]);
+		matrix.put(1 * 4 + 0, side[1]);
+		matrix.put(2 * 4 + 0, side[2]);
+
+		matrix.put(0 * 4 + 1, up[0]);
+		matrix.put(1 * 4 + 1, up[1]);
+		matrix.put(2 * 4 + 1, up[2]);
+
+		matrix.put(0 * 4 + 2, -forward[0]);
+		matrix.put(1 * 4 + 2, -forward[1]);
+		matrix.put(2 * 4 + 2, -forward[2]);
+
+		Matrix4f matrix4f = new Matrix4f();
+		matrix4f.load(matrix);
+		poseStack.mulPoseMatrix(matrix4f);
+		poseStack.translate(-eyex, -eyey, -eyez);
 	}
 
 	/**

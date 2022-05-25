@@ -9,21 +9,15 @@ import io.netty.buffer.Unpooled;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.entity.player.ClientPlayerEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.inventory.container.Container;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.network.play.server.SOpenWindowPacket;
-import net.minecraft.util.text.TextFormatting;
-import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.event.entity.player.PlayerContainerEvent;
-
-import java.util.OptionalInt;
 
 public abstract class UIFactory<T> {
     public final int uiFactoryId;
@@ -37,7 +31,7 @@ public abstract class UIFactory<T> {
         FACTORIES.put(factory.uiFactoryId, factory);
     }
 
-    public final boolean openUI(T holder, ServerPlayerEntity player) {
+    public final boolean openUI(T holder, ServerPlayer player) {
         if (player instanceof FakePlayer) {
             return false;
         }
@@ -51,7 +45,7 @@ public abstract class UIFactory<T> {
         player.nextContainerCounter();
         int currentWindowId = player.containerCounter;
 
-        PacketBuffer serializedHolder = new PacketBuffer(Unpooled.buffer());
+        FriendlyByteBuf serializedHolder = new FriendlyByteBuf(Unpooled.buffer());
         writeHolderToSyncData(serializedHolder, holder);
         ModularUIContainer container = new ModularUIContainer(uiTemplate, currentWindowId);
 
@@ -60,7 +54,7 @@ public abstract class UIFactory<T> {
 
         LDLNetworking.sendToPlayer(new SPacketUIOpen(uiFactoryId, serializedHolder, currentWindowId), player);
 
-        container.addSlotListener(player);
+        player.initMenu(container);
         player.containerMenu = container;
 
         //and fire forge event only in the end
@@ -69,10 +63,10 @@ public abstract class UIFactory<T> {
     }
 
     @OnlyIn(Dist.CLIENT)
-    public final void initClientUI(PacketBuffer serializedHolder, int windowId) {
+    public final void initClientUI(FriendlyByteBuf serializedHolder, int windowId) {
         T holder = readHolderFromSyncData(serializedHolder);
         Minecraft minecraft = Minecraft.getInstance();
-        ClientPlayerEntity entityPlayer = minecraft.player;
+        LocalPlayer entityPlayer = minecraft.player;
 
         ModularUI uiTemplate = createUITemplate(holder, entityPlayer);
         uiTemplate.initWidgets();
@@ -83,11 +77,11 @@ public abstract class UIFactory<T> {
 
     }
 
-    protected abstract ModularUI createUITemplate(T holder, PlayerEntity entityPlayer);
+    protected abstract ModularUI createUITemplate(T holder, Player entityPlayer);
 
     @OnlyIn(Dist.CLIENT)
-    protected abstract T readHolderFromSyncData(PacketBuffer syncData);
+    protected abstract T readHolderFromSyncData(FriendlyByteBuf syncData);
 
-    protected abstract void writeHolderToSyncData(PacketBuffer syncData, T holder);
+    protected abstract void writeHolderToSyncData(FriendlyByteBuf syncData, T holder);
 
 }
