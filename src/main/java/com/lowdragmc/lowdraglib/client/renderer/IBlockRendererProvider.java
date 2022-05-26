@@ -1,6 +1,6 @@
 package com.lowdragmc.lowdraglib.client.renderer;
 
-import com.lowdragmc.lowdraglib.client.particle.DiggingIRendererParticle;
+import com.lowdragmc.lowdraglib.client.particle.IRendererParticle;
 import com.lowdragmc.lowdraglib.particles.IRendererParticleData;
 import net.minecraft.block.BlockRenderType;
 import net.minecraft.block.BlockState;
@@ -110,7 +110,7 @@ public interface IBlockRendererProvider extends IForgeBlock {
                     d0 = i + axisalignedbb.maxX + 0.1F;
                 }
 
-                Minecraft.getInstance().particleEngine.add((new DiggingIRendererParticle((ClientWorld) world, d0, d1, d2, 0.0D, 0.0D, 0.0D, renderer)).init(pPos).setPower(0.2F).scale(0.6F));
+                Minecraft.getInstance().particleEngine.add((new IRendererParticle((ClientWorld) world, d0, d1, d2, 0.0D, 0.0D, 0.0D, renderer)).init(pPos).setPower(0.2F).scale(0.6F));
             }
         }
         return true;
@@ -139,7 +139,7 @@ public interface IBlockRendererProvider extends IForgeBlock {
                             double d7 = d4 * d1 + p_228348_3_;
                             double d8 = d5 * d2 + p_228348_5_;
                             double d9 = d6 * d3 + p_228348_7_;
-                            Minecraft.getInstance().particleEngine.add((new DiggingIRendererParticle((ClientWorld) world, (double)pos.getX() + d7, (double)pos.getY() + d8, (double)pos.getZ() + d9, d4 - 0.5D, d5 - 0.5D, d6 - 0.5D, renderer)).init(pos));
+                            Minecraft.getInstance().particleEngine.add((new IRendererParticle((ClientWorld) world, (double)pos.getX() + d7, (double)pos.getY() + d8, (double)pos.getZ() + d9, d4 - 0.5D, d5 - 0.5D, d6 - 0.5D, renderer)).init(pos));
                         }
                     }
                 }

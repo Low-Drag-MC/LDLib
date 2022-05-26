@@ -25,12 +25,12 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @OnlyIn(Dist.CLIENT)
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class DiggingIRendererParticle extends SpriteTexturedParticle {
+public class IRendererParticle extends SpriteTexturedParticle {
     private BlockPos pos;
     private final float uo;
     private final float vo;
 
-    public DiggingIRendererParticle(ClientWorld pLevel, double pX, double pY, double pZ, double pXSpeed, double pYSpeed, double pZSpeed, IRenderer renderer) {
+    public IRendererParticle(ClientWorld pLevel, double pX, double pY, double pZ, double pXSpeed, double pYSpeed, double pZSpeed, IRenderer renderer) {
         super(pLevel, pX, pY, pZ, pXSpeed, pYSpeed, pZSpeed);
         this.setSprite(renderer.getParticleTexture());
         this.gravity = 1.0F;
@@ -46,12 +46,12 @@ public class DiggingIRendererParticle extends SpriteTexturedParticle {
         return IParticleRenderType.TERRAIN_SHEET;
     }
 
-    public DiggingIRendererParticle init(BlockPos p_174846_1_) {
+    public IRendererParticle init(BlockPos p_174846_1_) {
         this.pos = p_174846_1_;
         return this;
     }
 
-    public DiggingIRendererParticle init() {
+    public IRendererParticle init() {
         this.pos = new BlockPos(this.x, this.y, this.z);
         return this;
     }
@@ -87,10 +87,10 @@ public class DiggingIRendererParticle extends SpriteTexturedParticle {
         public Particle createParticle(IRendererParticleData pType, ClientWorld pLevel, double pX, double pY, double pZ, double pXSpeed, double pYSpeed, double pZSpeed) {
             BlockPos pos = pType.getPos();
             BlockState blockstate = pLevel.getBlockState(pos);
-            if (blockstate instanceof IBlockRendererProvider) {
-                IRenderer renderer = ((IBlockRendererProvider) blockstate).getRenderer(blockstate, pos, pLevel);
+            if (blockstate.getBlock() instanceof IBlockRendererProvider) {
+                IRenderer renderer = ((IBlockRendererProvider) blockstate.getBlock()).getRenderer(blockstate, pos, pLevel);
                 if (renderer != null) {
-                    return new DiggingIRendererParticle(pLevel, pX, pY, pZ, pXSpeed, pYSpeed, pZSpeed, renderer).init();
+                    return new IRendererParticle(pLevel, pX, pY, pZ, pXSpeed, pYSpeed, pZSpeed, renderer).init();
                 }
             }
             return null;
