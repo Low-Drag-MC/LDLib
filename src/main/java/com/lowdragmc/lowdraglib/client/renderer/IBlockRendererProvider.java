@@ -73,6 +73,7 @@ public interface IBlockRendererProvider extends IForgeBlock {
 
     net.minecraftforge.client.IBlockRenderProperties IRENDERER_PARTICLE_PROPERTIES = new IBlockRenderProperties() {
         @Override
+        @OnlyIn(Dist.CLIENT)
         public boolean addHitEffects(BlockState state, Level level, HitResult target, ParticleEngine manager) {
             if (target instanceof BlockHitResult blockHitResult) {
                 return IBlockRendererProvider.addHitEffects(state, level, blockHitResult.getBlockPos(), blockHitResult.getDirection(), manager);
@@ -81,6 +82,7 @@ public interface IBlockRendererProvider extends IForgeBlock {
         }
 
         @Override
+        @OnlyIn(Dist.CLIENT)
         public boolean addDestroyEffects(BlockState state, Level level, BlockPos pos, ParticleEngine manager) {
             return IBlockRendererProvider.addDestroyEffects(state, level, pos, manager);
         }

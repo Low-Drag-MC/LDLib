@@ -9,7 +9,6 @@ import net.minecraft.client.particle.Particle;
 import net.minecraft.client.particle.ParticleProvider;
 import net.minecraft.client.particle.ParticleRenderType;
 import net.minecraft.client.particle.TextureSheetParticle;
-import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.api.distmarker.Dist;
@@ -71,11 +70,6 @@ public class IRendererParticle extends TextureSheetParticle {
 
     protected float getV1() {
         return this.sprite.getV((this.vo + 1.0F) / 4.0F * 16.0F);
-    }
-
-    public int getLightColor(float pPartialTick) {
-        int i = super.getLightColor(pPartialTick);
-        return i == 0 && this.level.hasChunkAt(this.pos) ? LevelRenderer.getLightColor(this.level, this.pos) : i;
     }
 
     @OnlyIn(Dist.CLIENT)
