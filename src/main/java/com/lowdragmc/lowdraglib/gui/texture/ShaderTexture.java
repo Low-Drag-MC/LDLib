@@ -9,20 +9,19 @@ import com.lowdragmc.lowdraglib.client.shader.uniform.UniformCache;
 import com.lowdragmc.lowdraglib.gui.util.DrawerHelper;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.BufferBuilder;
+import com.mojang.blaze3d.vertex.BufferUploader;
+import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.Tesselator;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import com.mojang.math.Matrix4f;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 import java.util.function.Consumer;
-
-import static com.mojang.blaze3d.vertex.DefaultVertexFormat.POSITION_TEX;
 
 public class ShaderTexture implements IGuiTexture {
     @OnlyIn(Dist.CLIENT)
@@ -70,6 +69,7 @@ public class ShaderTexture implements IGuiTexture {
         if (shader == null) return;
         this.program = new ShaderProgram();
         this.shader = shader;
+        program.attach(Shaders.IMAGE_V);
         program.attach(shader);
     }
 
@@ -128,15 +128,19 @@ public class ShaderTexture implements IGuiTexture {
             });
             Tesselator tessellator = Tesselator.getInstance();
             BufferBuilder buffer = tessellator.getBuilder();
-            RenderSystem.setShader(GameRenderer::getPositionTexShader);
+            stack.pushPose();
+            stack.mulPoseMatrix(RenderSystem.getProjectionMatrix());
+            stack.mulPoseMatrix(RenderSystem.getModelViewMatrix());
             Matrix4f mat = stack.last().pose();
-            buffer.begin(VertexFormat.Mode.QUADS, POSITION_TEX);
+            buffer.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
             buffer.vertex(mat, x, y + height, 0).uv(0, 0).endVertex();
             buffer.vertex(mat, x + width, y + height, 0).uv(1, 0).endVertex();
             buffer.vertex(mat, x + width, y, 0).uv(1, 1).endVertex();
             buffer.vertex(mat, x, y, 0).uv(0, 1).endVertex();
-            tessellator.end();
+            buffer.end();
+            BufferUploader._endInternal(buffer);
             program.release();
+            stack.popPose();
         } else {
             DrawerHelper.drawText(stack, "Error compiling shader", x + 2, y + 2, 1, 0xffff0000);
         }

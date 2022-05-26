@@ -1,15 +1,28 @@
 package com.lowdragmc.lowdraglib.client.renderer;
 
+import com.lowdragmc.lowdraglib.client.particle.IRendererParticle;
 import com.lowdragmc.lowdraglib.particles.IRendererParticleData;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.particle.ParticleEngine;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LightLayer;
+import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.shapes.VoxelShape;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.client.IBlockRenderProperties;
 import net.minecraftforge.common.extensions.IForgeBlock;
 
 import javax.annotation.Nullable;
@@ -58,82 +71,96 @@ public interface IBlockRendererProvider extends IForgeBlock {
         return true;
     }
 
+    net.minecraftforge.client.IBlockRenderProperties IRENDERER_PARTICLE_PROPERTIES = new IBlockRenderProperties() {
+        @Override
+        public boolean addHitEffects(BlockState state, Level level, HitResult target, ParticleEngine manager) {
+            if (target instanceof BlockHitResult blockHitResult) {
+                return IBlockRendererProvider.addHitEffects(state, level, blockHitResult.getBlockPos(), blockHitResult.getDirection(), manager);
+            }
+            return false;
+        }
+
+        @Override
+        public boolean addDestroyEffects(BlockState state, Level level, BlockPos pos, ParticleEngine manager) {
+            return IBlockRendererProvider.addDestroyEffects(state, level, pos, manager);
+        }
+    };
 
 
-//    @Override
-//    @OnlyIn(Dist.CLIENT)
-//    default boolean addHitEffects(BlockState state, Level world, RayTraceResult target, ParticleManager manager) {
-//        if (target instanceof BlockRayTraceResult && world instanceof ClientWorld) {
-//            BlockPos pPos = ((BlockRayTraceResult) target).getBlockPos();
-//            Direction pSide = ((BlockRayTraceResult) target).getDirection();
-//            IRenderer renderer = getRenderer(state, pPos, world);
-//            if (state.getRenderShape() != BlockRenderType.INVISIBLE && renderer != null) {
-//                int i = pPos.getX();
-//                int j = pPos.getY();
-//                int k = pPos.getZ();
-//                AxisAlignedBB axisalignedbb = state.getShape(world, pPos).bounds();
-//                double d0 = i + world.random.nextDouble() * (axisalignedbb.maxX - axisalignedbb.minX - 0.2F) + 0.1F + axisalignedbb.minX;
-//                double d1 = j + world.random.nextDouble() * (axisalignedbb.maxY - axisalignedbb.minY - 0.2F) + 0.1F + axisalignedbb.minY;
-//                double d2 = k + world.random.nextDouble() * (axisalignedbb.maxZ - axisalignedbb.minZ - 0.2F) + 0.1F + axisalignedbb.minZ;
-//                if (pSide == Direction.DOWN) {
-//                    d1 = j + axisalignedbb.minY - 0.1F;
-//                }
-//
-//                if (pSide == Direction.UP) {
-//                    d1 = j + axisalignedbb.maxY + 0.1F;
-//                }
-//
-//                if (pSide == Direction.NORTH) {
-//                    d2 = k + axisalignedbb.minZ - 0.1F;
-//                }
-//
-//                if (pSide == Direction.SOUTH) {
-//                    d2 = k + axisalignedbb.maxZ + 0.1F;
-//                }
-//
-//                if (pSide == Direction.WEST) {
-//                    d0 = i + axisalignedbb.minX - 0.1F;
-//                }
-//
-//                if (pSide == Direction.EAST) {
-//                    d0 = i + axisalignedbb.maxX + 0.1F;
-//                }
-//
-//                Minecraft.getInstance().particleEngine.add((new DiggingIRendererParticle((ClientWorld) world, d0, d1, d2, 0.0D, 0.0D, 0.0D, renderer)).init(pPos).setPower(0.2F).scale(0.6F));
-//            }
-//        }
-//        return true;
-//    }
-//
-//    @Override
-//    @OnlyIn(Dist.CLIENT)
-//    default boolean addDestroyEffects(BlockState state, World world, BlockPos pos, ParticleManager manager) {
-//        IRenderer renderer = getRenderer(state, pos, world);
-//        if (renderer != null && world instanceof ClientWorld) {
-//            VoxelShape voxelshape = state.getShape(world, pos);
-//            voxelshape.forAllBoxes((p_228348_3_, p_228348_5_, p_228348_7_, p_228348_9_, p_228348_11_, p_228348_13_) -> {
-//                double d1 = Math.min(1.0D, p_228348_9_ - p_228348_3_);
-//                double d2 = Math.min(1.0D, p_228348_11_ - p_228348_5_);
-//                double d3 = Math.min(1.0D, p_228348_13_ - p_228348_7_);
-//                int i = Math.max(2, MathHelper.ceil(d1 / 0.25D));
-//                int j = Math.max(2, MathHelper.ceil(d2 / 0.25D));
-//                int k = Math.max(2, MathHelper.ceil(d3 / 0.25D));
-//
-//                for(int l = 0; l < i; ++l) {
-//                    for(int i1 = 0; i1 < j; ++i1) {
-//                        for(int j1 = 0; j1 < k; ++j1) {
-//                            double d4 = (l + 0.5D) / i;
-//                            double d5 = (i1 + 0.5D) / j;
-//                            double d6 = (j1 + 0.5D) / k;
-//                            double d7 = d4 * d1 + p_228348_3_;
-//                            double d8 = d5 * d2 + p_228348_5_;
-//                            double d9 = d6 * d3 + p_228348_7_;
-//                            Minecraft.getInstance().particleEngine.add((new DiggingIRendererParticle((ClientWorld) world, (double)pos.getX() + d7, (double)pos.getY() + d8, (double)pos.getZ() + d9, d4 - 0.5D, d5 - 0.5D, d6 - 0.5D, renderer)).init(pos));
-//                        }
-//                    }
-//                }
-//            });
-//        }
-//        return true;
-//    }
+    @OnlyIn(Dist.CLIENT)
+    static boolean addHitEffects(BlockState blockstate, Level level, BlockPos pPos, Direction pSide, ParticleEngine manager) {
+        if (blockstate.getBlock() instanceof IBlockRendererProvider blockRendererProvider) {
+            IRenderer renderer = blockRendererProvider.getRenderer(blockstate, pPos, level);
+            if (blockstate.getRenderShape() != RenderShape.INVISIBLE && renderer != null && level instanceof ClientLevel) {
+                int i = pPos.getX();
+                int j = pPos.getY();
+                int k = pPos.getZ();
+                AABB aabb = blockstate.getShape(level, pPos).bounds();
+                double d0 = (double)i + level.random.nextDouble() * (aabb.maxX - aabb.minX - (double)0.2F) + (double)0.1F + aabb.minX;
+                double d1 = (double)j + level.random.nextDouble() * (aabb.maxY - aabb.minY - (double)0.2F) + (double)0.1F + aabb.minY;
+                double d2 = (double)k + level.random.nextDouble() * (aabb.maxZ - aabb.minZ - (double)0.2F) + (double)0.1F + aabb.minZ;
+                if (pSide == Direction.DOWN) {
+                    d1 = (double)j + aabb.minY - (double)0.1F;
+                }
+
+                if (pSide == Direction.UP) {
+                    d1 = (double)j + aabb.maxY + (double)0.1F;
+                }
+
+                if (pSide == Direction.NORTH) {
+                    d2 = (double)k + aabb.minZ - (double)0.1F;
+                }
+
+                if (pSide == Direction.SOUTH) {
+                    d2 = (double)k + aabb.maxZ + (double)0.1F;
+                }
+
+                if (pSide == Direction.WEST) {
+                    d0 = (double)i + aabb.minX - (double)0.1F;
+                }
+
+                if (pSide == Direction.EAST) {
+                    d0 = (double)i + aabb.maxX + (double)0.1F;
+                }
+
+                manager.add((new IRendererParticle((ClientLevel) level, d0, d1, d2, 0.0D, 0.0D, 0.0D, renderer)).setPower(0.2F).scale(0.6F));
+            }
+            return true;
+        }
+        return false;
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    static boolean addDestroyEffects(BlockState state, Level level, BlockPos pPos, ParticleEngine manager) {
+        if (state.getBlock() instanceof IBlockRendererProvider blockRendererProvider) {
+            IRenderer renderer = blockRendererProvider.getRenderer(state, pPos, level);
+            if (renderer != null && level instanceof ClientLevel) {
+                VoxelShape voxelshape = state.getShape(level, pPos);
+                voxelshape.forAllBoxes((p_228348_3_, p_228348_5_, p_228348_7_, p_228348_9_, p_228348_11_, p_228348_13_) -> {
+                    double d1 = Math.min(1.0D, p_228348_9_ - p_228348_3_);
+                    double d2 = Math.min(1.0D, p_228348_11_ - p_228348_5_);
+                    double d3 = Math.min(1.0D, p_228348_13_ - p_228348_7_);
+                    int i = Math.max(2, Mth.ceil(d1 / 0.25D));
+                    int j = Math.max(2, Mth.ceil(d2 / 0.25D));
+                    int k = Math.max(2, Mth.ceil(d3 / 0.25D));
+
+                    for(int l = 0; l < i; ++l) {
+                        for(int i1 = 0; i1 < j; ++i1) {
+                            for(int j1 = 0; j1 < k; ++j1) {
+                                double d4 = (l + 0.5D) / i;
+                                double d5 = (i1 + 0.5D) / j;
+                                double d6 = (j1 + 0.5D) / k;
+                                double d7 = d4 * d1 + p_228348_3_;
+                                double d8 = d5 * d2 + p_228348_5_;
+                                double d9 = d6 * d3 + p_228348_7_;
+                                manager.add((new IRendererParticle((ClientLevel) level, (double)pPos.getX() + d7, (double)pPos.getY() + d8, (double)pPos.getZ() + d9, d4 - 0.5D, d5 - 0.5D, d6 - 0.5D, renderer)));
+                            }
+                        }
+                    }
+                });
+            }
+            return true;
+        }
+        return false;
+    }
 }

@@ -51,7 +51,6 @@ public class Shader {
                 int maxLength = GL20.glGetShaderi(this.shaderId, 35716);
                 String error = String.format("Unable to compile %s shader object:\n%s", this.shaderType.name(), GL20.glGetShaderInfoLog(this.shaderId, maxLength));
                 LDLMod.LOGGER.error(error);
-                throw new IllegalStateException(error);
             }
             this.isCompiled = true;
         }

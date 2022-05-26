@@ -2,13 +2,17 @@ package com.lowdragmc.lowdraglib.utils;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
 import net.minecraft.world.level.ColorResolver;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.ChunkSource;
 import net.minecraft.world.level.material.FluidState;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -29,6 +33,7 @@ public class TrackedDummyWorld extends DummyWorld {
     private Predicate<BlockPos> renderFilter;
     public final Level proxyWorld;
     public final Map<BlockPos, BlockInfo> renderedBlocks = new HashMap<>();
+    public final Map<BlockPos, BlockEntity> blockEntities = new HashMap<>();
 
     public final Vector3 minPos = new Vector3(Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE);
     public final Vector3 maxPos = new Vector3(Integer.MIN_VALUE, Integer.MIN_VALUE, Integer.MIN_VALUE);
@@ -67,7 +72,7 @@ public class TrackedDummyWorld extends DummyWorld {
 
     @Override
     public void setBlockEntity(@Nonnull BlockEntity pBlockEntity) {
-//        renderedBlocks.put(pBlockEntity.getBlockPos(), new BlockInfo(renderedBlocks.getOrDefault(pBlockEntity.getBlockPos(), BlockInfo.EMPTY).getBlockState(), pBlockEntity));
+        blockEntities.put(pBlockEntity.getBlockPos(), pBlockEntity);
     }
 
     @Override
@@ -80,7 +85,7 @@ public class TrackedDummyWorld extends DummyWorld {
     public BlockEntity getBlockEntity(@Nonnull BlockPos pos) {
         if (renderFilter != null && !renderFilter.test(pos))
             return null;
-        return proxyWorld != null ? proxyWorld.getBlockEntity(pos) : renderedBlocks.getOrDefault(pos, BlockInfo.EMPTY).getBlockEntity(this, pos);
+        return proxyWorld != null ? proxyWorld.getBlockEntity(pos) : blockEntities.computeIfAbsent(pos, p -> renderedBlocks.getOrDefault(p, BlockInfo.EMPTY).getBlockEntity(this, p));
     }
 
     @Override
@@ -115,5 +120,12 @@ public class TrackedDummyWorld extends DummyWorld {
     @Override
     public int getBlockTint(@Nonnull BlockPos blockPos, @Nonnull ColorResolver colorResolver) {
         return  proxyWorld == null ? super.getBlockTint(blockPos, colorResolver) : proxyWorld.getBlockTint(blockPos, colorResolver);
+    }
+
+    @Nonnull
+    @Override
+    @OnlyIn(Dist.CLIENT)
+    public Holder<Biome> getBiome(@Nonnull BlockPos pos) {
+        return proxyWorld == null ? super.getBiome(pos) : proxyWorld.getBiome(pos);
     }
 }

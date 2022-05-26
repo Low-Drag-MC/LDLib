@@ -10,7 +10,7 @@ import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
-import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -39,7 +39,7 @@ public class SlotWidget extends Widget implements IIngredientSlot {
     public boolean drawHoverTips = true;
 
     protected Runnable changeListener;
-    protected BiConsumer<SlotWidget, List<TextComponent>> onAddedTooltips;
+    protected BiConsumer<SlotWidget, List<Component>> onAddedTooltips;
     protected Function<ItemStack, ItemStack> itemHook;
 
     public SlotWidget(Container inventory, int slotIndex, int xPosition, int yPosition, boolean canTakeItems, boolean canPutItems) {
@@ -69,7 +69,7 @@ public class SlotWidget extends Widget implements IIngredientSlot {
         return new WidgetSlotItemHandler(itemHandler, index, 0, 0);
     }
 
-    public SlotWidget setOnAddedTooltips(BiConsumer<SlotWidget, List<TextComponent>> onAddedTooltips) {
+    public SlotWidget setOnAddedTooltips(BiConsumer<SlotWidget, List<Component>> onAddedTooltips) {
         this.onAddedTooltips = onAddedTooltips;
         return this;
     }
@@ -239,7 +239,7 @@ public class SlotWidget extends Widget implements IIngredientSlot {
         return this;
     }
 
-    private List<TextComponent> getToolTips(List<TextComponent> list) {
+    private List<Component> getToolTips(List<Component> list) {
         if (this.onAddedTooltips != null) {
             this.onAddedTooltips.accept(this, list);
         }

@@ -6,6 +6,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
 import net.minecraft.core.RegistryAccess;
+import net.minecraft.data.worldgen.biome.Biomes;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.profiling.ProfilerFiller;
@@ -14,7 +15,6 @@ import net.minecraft.world.Difficulty;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.crafting.RecipeManager;
-import net.minecraft.world.level.ColorResolver;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LightLayer;
@@ -275,8 +275,8 @@ public class DummyWorld extends Level {
     }
 
     @Override
-    public int getBlockTint(@Nonnull BlockPos blockPos, @Nonnull ColorResolver colorResolver) {
-        return colorResolver.getColor(this.getBiome(blockPos).value(), blockPos.getX(), blockPos.getY());
+    public Holder<Biome> getBiome(BlockPos pPos) {
+        return Biomes.bootstrap();
     }
 
     @Override
@@ -301,7 +301,7 @@ public class DummyWorld extends Level {
 
     @Override
     public Holder<Biome> getUncachedNoiseBiome(int x, int y, int z) {
-        return Holder.direct(null);
+        return Biomes.bootstrap();
     }
 
 

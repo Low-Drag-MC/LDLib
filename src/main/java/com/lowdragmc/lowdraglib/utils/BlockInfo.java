@@ -1,7 +1,5 @@
 package com.lowdragmc.lowdraglib.utils;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -10,6 +8,8 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+
+import java.util.function.Consumer;
 
 /**
  * Author: KilaBash
@@ -23,6 +23,7 @@ public class BlockInfo {
     private boolean hasBlockEntity;
     private final ItemStack itemStack;
     private BlockEntity lastEntity;
+    private final Consumer<BlockEntity> postCreate;
 
     public BlockInfo(Block block) {
         this(block.defaultBlockState());
@@ -33,13 +34,17 @@ public class BlockInfo {
     }
 
     public BlockInfo(BlockState blockState, boolean hasBlockEntity) {
-        this(blockState, hasBlockEntity, null);
+        this(blockState, hasBlockEntity, null, null);
+    }
+    public BlockInfo(BlockState blockState, Consumer<BlockEntity> postCreate) {
+        this(blockState, true, null, null);
     }
 
-    public BlockInfo(BlockState blockState, boolean hasBlockEntity, ItemStack itemStack) {
+    public BlockInfo(BlockState blockState, boolean hasBlockEntity, ItemStack itemStack, Consumer<BlockEntity> postCreate) {
         this.blockState = blockState;
         this.hasBlockEntity = hasBlockEntity;
         this.itemStack = itemStack;
+        this.postCreate = postCreate;
     }
 
     public static BlockInfo fromBlockState(BlockState state) {
@@ -71,7 +76,11 @@ public class BlockInfo {
             if (lastEntity != null && lastEntity.getBlockPos().equals(pos)) {
                 return lastEntity;
             }
-            return lastEntity = entityBlock.newBlockEntity(pos, blockState);
+            lastEntity = entityBlock.newBlockEntity(pos, blockState);
+            if (postCreate != null) {
+                postCreate.accept(lastEntity);
+            }
+            return lastEntity;
         }
         return null;
     }

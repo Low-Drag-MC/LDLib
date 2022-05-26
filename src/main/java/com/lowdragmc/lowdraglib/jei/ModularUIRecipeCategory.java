@@ -1,11 +1,15 @@
 package com.lowdragmc.lowdraglib.jei;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import mezz.jei.api.MethodsReturnNonnullByDefault;
-import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
+import mezz.jei.api.gui.IRecipeLayout;
 import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
-import mezz.jei.api.recipe.IFocusGroup;
+import mezz.jei.api.ingredients.IIngredients;
 import mezz.jei.api.recipe.category.IRecipeCategory;
+import mezz.jei.deprecated.gui.recipes.RecipeLayoutLegacyAdapter;
+import mezz.jei.gui.recipes.RecipeLayout;
+import mezz.jei.gui.recipes.RecipesGui;
+import net.minecraft.MethodsReturnNonnullByDefault;
+import net.minecraftforge.fml.util.ObfuscationReflectionHelper;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -24,7 +28,12 @@ public abstract class ModularUIRecipeCategory<T extends ModularWrapper<?>> imple
     }
 
     @Override
-    public void setRecipe(IRecipeLayoutBuilder builder, T recipe, IFocusGroup focuses) {
-        recipe.setRecipeLayout(0, 0);
+    public void setRecipe(IRecipeLayout recipeLayout, T recipe, IIngredients ingredients) {
+        if (recipeLayout instanceof RecipeLayoutLegacyAdapter<?> layout) {
+            RecipeLayout<?> rl = ObfuscationReflectionHelper.getPrivateValue(RecipeLayoutLegacyAdapter.class, layout, "recipeLayout");
+            if (rl != null) {
+                recipe.setRecipeLayout(rl.getPosX(), rl.getPosY());
+            }
+        }
     }
 }

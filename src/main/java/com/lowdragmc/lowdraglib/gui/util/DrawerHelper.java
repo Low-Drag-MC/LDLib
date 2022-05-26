@@ -47,7 +47,7 @@ public class DrawerHelper {
         buffer.vertex(mat, xCoord, yCoord + 16, zLevel).uv(uMin, vMax).color(fluidColor).endVertex();
         buffer.vertex(mat, xCoord + 16 - maskRight, yCoord + 16, zLevel).uv(uMax, vMax).color(fluidColor).endVertex();
         buffer.vertex(mat, xCoord + 16 - maskRight, yCoord + maskTop, zLevel).uv(uMax, vMin).color(fluidColor).endVertex();
-        buffer.vertex(mat, xCoord, yCoord + maskTop, zLevel).uv(uMin, vMin).endVertex();
+        buffer.vertex(mat, xCoord, yCoord + maskTop, zLevel).uv(uMin, vMin).color(fluidColor).endVertex();
         buffer.end();
         BufferUploader.end(buffer);
     }
@@ -148,7 +148,7 @@ public class DrawerHelper {
     public static void drawItemStack(PoseStack poseStack, ItemStack itemStack, int x, int y, @Nullable String altTxt) {
         PoseStack posestack = RenderSystem.getModelViewStack();
         posestack.pushPose();
-
+        posestack.mulPoseMatrix(poseStack.last().pose());
         posestack.translate(0.0D, 0.0D, 32.0D);
         RenderSystem.applyModelViewMatrix();
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);

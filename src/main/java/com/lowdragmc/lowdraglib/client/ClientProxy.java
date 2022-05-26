@@ -2,7 +2,7 @@ package com.lowdragmc.lowdraglib.client;
 
 import com.lowdragmc.lowdraglib.CommonProxy;
 import com.lowdragmc.lowdraglib.LDLMod;
-import com.lowdragmc.lowdraglib.client.particle.DiggingIRendererParticle;
+import com.lowdragmc.lowdraglib.client.particle.IRendererParticle;
 import com.lowdragmc.lowdraglib.client.renderer.IRenderer;
 import com.lowdragmc.lowdraglib.client.shader.Shaders;
 import com.lowdragmc.lowdraglib.jei.JEIClientEventHandler;
@@ -27,7 +27,7 @@ public class ClientProxy extends CommonProxy {
 
     @SubscribeEvent
     public void onParticleFactoryRegister(ParticleFactoryRegisterEvent event) {
-        Minecraft.getInstance().particleEngine.register(IRENDERER_PARTICLE.get(), new DiggingIRendererParticle.Provider());
+        Minecraft.getInstance().particleEngine.register(IRENDERER_PARTICLE.get(), new IRendererParticle.Provider());
     }
     public ClientProxy() {
         super();

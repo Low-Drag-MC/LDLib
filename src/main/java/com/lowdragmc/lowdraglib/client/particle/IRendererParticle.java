@@ -26,12 +26,12 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @OnlyIn(Dist.CLIENT)
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class DiggingIRendererParticle extends TextureSheetParticle {
+public class IRendererParticle extends TextureSheetParticle {
     private BlockPos pos;
     private final float uo;
     private final float vo;
 
-    public DiggingIRendererParticle(ClientLevel pLevel, double pX, double pY, double pZ, double pXSpeed, double pYSpeed, double pZSpeed, IRenderer renderer) {
+    public IRendererParticle(ClientLevel pLevel, double pX, double pY, double pZ, double pXSpeed, double pYSpeed, double pZSpeed, IRenderer renderer) {
         super(pLevel, pX, pY, pZ, pXSpeed, pYSpeed, pZSpeed);
         this.setSprite(renderer.getParticleTexture());
         this.gravity = 1.0F;
@@ -47,12 +47,12 @@ public class DiggingIRendererParticle extends TextureSheetParticle {
         return ParticleRenderType.TERRAIN_SHEET;
     }
 
-    public DiggingIRendererParticle init(BlockPos p_174846_1_) {
+    public IRendererParticle init(BlockPos p_174846_1_) {
         this.pos = p_174846_1_;
         return this;
     }
 
-    public DiggingIRendererParticle init() {
+    public IRendererParticle init() {
         this.pos = new BlockPos(this.x, this.y, this.z);
         return this;
     }
@@ -75,12 +75,7 @@ public class DiggingIRendererParticle extends TextureSheetParticle {
 
     public int getLightColor(float pPartialTick) {
         int i = super.getLightColor(pPartialTick);
-        int j = 0;
-        if (this.level.isLoaded(this.pos)) {
-            j = LevelRenderer.getLightColor(this.level, this.pos);
-        }
-
-        return i == 0 ? j : i;
+        return i == 0 && this.level.hasChunkAt(this.pos) ? LevelRenderer.getLightColor(this.level, this.pos) : i;
     }
 
     @OnlyIn(Dist.CLIENT)
@@ -93,10 +88,10 @@ public class DiggingIRendererParticle extends TextureSheetParticle {
                                        double pYSpeed, double pZSpeed) {
             BlockPos pos = pType.getPos();
             BlockState blockstate = pLevel.getBlockState(pos);
-            if (blockstate instanceof IBlockRendererProvider) {
-                IRenderer renderer = ((IBlockRendererProvider) blockstate).getRenderer(blockstate, pos, pLevel);
+            if (blockstate.getBlock() instanceof IBlockRendererProvider block) {
+                IRenderer renderer = block.getRenderer(blockstate, pos, pLevel);
                 if (renderer != null) {
-                    return new DiggingIRendererParticle(pLevel, pX, pY, pZ, pXSpeed, pYSpeed, pZSpeed, renderer).init();
+                    return new IRendererParticle(pLevel, pX, pY, pZ, pXSpeed, pYSpeed, pZSpeed, renderer).init();
                 }
             }
             return null;
