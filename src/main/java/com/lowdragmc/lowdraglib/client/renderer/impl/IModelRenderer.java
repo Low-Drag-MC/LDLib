@@ -6,12 +6,11 @@ import com.lowdragmc.lowdraglib.client.model.custommodel.CustomBakedModel;
 import com.lowdragmc.lowdraglib.client.renderer.IItemRendererProvider;
 import com.lowdragmc.lowdraglib.client.renderer.IRenderer;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.block.BlockRenderDispatcher;
+import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.block.model.ItemTransforms;
-import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.client.resources.model.BlockModelRotation;
@@ -33,8 +32,10 @@ import net.minecraftforge.client.model.data.IModelData;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Collections;
 import java.util.EnumMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
@@ -101,29 +102,11 @@ public class IModelRenderer implements IRenderer {
     }
 
     @Override
-    public void renderBlockDamage(BlockState state, BlockPos pos,
-                                  BlockAndTintGetter blockReader,
-                                  PoseStack poseStack,
-                                  VertexConsumer vertexBuilder,
-                                  IModelData modelData) {
-        IRenderer.super.renderBlockDamage(state, pos, blockReader, poseStack, vertexBuilder, modelData);
-        BlockRenderDispatcher brd = Minecraft.getInstance().getBlockRenderer();
-        BakedModel ibakedmodel = getBlockBakedModel(pos, blockReader);
-        if (ibakedmodel == null) return;
-        brd.getModelRenderer().tesselateBlock(blockReader, ibakedmodel, state, pos, poseStack, vertexBuilder, true, LDLMod.random, state.getSeed(pos), OverlayTexture.NO_OVERLAY, modelData);
-    }
-
-    @Override
-    public boolean renderModel(BlockState state, BlockPos pos,
-                               BlockAndTintGetter blockReader,
-                               PoseStack poseStack,
-                               VertexConsumer vertexBuilder, boolean checkSides,
-                               Random rand, IModelData modelData) {
-        BlockRenderDispatcher brd = Minecraft.getInstance().getBlockRenderer();
-        BakedModel ibakedmodel = getBlockBakedModel(pos, blockReader);
-        if (ibakedmodel == null) return false;
-        if (ibakedmodel instanceof CustomBakedModel && !((CustomBakedModel) ibakedmodel).shouldRenderInLayer(state, rand)) return false;
-        return brd.getModelRenderer().tesselateBlock(blockReader, ibakedmodel, state, pos, poseStack, vertexBuilder, checkSides, rand, state.getSeed(pos), OverlayTexture.NO_OVERLAY, modelData);
+    public List<BakedQuad> renderModel(BlockAndTintGetter level, BlockPos pos, BlockState state, Direction side, Random rand, IModelData modelData) {
+        BakedModel ibakedmodel = getBlockBakedModel(pos, level);
+        if (ibakedmodel == null) return Collections.emptyList();
+        if (ibakedmodel instanceof CustomBakedModel && !((CustomBakedModel) ibakedmodel).shouldRenderInLayer(state, rand)) return Collections.emptyList();
+        return ibakedmodel.getQuads(state, side, rand, modelData);
     }
 
     @OnlyIn(Dist.CLIENT)

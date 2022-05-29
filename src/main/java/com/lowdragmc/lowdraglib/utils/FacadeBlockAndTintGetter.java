@@ -35,7 +35,7 @@ public class FacadeBlockAndTintGetter implements BlockAndTintGetter {
     public final BlockState state;
     public final BlockEntity tile;
 
-    public FacadeBlockAndTintGetter(BlockAndTintGetter parent, BlockPos pos, BlockState state, BlockEntity tile) {
+    public FacadeBlockAndTintGetter(BlockAndTintGetter parent, BlockPos pos, BlockState state, @Nullable BlockEntity tile) {
         this.parent = parent;
         this.pos = pos;
         this.state = state;

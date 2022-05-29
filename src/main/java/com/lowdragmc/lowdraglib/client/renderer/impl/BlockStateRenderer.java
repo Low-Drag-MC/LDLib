@@ -6,17 +6,18 @@ import com.lowdragmc.lowdraglib.utils.FacadeBlockAndTintGetter;
 import com.lowdragmc.lowdraglib.utils.BlockInfo;
 import com.lowdragmc.lowdraglib.utils.FacadeBlockWorld;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.block.BlockRenderDispatcher;
+import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.block.model.ItemTransforms;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.Level;
@@ -33,6 +34,9 @@ import net.minecraftforge.client.model.data.EmptyModelData;
 import net.minecraftforge.client.model.data.IModelData;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.util.Collections;
+import java.util.List;
 import java.util.Random;
 
 public class BlockStateRenderer implements IRenderer {
@@ -100,37 +104,27 @@ public class BlockStateRenderer implements IRenderer {
 
     @Override
     @OnlyIn(Dist.CLIENT)
-    public void renderBlockDamage(BlockState state, BlockPos pos,
-                                  BlockAndTintGetter blockReader,
-                                  PoseStack poseStack,
-                                  VertexConsumer vertexBuilder,
-                                  IModelData modelData) {
+    public List<BakedQuad> renderModel(BlockAndTintGetter level, BlockPos pos, BlockState state, Direction side, Random rand, IModelData modelData) {
         state = getState(state);
         if (state.getRenderShape() != RenderShape.INVISIBLE && ItemBlockRenderTypes.canRenderInLayer(state, MinecraftForgeClient.getRenderType())) {
             BlockRenderDispatcher brd = Minecraft.getInstance().getBlockRenderer();
-            blockReader = new FacadeBlockAndTintGetter(blockReader, pos, state, getBlockEntity(blockReader, pos));
-            brd.renderBreakingTexture(state, pos, blockReader, poseStack, vertexBuilder, modelData);
+            BlockEntity blockEntity = getBlockEntity(level, pos);
+            BlockAndTintGetter blockReader = new FacadeBlockAndTintGetter(level, pos, state, blockEntity);
+            RenderShape rendershape = state.getRenderShape();
+            BakedModel model = brd.getBlockModel(state);
+            if (rendershape == RenderShape.MODEL) {
+                if (blockEntity != null) {
+                    modelData = blockEntity.getModelData();
+                }
+                modelData = model.getModelData(blockReader, pos, state, modelData);
+                return model.getQuads(state, side, rand, modelData);
+            }
         }
-
-    }
-
-    @Override
-    @OnlyIn(Dist.CLIENT)
-    public boolean renderModel(BlockState state, BlockPos pos,
-                               BlockAndTintGetter blockReader,
-                               PoseStack matrixStack,
-                               VertexConsumer vertexBuilder, boolean checkSides,
-                               Random rand, IModelData modelData) {
-        state = getState(state);
-        if (state.getRenderShape() != RenderShape.INVISIBLE && ItemBlockRenderTypes.canRenderInLayer(state, MinecraftForgeClient.getRenderType())) {
-            BlockRenderDispatcher brd = Minecraft.getInstance().getBlockRenderer();
-            blockReader = new FacadeBlockAndTintGetter(blockReader, pos, state, getBlockEntity(blockReader, pos));
-            return brd.renderBatched(state, pos, blockReader, matrixStack, vertexBuilder, checkSides, rand, modelData);
-        }
-        return false;
+        return Collections.emptyList();
     }
 
     @OnlyIn(Dist.CLIENT)
+    @Nullable
     public BlockEntity getBlockEntity(BlockAndTintGetter world, BlockPos pos) {
         BlockInfo blockInfo = getBlockInfo();
         BlockEntity tile = blockInfo.getBlockEntity(pos);

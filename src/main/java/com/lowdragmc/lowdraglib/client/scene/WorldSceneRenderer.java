@@ -1,5 +1,6 @@
 package com.lowdragmc.lowdraglib.client.scene;
 
+import com.lowdragmc.lowdraglib.LDLMod;
 import com.lowdragmc.lowdraglib.client.utils.glu.Project;
 import com.lowdragmc.lowdraglib.utils.Position;
 import com.lowdragmc.lowdraglib.utils.PositionedRect;
@@ -111,7 +112,7 @@ public abstract class WorldSceneRenderer {
 //    }
 
     public WorldSceneRenderer useCacheBuffer(boolean useCache) {
-        if (this.useCache || !Minecraft.getInstance().isSameThread()) return this;
+        if (this.useCache || !Minecraft.getInstance().isSameThread() || LDLMod.isModLoaded(LDLMod.MODID_RUBIDIUM)) return this;
         deleteCacheBuffer();
         if (useCache) {
             List<RenderType> layers = RenderType.chunkBufferLayers();
