@@ -88,6 +88,7 @@ public class IModelRenderer implements IRenderer {
     }
 
     @Override
+    @OnlyIn(Dist.CLIENT)
     public void renderItem(ItemStack stack,
                            ItemTransforms.TransformType transformType,
                            boolean leftHand, PoseStack matrixStack,
@@ -102,6 +103,7 @@ public class IModelRenderer implements IRenderer {
     }
 
     @Override
+    @OnlyIn(Dist.CLIENT)
     public List<BakedQuad> renderModel(BlockAndTintGetter level, BlockPos pos, BlockState state, Direction side, Random rand, IModelData modelData) {
         BakedModel ibakedmodel = getBlockBakedModel(pos, level);
         if (ibakedmodel == null) return Collections.emptyList();
