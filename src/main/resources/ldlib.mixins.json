@@ -5,7 +5,7 @@
   "refmap": "ldlib.refmap.json",
   "minVersion": "0.8",
   "client": [
-    "BlockRendererDispatcherMixin",
+    "BlockModelShaperMixin",
     "ItemRendererMixin",
     "TileEntityRendererDispatcherMixin",
     "WorldRendererMixin"

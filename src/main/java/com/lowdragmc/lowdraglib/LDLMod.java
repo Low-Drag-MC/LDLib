@@ -17,6 +17,7 @@ public class LDLMod {
     public static final String MODID = "ldlib";
     public static final Logger LOGGER = LogManager.getLogger("LowDragLib");
     public static final String MODID_JEI = "jei";
+    public static final String MODID_RUBIDIUM = "rubidium";
     public static final Random random = new Random();
     public static final Random RNG = new Random();
 
