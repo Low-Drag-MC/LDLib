@@ -87,6 +87,7 @@ public class IModelRenderer implements IRenderer {
     }
 
     @Override
+    @OnlyIn(Dist.CLIENT)
     public void renderItem(ItemStack stack,
                            ItemCameraTransforms.TransformType transformType,
                            boolean leftHand, MatrixStack matrixStack,
