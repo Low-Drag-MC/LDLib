@@ -3,12 +3,11 @@ package com.lowdragmc.lowdraglib.client;
 import com.lowdragmc.lowdraglib.CommonProxy;
 import com.lowdragmc.lowdraglib.LDLMod;
 import com.lowdragmc.lowdraglib.client.model.LDLRendererModel;
-import com.lowdragmc.lowdraglib.client.particle.IRendererParticle;
+import com.lowdragmc.lowdraglib.client.particle.TestTrailParticle;
 import com.lowdragmc.lowdraglib.client.renderer.IRenderer;
 import com.lowdragmc.lowdraglib.client.shader.Shaders;
 import com.lowdragmc.lowdraglib.jei.JEIClientEventHandler;
 import com.lowdragmc.lowdraglib.test.TestBlock;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.resources.ResourceLocation;
@@ -31,8 +30,8 @@ public class ClientProxy extends CommonProxy {
 
     @SubscribeEvent
     public void onParticleFactoryRegister(ParticleFactoryRegisterEvent event) {
-        Minecraft.getInstance().particleEngine.register(IRENDERER_PARTICLE.get(), new IRendererParticle.Provider());
     }
+
     public ClientProxy() {
         super();
         if (LDLMod.isModLoaded(LDLMod.MODID_JEI)) {
@@ -59,6 +58,8 @@ public class ClientProxy extends CommonProxy {
             for (IRenderer renderer : renderers) {
                 renderer.onTextureSwitchEvent(event);
             }
+            event.addSprite(new ResourceLocation("ldlib:particle/tail"));
+        } else if (event.getAtlas().location().equals(TextureAtlas.LOCATION_PARTICLES)) {
         }
     }
 }

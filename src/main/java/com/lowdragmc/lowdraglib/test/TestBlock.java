@@ -1,10 +1,12 @@
 package com.lowdragmc.lowdraglib.test;
 
 import com.lowdragmc.lowdraglib.CommonProxy;
+import com.lowdragmc.lowdraglib.client.particle.TestTrailParticle;
 import com.lowdragmc.lowdraglib.client.renderer.IBlockRendererProvider;
 import com.lowdragmc.lowdraglib.client.renderer.IRenderer;
 import com.lowdragmc.lowdraglib.client.renderer.impl.BlockStateRenderer;
 import com.lowdragmc.lowdraglib.gui.factory.BlockEntityUIFactory;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -54,10 +56,14 @@ public class TestBlock extends Block implements EntityBlock, IBlockRendererProvi
 
     @Override
     public InteractionResult use(BlockState pState, Level pLevel, BlockPos pPos, Player pPlayer, InteractionHand pHand, BlockHitResult pHit) {
-        if (!pLevel.isClientSide) {
-            if (pLevel.getBlockEntity(pPos) instanceof TestBlockEntity blockEntity) {
-                BlockEntityUIFactory.INSTANCE.openUI(blockEntity, (ServerPlayer) pPlayer);
-            }
+//        if (!pLevel.isClientSide) {
+//            if (pLevel.getBlockEntity(pPos) instanceof TestBlockEntity blockEntity) {
+//                BlockEntityUIFactory.INSTANCE.openUI(blockEntity, (ServerPlayer) pPlayer);
+//            }
+//        }
+        if (pLevel.isClientSide) {
+            Minecraft.getInstance().particleEngine.add(new TestTrailParticle(Minecraft.getInstance().level,
+                    pPos.getX() + 0.5, pPos.getY() + 1.5, pPos.getZ() + 0.5));
         }
         return InteractionResult.SUCCESS;
     }
