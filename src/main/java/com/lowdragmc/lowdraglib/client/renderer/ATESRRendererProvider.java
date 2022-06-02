@@ -5,7 +5,6 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
-import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -52,7 +51,7 @@ public class ATESRRendererProvider<T extends BlockEntity> implements BlockEntity
     public IRenderer getRenderer(@Nonnull T tileEntity) {
         Level world = tileEntity.getLevel();
         if (world != null) {
-            BlockState state = world.getBlockState(tileEntity.getBlockPos());
+            BlockState state = tileEntity.getBlockState();
             if (state.getBlock() instanceof IBlockRendererProvider) {
                 return ((IBlockRendererProvider) state.getBlock()).getRenderer(state, tileEntity.getBlockPos(), world);
             }
