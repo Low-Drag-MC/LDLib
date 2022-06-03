@@ -16,10 +16,12 @@ import com.mojang.blaze3d.vertex.Tesselator;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import com.mojang.math.Matrix4f;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.texture.AbstractTexture;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import org.lwjgl.opengl.GL13;
 
 import java.util.function.Consumer;
 
@@ -69,7 +71,7 @@ public class ShaderTexture implements IGuiTexture {
         if (shader == null) return;
         this.program = new ShaderProgram();
         this.shader = shader;
-        program.attach(Shaders.IMAGE_V);
+        program.attach(Shaders.GUI_IMAGE_V);
         program.attach(shader);
     }
 
@@ -109,23 +111,36 @@ public class ShaderTexture implements IGuiTexture {
     @OnlyIn(Dist.CLIENT)
     public void draw(PoseStack stack, int mouseX, int mouseY, float x, float y, int width, int height) {
         if (program != null) {
-            program.use(cache->{
-                Minecraft mc = Minecraft.getInstance();
-                float time;
-                if (mc.player != null) {
-                    time = (mc.player.tickCount + mc.getFrameTime()) / 20;
-                } else {
-                    time = System.currentTimeMillis() / 1000f;
-                }
-                float mX = Mth.clamp((mouseX - x), 0, width);
-                float mY = Mth.clamp((mouseY - y), 0, height);
-                cache.glUniform2F("iResolution", width * resolution, height * resolution);
-                cache.glUniform2F("iMouse", mX * resolution, mY * resolution);
-                cache.glUniform1F("iTime", time);
-                if (uniformCache != null) {
-                    uniformCache.accept(cache);
-                }
-            });
+            AbstractTexture abstracttexture = Minecraft.getInstance().getTextureManager().getTexture(new ResourceLocation("ldlib:textures/particle/kila_tail.png"));
+            int id = abstracttexture.getId();
+            RenderSystem.activeTexture(GL13.GL_TEXTURE0);
+            RenderSystem.enableTexture();
+            RenderSystem.bindTexture(id);
+            try {
+                program.use(cache->{
+                    Minecraft mc = Minecraft.getInstance();
+                    float time;
+                    if (mc.player != null) {
+                        time = (mc.player.tickCount + mc.getFrameTime()) / 20;
+                    } else {
+                        time = System.currentTimeMillis() / 1000f;
+                    }
+                    float mX = Mth.clamp((mouseX - x), 0, width);
+                    float mY = Mth.clamp((mouseY - y), 0, height);
+                    cache.glUniform2F("iResolution", width * resolution, height * resolution);
+                    cache.glUniform2F("iMouse", mX * resolution, mY * resolution);
+                    cache.glUniform1F("iTime", time);
+                    cache.glUniform1I("iChannel0", 0);
+                    if (uniformCache != null) {
+                        uniformCache.accept(cache);
+                    }
+                });
+            } catch (Exception e) {
+                e.printStackTrace();
+                stack.popPose();
+                dispose();
+            }
+
             Tesselator tessellator = Tesselator.getInstance();
             BufferBuilder buffer = tessellator.getBuilder();
             stack.pushPose();
@@ -139,6 +154,10 @@ public class ShaderTexture implements IGuiTexture {
             buffer.vertex(mat, x, y, 0).uv(0, 1).endVertex();
             buffer.end();
             BufferUploader._endInternal(buffer);
+
+            RenderSystem.activeTexture(GL13.GL_TEXTURE0);
+            RenderSystem.bindTexture(0);
+
             program.release();
             stack.popPose();
         } else {

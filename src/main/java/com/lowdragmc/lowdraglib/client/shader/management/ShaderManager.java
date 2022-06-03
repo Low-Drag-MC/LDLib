@@ -5,6 +5,7 @@ import com.lowdragmc.lowdraglib.client.shader.Shaders;
 import com.lowdragmc.lowdraglib.client.shader.uniform.UniformCache;
 import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.vertex.BufferBuilder;
+import com.mojang.blaze3d.vertex.BufferUploader;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.Tesselator;
 import com.mojang.blaze3d.vertex.VertexFormat;
@@ -68,13 +69,13 @@ public class ShaderManager {
 			return fbo;
 		}
 
-//		int lastID = glGetInteger(EXTFramebufferObject.GL_FRAMEBUFFER_BINDING_EXT);
 		fbo.bindWrite(true);
 		ShaderProgram program = programs.get(frag);
 		if (program == null) {
 			programs.put(frag, program = new ShaderProgram());
 			program.attach(Shaders.IMAGE_V).attach(frag);
 		}
+
 		program.use(cache -> {
 			cache.glUniform2F("iResolution", fbo.width, fbo.height);
 			if (consumeCache != null) {
@@ -84,15 +85,16 @@ public class ShaderManager {
 
 		Tesselator tessellator = Tesselator.getInstance();
 		BufferBuilder buffer = tessellator.getBuilder();
-		buffer.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
-		buffer.vertex(-1, 1, 0).uv(0, 0).endVertex();
-		buffer.vertex(-1, -1, 0).uv(0, 1).endVertex();
-		buffer.vertex(1, -1, 0).uv(1, 1).endVertex();
-		buffer.vertex(1, 1, 0).uv(1, 0).endVertex();
-		tessellator.end();
+		buffer.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION);
+		buffer.vertex(-1, 1, 0).endVertex();
+		buffer.vertex(-1, -1, 0).endVertex();
+		buffer.vertex(1, -1, 0).endVertex();
+		buffer.vertex(1, 1, 0).endVertex();
+		buffer.end();
+		BufferUploader._endInternal(buffer);
+
 		program.release();
-//		GlStateManager.viewport(0, 0, Minecraft.getMinecraft().displayWidth, Minecraft.getMinecraft().displayHeight);
-//		OpenGlHelper.glBindFramebuffer(OpenGlHelper.GL_FRAMEBUFFER, lastID);
+
 		return fbo;
 	}
 

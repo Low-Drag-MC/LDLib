@@ -56,14 +56,8 @@ public class TestBlock extends Block implements EntityBlock, IBlockRendererProvi
 
     @Override
     public InteractionResult use(BlockState pState, Level pLevel, BlockPos pPos, Player pPlayer, InteractionHand pHand, BlockHitResult pHit) {
-//        if (!pLevel.isClientSide) {
-//            if (pLevel.getBlockEntity(pPos) instanceof TestBlockEntity blockEntity) {
-//                BlockEntityUIFactory.INSTANCE.openUI(blockEntity, (ServerPlayer) pPlayer);
-//            }
-//        }
-        if (pLevel.isClientSide) {
-            Minecraft.getInstance().particleEngine.add(new TestTrailParticle(Minecraft.getInstance().level,
-                    pPos.getX() + 0.5, pPos.getY() + 1.5, pPos.getZ() + 0.5));
+        if (pLevel.getBlockEntity(pPos) instanceof TestBlockEntity blockEntity) {
+            blockEntity.use(pPlayer);
         }
         return InteractionResult.SUCCESS;
     }
