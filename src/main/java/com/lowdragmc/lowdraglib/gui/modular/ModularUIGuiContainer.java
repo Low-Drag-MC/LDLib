@@ -89,7 +89,9 @@ public class ModularUIGuiContainer extends ContainerScreen<ModularUIContainer> {
         modularUI.mainGroup.drawInForeground(matrixStack, mouseX, mouseY, partialTicks);
 
         if (tooltipTexts != null && tooltipTexts.size() > 0) {
+            matrixStack.translate(0, 0, 200);
             DrawerHelper.drawHoveringText(matrixStack, ItemStack.EMPTY, tooltipTexts, mouseX, mouseY, width, height, 300);
+            matrixStack.translate(0, 0, -200);
         }
 
         RenderSystem.pushMatrix();
