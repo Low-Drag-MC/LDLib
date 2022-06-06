@@ -89,7 +89,9 @@ public class ModularUIGuiContainer extends AbstractContainerScreen<ModularUICont
         modularUI.mainGroup.drawInForeground(poseStack, mouseX, mouseY, partialTicks);
 
         if (tooltipTexts != null && tooltipTexts.size() > 0) {
+            poseStack.translate(0, 0, 200);
             renderTooltip(poseStack, tooltipTexts, Optional.empty(), mouseX, mouseY);
+            poseStack.translate(0, 0, -200);
         }
 
         RenderSystem.depthMask(true);

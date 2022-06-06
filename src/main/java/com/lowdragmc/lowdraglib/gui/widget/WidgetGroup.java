@@ -160,7 +160,7 @@ public class WidgetGroup extends Widget implements IGhostIngredientTarget, IIngr
             }
         }
         recomputeSize();
-        if (uiAccess != null) {
+        if (uiAccess != null && !isClientSideWidget) {
             uiAccess.notifyWidgetChange();
         }
         return this;

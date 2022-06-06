@@ -4,6 +4,7 @@ import com.lowdragmc.lowdraglib.gui.ingredient.IIngredientSlot;
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.util.DrawerHelper;
 import com.lowdragmc.lowdraglib.gui.util.TextFormattingUtil;
+import com.lowdragmc.lowdraglib.utils.FluidUtils;
 import com.lowdragmc.lowdraglib.utils.Position;
 import com.lowdragmc.lowdraglib.utils.Size;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -23,7 +24,6 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.fluids.FluidActionResult;
 import net.minecraftforge.fluids.FluidAttributes;
 import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.FluidUtil;
 import net.minecraftforge.fluids.IFluidTank;
 import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidHandler;
@@ -244,21 +244,16 @@ public class TankWidget extends Widget implements IIngredientSlot {
     private int tryClickContainer(boolean isShiftKeyDown) {
         Player player = gui.entityPlayer;
         ItemStack currentStack = gui.getModularUIContainer().getCarried();
-        if (currentStack.getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY).isPresent()) return -1;
+        if (!currentStack.getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY).isPresent()) return -1;
         int maxAttempts = isShiftKeyDown ? currentStack.getCount() : 1;
 
         if (allowClickFilling && fluidTank.getFluidAmount() > 0) {
             boolean performedFill = false;
             FluidStack initialFluid = fluidTank.getFluid();
             for (int i = 0; i < maxAttempts; i++) {
-                FluidActionResult result = FluidUtil.tryFillContainer(currentStack,
-                        (IFluidHandler) fluidTank, Integer.MAX_VALUE, null, false);
+                FluidActionResult result = FluidUtils.tryFillContainer(currentStack, (IFluidHandler) fluidTank, Integer.MAX_VALUE, null, false);
                 if (!result.isSuccess()) break;
-                ItemStack remainingStack = result.getResult();
-                if (!remainingStack.isEmpty() && !player.getInventory().add(remainingStack))
-                    break; //do not continue if we can't add resulting container into inventory
-                FluidUtil.tryFillContainer(currentStack, (IFluidHandler) fluidTank, Integer.MAX_VALUE, null, true);
-                currentStack.shrink(1);
+                currentStack = FluidUtils.tryFillContainer(currentStack, (IFluidHandler) fluidTank, Integer.MAX_VALUE, null, true).getResult();
                 performedFill = true;
             }
             if (performedFill) {
@@ -272,14 +267,9 @@ public class TankWidget extends Widget implements IIngredientSlot {
         if (allowClickEmptying) {
             boolean performedEmptying = false;
             for (int i = 0; i < maxAttempts; i++) {
-                FluidActionResult result = FluidUtil.tryEmptyContainer(currentStack,
-                        (IFluidHandler) fluidTank, Integer.MAX_VALUE, null, false);
+                FluidActionResult result = FluidUtils.tryEmptyContainer(currentStack, (IFluidHandler) fluidTank, Integer.MAX_VALUE, null, false);
                 if (!result.isSuccess()) break;
-                ItemStack remainingStack = result.getResult();
-                if (!remainingStack.isEmpty() && !player.getInventory().add(remainingStack))
-                    break; //do not continue if we can't add resulting container into inventory
-                FluidUtil.tryEmptyContainer(currentStack, (IFluidHandler) fluidTank, Integer.MAX_VALUE, null, true);
-                currentStack.shrink(1);
+                currentStack = FluidUtils.tryEmptyContainer(currentStack, (IFluidHandler) fluidTank, Integer.MAX_VALUE, null, true).getResult();
                 performedEmptying = true;
             }
             FluidStack filledFluid = fluidTank.getFluid();
