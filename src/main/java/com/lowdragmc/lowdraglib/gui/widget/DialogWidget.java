@@ -74,6 +74,7 @@ public class DialogWidget extends WidgetGroup {
     @Override
     @OnlyIn(Dist.CLIENT)
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        if (!isMouseOverElement(mouseX, mouseY)) return false;
         super.mouseClicked(mouseX, mouseY, button);
         return true;
     }
