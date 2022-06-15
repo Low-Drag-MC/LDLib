@@ -63,8 +63,6 @@ public class ClientProxy extends CommonProxy {
             for (IRenderer renderer : renderers) {
                 renderer.onTextureSwitchEvent(event);
             }
-            event.addSprite(new ResourceLocation("ldlib:particle/tail"));
-        } else if (event.getAtlas().location().equals(TextureAtlas.LOCATION_PARTICLES)) {
         }
     }
 }

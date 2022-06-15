@@ -2,6 +2,7 @@ package com.lowdragmc.lowdraglib.gui.widget;
 
 import com.lowdragmc.lowdraglib.client.scene.ISceneRenderHook;
 import com.lowdragmc.lowdraglib.client.scene.ImmediateWorldSceneRenderer;
+import com.lowdragmc.lowdraglib.client.scene.ParticleManager;
 import com.lowdragmc.lowdraglib.client.scene.WorldSceneRenderer;
 import com.lowdragmc.lowdraglib.client.utils.RenderUtils;
 import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
@@ -13,7 +14,6 @@ import com.lowdragmc.lowdraglib.utils.Vector3;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Vector3f;
-import net.minecraft.client.particle.ParticleEngine;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.FriendlyByteBuf;
@@ -38,8 +38,6 @@ public class SceneWidget extends WidgetGroup {
     protected WorldSceneRenderer renderer;
     @OnlyIn(Dist.CLIENT)
     protected TrackedDummyWorld dummyWorld;
-    @OnlyIn(Dist.CLIENT)
-    protected ParticleEngine particleManager;
     protected boolean dragging;
     protected boolean renderFacing = true;
     protected boolean renderSelect = true;
@@ -79,7 +77,12 @@ public class SceneWidget extends WidgetGroup {
     }
 
     @OnlyIn(Dist.CLIENT)
-    public ParticleEngine getParticleManager() {
+    public ParticleManager getParticleManager() {
+        if (renderer == null) return null;
+        ParticleManager particleManager = renderer.getParticleManager();
+        if (particleManager == null) {
+            renderer.setParticleManager(particleManager = new ParticleManager());
+        }
         return particleManager;
     }
 
@@ -92,10 +95,12 @@ public class SceneWidget extends WidgetGroup {
     }
 
     @Override
+    @OnlyIn(Dist.CLIENT)
     public void updateScreen() {
         super.updateScreen();
+        ParticleManager particleManager = getParticleManager();
         if (particleManager != null) {
-//            particleManager.updateEffects();
+            particleManager.tick();
         }
     }
 
@@ -126,7 +131,6 @@ public class SceneWidget extends WidgetGroup {
         renderer.setAfterWorldRender(this::renderBlockOverLay);
         renderer.setCameraLookAt(center, zoom, Math.toRadians(rotationPitch), Math.toRadians(rotationYaw));
         renderer.useCacheBuffer(useCache);
-//        renderer.setParticleManager(particleManager = new ParticleManager());
         clickPosFace = null;
         hoverPosFace = null;
         selectedPosFace = null;

@@ -2,11 +2,19 @@ package com.lowdragmc.lowdraglib.client.shader.management;
 
 import com.lowdragmc.lowdraglib.client.shader.uniform.IUniformCallback;
 import com.lowdragmc.lowdraglib.client.shader.uniform.UniformCache;
+import com.mojang.blaze3d.systems.RenderSystem;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.texture.AbstractTexture;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL20;
 
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Set;
 
 @OnlyIn(Dist.CLIENT)
@@ -15,11 +23,13 @@ public class ShaderProgram {
 	public final int programId;
 	public final Set<Shader> shaders;
 	public final UniformCache uniformCache;
+	public final LinkedHashMap<String, Integer> samplers;
 	private boolean unLinked;
 
 	public ShaderProgram() {
 		this.programId = GL20.glCreateProgram();
 		this.shaders = new ReferenceOpenHashSet<>();
+		this.samplers = new LinkedHashMap<>();
 		if (this.programId == 0) {
 			throw new IllegalStateException("Unable to create ShaderProgram.");
 		}
@@ -42,6 +52,24 @@ public class ShaderProgram {
 		callback.apply(uniformCache);
 	}
 
+	public void bindTexture(String samplerName, int textureId) {
+		if (textureId > 0) {
+			samplers.put(samplerName, textureId);
+		} else {
+			samplers.remove(samplerName);
+		}
+	}
+
+	public void bindTexture(String samplerName, ResourceLocation resourceLocation) {
+		if (resourceLocation == null) {
+			bindTexture(samplerName, 0);
+			return;
+		}
+		AbstractTexture abstracttexture = Minecraft.getInstance().getTextureManager().getTexture(resourceLocation);
+		int textureId = abstracttexture.getId();
+		bindTexture(samplerName, textureId);
+	}
+
 	public void use() {
 		if (unLinked) {
 			this.uniformCache.invalidate();
@@ -51,10 +79,26 @@ public class ShaderProgram {
 			}
 			this.unLinked = false;
 		}
+		if (!samplers.isEmpty()) {
+			int i = 0;
+			for (Map.Entry<String, Integer> entry : samplers.entrySet()) {
+				RenderSystem.activeTexture(GL13.GL_TEXTURE0 + i);
+				RenderSystem.enableTexture();
+				RenderSystem.bindTexture(entry.getValue());
+				uniformCache.glUniform1I(entry.getKey(), i);
+				i++;
+			}
+		}
 		GL20.glUseProgram(programId);
 	}
 
 	public void release() {
+		if (!samplers.isEmpty()) {
+			for (int i = 0; i < samplers.size(); i++) {
+				RenderSystem.activeTexture(GL13.GL_TEXTURE0 + i);
+				RenderSystem.bindTexture(0);
+			}
+		}
 		GL20.glUseProgram(0);
 	}
 

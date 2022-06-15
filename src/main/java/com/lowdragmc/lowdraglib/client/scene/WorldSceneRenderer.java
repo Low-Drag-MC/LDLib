@@ -1,6 +1,7 @@
 package com.lowdragmc.lowdraglib.client.scene;
 
 import com.lowdragmc.lowdraglib.LDLMod;
+import com.lowdragmc.lowdraglib.client.shader.management.ShaderManager;
 import com.lowdragmc.lowdraglib.client.utils.glu.Project;
 import com.lowdragmc.lowdraglib.utils.Position;
 import com.lowdragmc.lowdraglib.utils.PositionedRect;
@@ -79,9 +80,9 @@ public abstract class WorldSceneRenderer {
     protected int maxProgress;
     protected int progress;
     protected Thread thread;
-//    protected ParticleManager particleManager;
-    protected Camera viewEntity;
-
+    protected ParticleManager particleManager;
+    protected Camera camera;
+    protected CameraEntity cameraEntity;
     private Consumer<WorldSceneRenderer> beforeRender;
     private Consumer<WorldSceneRenderer> afterRender;
     private Consumer<BlockHitResult> onLookingAt;
@@ -99,17 +100,24 @@ public abstract class WorldSceneRenderer {
         cacheState = new AtomicReference<>(CacheState.UNUSED);
     }
 
-//    public WorldSceneRenderer setParticleManager(ParticleManager particleManager) {
-//        if (particleManager == null) {
-//            this.particleManager = null;
-//            this.viewEntity = null;
-//            return this;
-//        }
-//        this.particleManager = particleManager;
-//        this.viewEntity = new EntityCamera(world);
-//        setCameraLookAt(eyePos, lookAt, worldUp);
-//        return this;
-//    }
+    public WorldSceneRenderer setParticleManager(ParticleManager particleManager) {
+        if (particleManager == null) {
+            this.particleManager = null;
+            this.camera = null;
+            this.cameraEntity = null;
+            return this;
+        }
+        this.particleManager = particleManager;
+        this.particleManager.setLevel(world);
+        this.camera = new Camera();
+        this.cameraEntity = new CameraEntity(world);
+        setCameraLookAt(eyePos, lookAt, worldUp);
+        return this;
+    }
+
+    public ParticleManager getParticleManager() {
+        return particleManager;
+    }
 
     public WorldSceneRenderer useCacheBuffer(boolean useCache) {
         if (this.useCache || !Minecraft.getInstance().isSameThread() || LDLMod.isModLoaded(LDLMod.MODID_RUBIDIUM)) return this;
@@ -237,15 +245,21 @@ public abstract class WorldSceneRenderer {
         this.eyePos = eyePos;
         this.lookAt = lookAt;
         this.worldUp = worldUp;
-        if (viewEntity != null) {
-
+        if (camera != null) {
             Vector3 xzProduct = new Vector3(lookAt.x() - eyePos.x(), 0, lookAt.z() - eyePos.z());
             double angleYaw = Math.toDegrees(xzProduct.angle(Vector3.Z));
             if (xzProduct.angle(Vector3.X) < Math.PI / 2) {
                 angleYaw = -angleYaw;
             }
             double anglePitch = Math.toDegrees(new Vector3(lookAt).subtract(new Vector3(eyePos)).angle(Vector3.Y)) - 90;
-//            viewEntity.set(eyePos.x(), eyePos.y(), eyePos.z(), (float) angleYaw, (float) anglePitch);
+            cameraEntity.setPos(eyePos.x(), eyePos.y() - cameraEntity.getEyeHeight(), eyePos.z());
+            cameraEntity.xo = cameraEntity.getX();
+            cameraEntity.yo = cameraEntity.getY();
+            cameraEntity.zo = cameraEntity.getZ();
+            cameraEntity.setYRot((float) angleYaw);
+            cameraEntity.setXRot((float) anglePitch);
+            cameraEntity.yRotO = cameraEntity.getYRot();
+            cameraEntity.xRotO = cameraEntity.getXRot();
         }
     }
 
@@ -292,6 +306,12 @@ public abstract class WorldSceneRenderer {
 
         Minecraft mc = Minecraft.getInstance();
         RenderSystem.enableCull();
+
+        if (camera != null) {
+            camera.setup(world, cameraEntity, false, false, mc.getFrameTime());
+        }
+        ShaderManager.getInstance().setViewPort(positionedRect);
+
     }
 
     protected void clearView(int x, int y, int width, int height) {
@@ -318,6 +338,7 @@ public abstract class WorldSceneRenderer {
         RenderSystem.depthMask(false);
         RenderSystem.disableDepthTest();
         RenderSystem.enableBlend();
+        ShaderManager.getInstance().clearViewPort();
 
     }
 
@@ -366,6 +387,13 @@ public abstract class WorldSceneRenderer {
             } finally {
                 ForgeHooksClient.setRenderType(oldRenderLayer);
             }
+        }
+
+        if (particleManager != null) {
+            PoseStack poseStack = new PoseStack();
+            poseStack.setIdentity();
+            poseStack.translate(cameraEntity.getX(), cameraEntity.getY(), cameraEntity.getZ());
+            particleManager.render(poseStack, camera, particleTicks);
         }
 
         if (afterRender != null) {

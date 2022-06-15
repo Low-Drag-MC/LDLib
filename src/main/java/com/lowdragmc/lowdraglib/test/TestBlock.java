@@ -1,15 +1,11 @@
 package com.lowdragmc.lowdraglib.test;
 
 import com.lowdragmc.lowdraglib.CommonProxy;
-import com.lowdragmc.lowdraglib.client.particle.TestTrailParticle;
 import com.lowdragmc.lowdraglib.client.renderer.IBlockRendererProvider;
 import com.lowdragmc.lowdraglib.client.renderer.IRenderer;
 import com.lowdragmc.lowdraglib.client.renderer.impl.BlockStateRenderer;
-import com.lowdragmc.lowdraglib.gui.factory.BlockEntityUIFactory;
-import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;

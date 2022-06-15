@@ -45,7 +45,7 @@ public class Shaders {
 				return Shader.loadShader(shaderType, key);
 			} catch (IOException e) {
 				LDLMod.LOGGER.error("load shader {} resource {} failed", shaderType, resourceLocation);
-				return null;
+				return IMAGE_F;
 			}
 		});
 	}

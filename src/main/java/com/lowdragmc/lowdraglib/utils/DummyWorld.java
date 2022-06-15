@@ -1,7 +1,9 @@
 package com.lowdragmc.lowdraglib.utils;
 
+import com.lowdragmc.lowdraglib.LDLMod;
 import com.lowdragmc.lowdraglib.core.mixins.DimensionTypeAccessor;
 import net.minecraft.MethodsReturnNonnullByDefault;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
@@ -243,7 +245,7 @@ public class DummyWorld extends Level {
 
     @Override
     public String gatherChunkSourceStats() {
-        return null;
+        return "";
     }
 
     @Nullable
@@ -271,6 +273,9 @@ public class DummyWorld extends Level {
 
     @Override
     public LevelLightEngine getLightEngine() {
+        if (LDLMod.isClient()) {
+            return Minecraft.getInstance().level.getLightEngine();
+        }
         return null;
     }
 

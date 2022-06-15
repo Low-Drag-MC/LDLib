@@ -16,12 +16,10 @@ import com.mojang.blaze3d.vertex.Tesselator;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import com.mojang.math.Matrix4f;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.texture.AbstractTexture;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-import org.lwjgl.opengl.GL13;
 
 import java.util.function.Consumer;
 
@@ -107,15 +105,26 @@ public class ShaderTexture implements IGuiTexture {
         return resolution;
     }
 
+    public void bindTexture(String samplerName, int id) {
+        if (LDLMod.isRemote() && ShaderManager.allowedShader()) {
+            if (program != null) {
+                program.bindTexture(samplerName, id);
+            }
+        }
+    }
+
+    public void bindTexture(String samplerName, ResourceLocation location) {
+        if (LDLMod.isRemote() && ShaderManager.allowedShader()) {
+            if (program != null) {
+                program.bindTexture(samplerName, location);
+            }
+        }
+    }
+
     @Override
     @OnlyIn(Dist.CLIENT)
     public void draw(PoseStack stack, int mouseX, int mouseY, float x, float y, int width, int height) {
         if (program != null) {
-            AbstractTexture abstracttexture = Minecraft.getInstance().getTextureManager().getTexture(new ResourceLocation("ldlib:textures/particle/kila_tail.png"));
-            int id = abstracttexture.getId();
-            RenderSystem.activeTexture(GL13.GL_TEXTURE0);
-            RenderSystem.enableTexture();
-            RenderSystem.bindTexture(id);
             try {
                 program.use(cache->{
                     Minecraft mc = Minecraft.getInstance();
@@ -130,7 +139,6 @@ public class ShaderTexture implements IGuiTexture {
                     cache.glUniform2F("iResolution", width * resolution, height * resolution);
                     cache.glUniform2F("iMouse", mX * resolution, mY * resolution);
                     cache.glUniform1F("iTime", time);
-                    cache.glUniform1I("iChannel0", 0);
                     if (uniformCache != null) {
                         uniformCache.accept(cache);
                     }
@@ -154,9 +162,6 @@ public class ShaderTexture implements IGuiTexture {
             buffer.vertex(mat, x, y, 0).uv(0, 1).endVertex();
             buffer.end();
             BufferUploader._endInternal(buffer);
-
-            RenderSystem.activeTexture(GL13.GL_TEXTURE0);
-            RenderSystem.bindTexture(0);
 
             program.release();
             stack.popPose();
