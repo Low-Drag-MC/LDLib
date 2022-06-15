@@ -43,7 +43,9 @@ public class ClientProxy extends CommonProxy {
     public void clientSetup(final FMLClientSetupEvent e) {
         e.enqueueWork(()->{
             Shaders.init();
-            ItemBlockRenderTypes.setRenderLayer(TestBlock.BLOCK, x->true);
+            if (DEBUG) {
+                ItemBlockRenderTypes.setRenderLayer(TestBlock.BLOCK, x->true);
+            }
         });
     }
 
