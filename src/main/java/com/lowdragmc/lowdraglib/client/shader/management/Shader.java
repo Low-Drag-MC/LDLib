@@ -14,6 +14,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.Objects;
 
 @OnlyIn(Dist.CLIENT)
 public class Shader {
@@ -89,5 +90,19 @@ public class Shader {
             this.shaderExtension = shaderExtensionIn;
             this.shaderMode = shaderModeIn;
         }
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (super.equals(obj)) return true;
+        if (obj instanceof Shader shader) {
+            return Objects.equals(shader.source, this.source) && shader.shaderType == this.shaderType;
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(shaderType, source);
     }
 }

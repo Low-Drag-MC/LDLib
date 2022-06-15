@@ -1,9 +1,11 @@
 package com.lowdragmc.lowdraglib.client.shader.management;
 
-import com.lowdragmc.lowdraglib.LDLMod;
 import com.lowdragmc.lowdraglib.client.shader.Shaders;
 import com.lowdragmc.lowdraglib.client.shader.uniform.UniformCache;
+import com.lowdragmc.lowdraglib.utils.PositionedRect;
 import com.mojang.blaze3d.pipeline.RenderTarget;
+import com.mojang.blaze3d.pipeline.TextureTarget;
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.BufferUploader;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
@@ -11,38 +13,14 @@ import com.mojang.blaze3d.vertex.Tesselator;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceMap;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
+import net.minecraft.client.Minecraft;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
-import java.lang.reflect.Field;
-import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 
 @OnlyIn(Dist.CLIENT)
 public class ShaderManager {
-
-	private static final BooleanSupplier optifine$shaderPackLoaded;
-
-	static {
-		Field shaderPackLoadedField = null;
-		try {
-			Class<?> shadersClass = Class.forName("net.optifine.shaders.Shaders");
-			shaderPackLoadedField = shadersClass.getDeclaredField("shaderPackLoaded");
-		} catch (Exception ignored) {
-			LDLMod.LOGGER.debug("Cannot detect Optifine, not going to do any specific compatibility patches.");
-		}
-		if (shaderPackLoadedField == null) {
-			optifine$shaderPackLoaded = () -> false;
-		} else {
-			Field finalShaderPackLoadedField = shaderPackLoadedField;
-			optifine$shaderPackLoaded = () -> {
-				try {
-					return finalShaderPackLoadedField.getBoolean(null);
-				} catch (IllegalAccessException ignored) { }
-				return false;
-			};
-		}
-	}
 
 	private static final ShaderManager INSTANCE = new ShaderManager();
 
@@ -54,18 +32,44 @@ public class ShaderManager {
 		return true;
 	}
 
-	public static boolean isShadersCompatible() {
-		return !optifine$shaderPackLoaded.getAsBoolean();
-	}
-
 	private final Reference2ReferenceMap<Shader, ShaderProgram> programs;
 
 	private ShaderManager() {
 		this.programs = new Reference2ReferenceOpenHashMap<>();
 	}
 
-	public RenderTarget renderFullImageInFramebuffer(RenderTarget fbo, Shader frag, Consumer<UniformCache> consumeCache) {
-		if (fbo == null || frag == null || !allowedShader()) {
+	private static TextureTarget TEMP_TARGET;
+	public static TextureTarget getTempTarget() {
+		if (TEMP_TARGET == null) {
+			TEMP_TARGET = new TextureTarget(512, 512, false, Minecraft.ON_OSX);
+		}
+		return TEMP_TARGET;
+	}
+
+	public void reload() {
+		programs.forEach((shader, shaderProgram) -> {
+			shader.deleteShader();
+			shaderProgram.delete();
+		});
+		programs.clear();
+	}
+
+	private PositionedRect viewPort;
+
+	public void setViewPort(PositionedRect viewPort) {
+		this.viewPort = viewPort;
+	}
+
+	public boolean hasViewPort() {
+		return this.viewPort != null;
+	}
+
+	public void clearViewPort() {
+		this.viewPort = null;
+	}
+
+	public RenderTarget renderFullImageInFramebuffer(RenderTarget fbo, Shader frag, Consumer<UniformCache> consumeCache, Consumer<ShaderProgram> programCreated) {
+		if (fbo == null || frag == null || !allowedShader() || frag.shaderType != Shader.ShaderType.FRAGMENT) {
 			return fbo;
 		}
 
@@ -74,9 +78,20 @@ public class ShaderManager {
 		if (program == null) {
 			programs.put(frag, program = new ShaderProgram());
 			program.attach(Shaders.IMAGE_V).attach(frag);
+			if (programCreated != null) {
+				programCreated.accept(program);
+			}
 		}
 
 		program.use(cache -> {
+			Minecraft mc = Minecraft.getInstance();
+			float time;
+			if (mc.player != null) {
+				time = (mc.player.tickCount + mc.getFrameTime()) / 20;
+			} else {
+				time = System.currentTimeMillis() / 1000f;
+			}
+			cache.glUniform1F("iTime", time);
 			cache.glUniform2F("iResolution", fbo.width, fbo.height);
 			if (consumeCache != null) {
 				consumeCache.accept(cache);
@@ -95,6 +110,9 @@ public class ShaderManager {
 
 		program.release();
 
+		if (viewPort != null) {
+			RenderSystem.viewport(viewPort.position.x, viewPort.position.y, viewPort.size.width, viewPort.size.height);
+		}
 		return fbo;
 	}
 

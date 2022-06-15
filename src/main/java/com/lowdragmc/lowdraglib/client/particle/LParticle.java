@@ -7,11 +7,13 @@ import net.minecraft.client.Camera;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.Particle;
 import net.minecraft.util.Mth;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 import javax.annotation.Nonnull;
+import java.util.function.Consumer;
 
 /**
  * @author KilaBash
@@ -22,34 +24,66 @@ import javax.annotation.Nonnull;
 public abstract class LParticle extends Particle {
     protected float quadSize = 1;
     protected boolean moveless;
+    protected Consumer<LParticle> onUpdate;
+    protected int lightColor = -1;
+    private Level realLevel;
 
     protected LParticle(ClientLevel level, double x, double y, double z) {
         super(level, x, y, z);
+        this.realLevel = level;
+        if (level == null) {
+            hasPhysics = false;
+        }
     }
 
     protected LParticle(ClientLevel level, double x, double y, double z, double sX, double sY, double sZ) {
         super(level, x, y, z, sX, sY, sZ);
+        this.realLevel = level;
+        if (level == null) {
+            hasPhysics = false;
+        }
     }
 
-    public LParticle setMoveless(boolean moveless) {
+    public Level getLevel() {
+        return realLevel == null ? super.level : realLevel;
+    }
+
+    public void setLevel(Level level) {
+        this.realLevel = level;
+    }
+
+    public void setMoveless(boolean moveless) {
         this.moveless = moveless;
-        return this;
+    }
+
+    public void setFullLight(int lightColor) {
+        this.lightColor = lightColor;
+    }
+
+    public void setOnUpdate(Consumer<LParticle> onUpdate) {
+        this.onUpdate = onUpdate;
     }
 
     public boolean isMoveless() {
         return moveless;
     }
 
-
-
     @Override
     public void tick() {
         this.xo = this.x;
         this.yo = this.y;
         this.zo = this.z;
-        if (this.age++ >= this.lifetime) {
+        if (this.age++ >= this.lifetime && lifetime > 0) {
             this.remove();
-        } else if (!moveless){
+        } else if (onUpdate == null){
+            update();
+        } else {
+            onUpdate.accept(this);
+        }
+    }
+
+    protected void update() {
+        if (!moveless){
             this.yd -= 0.04D * this.gravity;
             this.move(this.xd, this.yd, this.zd);
             if (this.speedUpWhenYMotionIsBlocked && this.y == this.yo) {
@@ -90,10 +124,10 @@ public abstract class LParticle extends Particle {
             vector3f.add(f, f1, f2);
         }
 
-        float f7 = this.getU0();
-        float f8 = this.getU1();
-        float f5 = this.getV0();
-        float f6 = this.getV1();
+        float f7 = this.getU0(pPartialTicks);
+        float f8 = this.getU1(pPartialTicks);
+        float f5 = this.getV0(pPartialTicks);
+        float f6 = this.getV1(pPartialTicks);
         int j = this.getLightColor(pPartialTicks);
         pBuffer.vertex(avector3f[0].x(), avector3f[0].y(), avector3f[0].z()).uv(f8, f6).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(j).endVertex();
         pBuffer.vertex(avector3f[1].x(), avector3f[1].y(), avector3f[1].z()).uv(f8, f5).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(j).endVertex();
@@ -105,17 +139,29 @@ public abstract class LParticle extends Particle {
         return this.quadSize;
     }
 
+    @Nonnull
     public LParticle scale(float pScale) {
         this.quadSize *= pScale;
         super.scale(pScale);
         return this;
     }
 
-    protected abstract float getU0();
+    @Override
+    protected int getLightColor(float pPartialTick) {
+        if (lightColor >= 0) return lightColor;
+        if (level == null) return 0xf000f0;
+        return super.getLightColor(pPartialTick);
+    }
 
-    protected abstract float getU1();
+    protected abstract float getU0(float pPartialTicks);
 
-    protected abstract float getV0();
+    protected abstract float getU1(float pPartialTicks);
 
-    protected abstract float getV1();
+    protected abstract float getV0(float pPartialTicks);
+
+    protected abstract float getV1(float pPartialTicks);
+
+    public int getAge() {
+        return age;
+    }
 }
