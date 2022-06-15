@@ -30,6 +30,7 @@ public class LDLMetadataSection {
         this.layer = layer;
     }
 
+
     @Nullable
     public static LDLMetadataSection getMetadata(ResourceLocation res) {
         if (METADATA_CACHE.containsKey(res)) {
