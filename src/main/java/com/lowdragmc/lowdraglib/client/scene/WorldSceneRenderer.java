@@ -3,6 +3,7 @@ package com.lowdragmc.lowdraglib.client.scene;
 import com.lowdragmc.lowdraglib.LDLMod;
 import com.lowdragmc.lowdraglib.client.shader.management.ShaderManager;
 import com.lowdragmc.lowdraglib.client.utils.glu.Project;
+import com.lowdragmc.lowdraglib.utils.DummyWorld;
 import com.lowdragmc.lowdraglib.utils.Position;
 import com.lowdragmc.lowdraglib.utils.PositionedRect;
 import com.lowdragmc.lowdraglib.utils.Size;
@@ -108,6 +109,9 @@ public abstract class WorldSceneRenderer {
             return this;
         }
         this.particleManager = particleManager;
+        if (this.world instanceof DummyWorld dummyWorld) {
+            dummyWorld.setParticleManager(particleManager);
+        }
         this.particleManager.setLevel(world);
         this.camera = new Camera();
         this.cameraEntity = new CameraEntity(world);

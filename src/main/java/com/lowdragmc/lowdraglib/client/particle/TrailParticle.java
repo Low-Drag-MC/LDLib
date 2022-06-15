@@ -28,10 +28,12 @@ public abstract class TrailParticle extends LParticle {
         maxTail = 40;
         freq = 1;
         width = 0.5f;
+        cull = false;
     }
 
     protected TrailParticle(ClientLevel level, double x, double y, double z, double sX, double sY, double sZ) {
         super(level, x, y, z, sX, sY, sZ);
+        cull = false;
     }
 
     public void setWidth(float width) {
@@ -96,11 +98,6 @@ public abstract class TrailParticle extends LParticle {
         Vector3 normal = toTail.copy().crossProduct(direction).normalize();
         verts[i * 2] = current.copy().add(normal.copy().multiply(size)).subtract(cameraPos);
         verts[i * 2 + 1] = current.copy().add(normal.copy().multiply(-size)).subtract(cameraPos);
-    }
-
-    @Override
-    public boolean shouldCull() {
-        return false;
     }
 
     public float getWidth(int tail, float pPartialTicks) {

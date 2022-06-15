@@ -79,11 +79,7 @@ public class SceneWidget extends WidgetGroup {
     @OnlyIn(Dist.CLIENT)
     public ParticleManager getParticleManager() {
         if (renderer == null) return null;
-        ParticleManager particleManager = renderer.getParticleManager();
-        if (particleManager == null) {
-            renderer.setParticleManager(particleManager = new ParticleManager());
-        }
-        return particleManager;
+        return renderer.getParticleManager();
     }
 
     @Override
@@ -131,6 +127,7 @@ public class SceneWidget extends WidgetGroup {
         renderer.setAfterWorldRender(this::renderBlockOverLay);
         renderer.setCameraLookAt(center, zoom, Math.toRadians(rotationPitch), Math.toRadians(rotationYaw));
         renderer.useCacheBuffer(useCache);
+        renderer.setParticleManager(new ParticleManager());
         clickPosFace = null;
         hoverPosFace = null;
         selectedPosFace = null;

@@ -16,6 +16,7 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.registries.IForgeRegistry;
 
 public class CommonProxy {
+    private final boolean DEBUG = false;
 
     public CommonProxy() {
         IEventBus eventBus = FMLJavaModLoadingContext.get().getModEventBus();
@@ -25,22 +26,28 @@ public class CommonProxy {
     }
     @SubscribeEvent
     public void registerBlocks(RegistryEvent.Register<Block> event) {
-        IForgeRegistry<Block> registry = event.getRegistry();
-        registry.register(TestBlock.BLOCK);
+        if (DEBUG) {
+            IForgeRegistry<Block> registry = event.getRegistry();
+            registry.register(TestBlock.BLOCK);
+        }
     }
 
     public static BlockEntityType<TestBlockEntity> testType;
     @SubscribeEvent
     public void registerTileEntities(RegistryEvent.Register<BlockEntityType<?>> event) {
-        IForgeRegistry<BlockEntityType<?>> registry = event.getRegistry();
-        testType = BlockEntityType.Builder.of(TestBlockEntity::new, TestBlock.BLOCK).build(null);
-        testType.setRegistryName("ldlib:testblock");
-        registry.register(testType);
+        if (DEBUG) {
+            IForgeRegistry<BlockEntityType<?>> registry = event.getRegistry();
+            testType = BlockEntityType.Builder.of(TestBlockEntity::new, TestBlock.BLOCK).build(null);
+            testType.setRegistryName("ldlib:testblock");
+            registry.register(testType);
+        }
     }
 
     @SubscribeEvent
     public void registerItems(RegistryEvent.Register<Item> event) {
-        IForgeRegistry<Item> registry = event.getRegistry();
-        registry.register(TestItem.ITEM);
+        if (DEBUG) {
+            IForgeRegistry<Item> registry = event.getRegistry();
+            registry.register(TestItem.ITEM);
+        }
     }
 }

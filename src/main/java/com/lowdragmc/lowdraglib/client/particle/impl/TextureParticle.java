@@ -13,6 +13,8 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.ParticleRenderType;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 import javax.annotation.Nonnull;
 import java.util.function.Function;
@@ -22,6 +24,7 @@ import java.util.function.Function;
  * @date 2022/06/15
  * @implNote TextureParticle, texture particle
  */
+@OnlyIn(Dist.CLIENT)
 public class TextureParticle extends LParticle {
 
     public ResourceLocation texture = new ResourceLocation(LDLMod.MODID, "textures/particle/kila_tail.png");
@@ -54,8 +57,9 @@ public class TextureParticle extends LParticle {
         return 1;
     }
 
-    public void setTexture(ResourceLocation texture) {
+    public TextureParticle setTexture(ResourceLocation texture) {
         this.texture = texture;
+        return this;
     }
 
     protected static final Function<ResourceLocation, ParticleRenderType> TYPE = Util.memoize((texture) -> new ParticleRenderType() {

@@ -1,5 +1,6 @@
 package com.lowdragmc.lowdraglib.utils;
 
+import com.lowdragmc.lowdraglib.client.scene.ParticleManager;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
@@ -127,5 +128,23 @@ public class TrackedDummyWorld extends DummyWorld {
     @OnlyIn(Dist.CLIENT)
     public Holder<Biome> getBiome(@Nonnull BlockPos pos) {
         return proxyWorld == null ? super.getBiome(pos) : proxyWorld.getBiome(pos);
+    }
+
+    @Override
+    public void setParticleManager(ParticleManager particleManager) {
+        super.setParticleManager(particleManager);
+        if (proxyWorld instanceof DummyWorld dummyWorld) {
+            dummyWorld.setParticleManager(particleManager);
+        }
+    }
+
+    @Nullable
+    @Override
+    public ParticleManager getParticleManager() {
+        ParticleManager particleManager = super.getParticleManager();
+        if (particleManager == null && proxyWorld instanceof DummyWorld dummyWorld) {
+            return dummyWorld.getParticleManager();
+        }
+        return particleManager;
     }
 }

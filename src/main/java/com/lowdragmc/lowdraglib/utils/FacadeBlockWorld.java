@@ -1,5 +1,6 @@
 package com.lowdragmc.lowdraglib.utils;
 
+import com.lowdragmc.lowdraglib.client.scene.ParticleManager;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.world.level.ColorResolver;
@@ -91,5 +92,23 @@ public class FacadeBlockWorld extends DummyWorld {
     @Override
     public @Nullable BlockEntity getExistingBlockEntity(BlockPos pos) {
         return pos.equals(this.pos) ? tile : world.getExistingBlockEntity(pos);
+    }
+
+    @Override
+    public void setParticleManager(@Nonnull ParticleManager particleManager) {
+        super.setParticleManager(particleManager);
+        if (world instanceof DummyWorld dummyWorld) {
+            dummyWorld.setParticleManager(particleManager);
+        }
+    }
+
+    @Nullable
+    @Override
+    public ParticleManager getParticleManager() {
+        ParticleManager particleManager = super.getParticleManager();
+        if (particleManager == null && world instanceof DummyWorld dummyWorld) {
+            return dummyWorld.getParticleManager();
+        }
+        return particleManager;
     }
 }

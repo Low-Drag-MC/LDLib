@@ -1,6 +1,7 @@
 package com.lowdragmc.lowdraglib.utils;
 
 import com.lowdragmc.lowdraglib.LDLMod;
+import com.lowdragmc.lowdraglib.client.scene.ParticleManager;
 import com.lowdragmc.lowdraglib.core.mixins.DimensionTypeAccessor;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.client.Minecraft;
@@ -37,6 +38,8 @@ import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import net.minecraft.world.level.storage.WritableLevelData;
 import net.minecraft.world.scores.Scoreboard;
 import net.minecraft.world.ticks.LevelTickAccess;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -394,5 +397,19 @@ public class DummyWorld extends Level {
     @Override
     public FluidState getFluidState(BlockPos pPos) {
         return Fluids.EMPTY.defaultFluidState();
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    private ParticleManager particleManager;
+
+    @OnlyIn(Dist.CLIENT)
+    public void setParticleManager(ParticleManager particleManager) {
+        this.particleManager = particleManager;
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    @Nullable
+    public ParticleManager getParticleManager() {
+        return particleManager;
     }
 }

@@ -11,20 +11,25 @@ import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.Tesselator;
 import com.mojang.blaze3d.vertex.VertexFormat;
+import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.ParticleRenderType;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 import javax.annotation.Nonnull;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
  * @author KilaBash
  * @date 2022/06/15
  * @implNote ShaderParticle
  */
+@OnlyIn(Dist.CLIENT)
 public class ShaderParticle extends LParticle {
     public final ShaderTrailRenderType renderType;
 
@@ -33,9 +38,19 @@ public class ShaderParticle extends LParticle {
         this.renderType = renderType;
     }
 
+    public ShaderParticle(ClientLevel level, double x, double y, double z, ResourceLocation texture) {
+        super(level, x, y, z);
+        this.renderType = TYPE.apply(texture);
+    }
+
     public ShaderParticle(ClientLevel level, double x, double y, double z, double sX, double sY, double sZ, ShaderTrailRenderType renderType) {
         super(level, x, y, z, sX, sY, sZ);
         this.renderType = renderType;
+    }
+
+    public ShaderParticle(ClientLevel level, double x, double y, double z, double sX, double sY, double sZ, ResourceLocation texture) {
+        super(level, x, y, z, sX, sY, sZ);
+        this.renderType = TYPE.apply(texture);
     }
 
     @Override
@@ -98,5 +113,7 @@ public class ShaderParticle extends LParticle {
             RenderSystem.depthMask(true);
         }
     }
+
+    protected static final Function<ResourceLocation, ShaderTrailRenderType> TYPE = Util.memoize((texture) -> new ShaderTrailRenderType(texture));
 
 }

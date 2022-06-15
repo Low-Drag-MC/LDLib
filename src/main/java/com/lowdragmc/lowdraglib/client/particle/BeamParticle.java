@@ -9,6 +9,8 @@ import com.mojang.math.Vector3f;
 import net.minecraft.client.Camera;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.world.phys.AABB;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 import javax.annotation.Nonnull;
 
@@ -17,6 +19,7 @@ import javax.annotation.Nonnull;
  * @date 2022/06/15
  * @implNote BeamParticle
  */
+@OnlyIn(Dist.CLIENT)
 public abstract class BeamParticle extends LParticle {
     protected Vector3 from;
     protected Vector3 end;

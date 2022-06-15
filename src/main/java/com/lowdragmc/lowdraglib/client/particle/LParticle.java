@@ -1,9 +1,12 @@
 package com.lowdragmc.lowdraglib.client.particle;
 
+import com.lowdragmc.lowdraglib.client.scene.ParticleManager;
+import com.lowdragmc.lowdraglib.utils.DummyWorld;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Quaternion;
 import com.mojang.math.Vector3f;
 import net.minecraft.client.Camera;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.Particle;
 import net.minecraft.util.Mth;
@@ -26,6 +29,7 @@ public abstract class LParticle extends Particle {
     protected boolean moveless;
     protected Consumer<LParticle> onUpdate;
     protected int lightColor = -1;
+    protected boolean cull = true;
     private Level realLevel;
 
     protected LParticle(ClientLevel level, double x, double y, double z) {
@@ -153,6 +157,15 @@ public abstract class LParticle extends Particle {
         return super.getLightColor(pPartialTick);
     }
 
+    public void setLight(int light) {
+        this.lightColor = light;
+    }
+
+    @Override
+    public boolean shouldCull() {
+        return cull;
+    }
+
     protected abstract float getU0(float pPartialTicks);
 
     protected abstract float getU1(float pPartialTicks);
@@ -163,5 +176,24 @@ public abstract class LParticle extends Particle {
 
     public int getAge() {
         return age;
+    }
+
+    public void setCull(boolean cull) {
+        this.cull = cull;
+    }
+
+    public void setImmortal() {
+        setLifetime(-1);
+    }
+
+    public void addParticle() {
+        if (getLevel() instanceof DummyWorld dummyWorld) {
+            ParticleManager particleManager = dummyWorld.getParticleManager();
+            if (particleManager != null) {
+                particleManager.addParticle(this);
+            }
+        } else {
+            Minecraft.getInstance().particleEngine.add(this);
+        }
     }
 }
