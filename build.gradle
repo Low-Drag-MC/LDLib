@@ -25,7 +25,7 @@ apply plugin: 'maven-publish'
 apply plugin: 'org.spongepowered.mixin'
 
 version = "${minecraft_version}-${mod_version}"
-group = 'com.lowdragmc.multiblocked'
+group = 'com.lowdragmc.ldlib'
 archivesBaseName = "${mod_name}"
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(8) // Mojang ships Java 8 to end users, so your mod should target Java 8.
