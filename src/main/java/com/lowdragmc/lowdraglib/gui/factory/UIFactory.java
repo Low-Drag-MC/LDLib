@@ -75,6 +75,7 @@ public abstract class UIFactory<T> {
         ClientPlayerEntity entityPlayer = minecraft.player;
 
         ModularUI uiTemplate = createUITemplate(holder, entityPlayer);
+        if (uiTemplate == null) return;
         uiTemplate.initWidgets();
         ModularUIGuiContainer ModularUIGuiContainer = new ModularUIGuiContainer(uiTemplate, windowId);
         uiTemplate.mainGroup.readInitialData(serializedHolder);
