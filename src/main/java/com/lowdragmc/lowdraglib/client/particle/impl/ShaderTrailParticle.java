@@ -5,6 +5,7 @@ import com.lowdragmc.lowdraglib.client.shader.Shaders;
 import com.lowdragmc.lowdraglib.client.shader.management.Shader;
 import com.lowdragmc.lowdraglib.client.shader.management.ShaderManager;
 import com.lowdragmc.lowdraglib.client.shader.management.ShaderProgram;
+import com.lowdragmc.lowdraglib.client.shader.uniform.IUniformCallback;
 import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.BufferBuilder;
@@ -50,20 +51,22 @@ public class ShaderTrailParticle extends TrailParticle {
     public static class ShaderTrailRenderType implements ParticleRenderType {
         ResourceLocation shader;
         Consumer<ShaderProgram> shaderProgramConsumer;
+        IUniformCallback uniformCallback;
 
         public ShaderTrailRenderType(ResourceLocation shader) {
             this.shader = shader;
         }
 
-        public ShaderTrailRenderType(ResourceLocation shader, Consumer<ShaderProgram> shaderProgramConsumer) {
+        public ShaderTrailRenderType(ResourceLocation shader, IUniformCallback uniformCallback, Consumer<ShaderProgram> shaderProgramConsumer) {
             this(shader);
             this.shaderProgramConsumer = shaderProgramConsumer;
+            this.uniformCallback = uniformCallback;
         }
 
         @Override
         public void begin(@Nonnull BufferBuilder bufferBuilder, @Nonnull TextureManager textureManager) {
             RenderTarget mainTarget = Minecraft.getInstance().getMainRenderTarget();
-            RenderTarget target = ShaderManager.getInstance().renderFullImageInFramebuffer(ShaderManager.getTempTarget(), Shaders.load(Shader.ShaderType.FRAGMENT, shader), null, shaderProgramConsumer);
+            RenderTarget target = ShaderManager.getInstance().renderFullImageInFramebuffer(ShaderManager.getTempTarget(), Shaders.load(Shader.ShaderType.FRAGMENT, shader), uniformCallback, shaderProgramConsumer);
 
             mainTarget.bindWrite(!ShaderManager.getInstance().hasViewPort());
             RenderSystem.enableBlend();

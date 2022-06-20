@@ -1,6 +1,7 @@
 package com.lowdragmc.lowdraglib.client.shader.management;
 
 import com.lowdragmc.lowdraglib.client.shader.Shaders;
+import com.lowdragmc.lowdraglib.client.shader.uniform.IUniformCallback;
 import com.lowdragmc.lowdraglib.client.shader.uniform.UniformCache;
 import com.lowdragmc.lowdraglib.utils.PositionedRect;
 import com.mojang.blaze3d.pipeline.RenderTarget;
@@ -68,7 +69,7 @@ public class ShaderManager {
 		this.viewPort = null;
 	}
 
-	public RenderTarget renderFullImageInFramebuffer(RenderTarget fbo, Shader frag, Consumer<UniformCache> consumeCache, Consumer<ShaderProgram> programCreated) {
+	public RenderTarget renderFullImageInFramebuffer(RenderTarget fbo, Shader frag, IUniformCallback consumeCache, Consumer<ShaderProgram> programCreated) {
 		if (fbo == null || frag == null || !allowedShader() || frag.shaderType != Shader.ShaderType.FRAGMENT) {
 			return fbo;
 		}
@@ -94,7 +95,7 @@ public class ShaderManager {
 			cache.glUniform1F("iTime", time);
 			cache.glUniform2F("iResolution", fbo.width, fbo.height);
 			if (consumeCache != null) {
-				consumeCache.accept(cache);
+				consumeCache.apply(cache);
 			}
 		});
 

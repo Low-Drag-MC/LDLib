@@ -12,7 +12,6 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL20;
 
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
@@ -25,6 +24,7 @@ public class ShaderProgram {
 	public final UniformCache uniformCache;
 	public final LinkedHashMap<String, Integer> samplers;
 	private boolean unLinked;
+	private IUniformCallback globalUniform;
 
 	public ShaderProgram() {
 		this.programId = GL20.glCreateProgram();
@@ -50,6 +50,10 @@ public class ShaderProgram {
 	public void use(IUniformCallback callback) {
 		this.use();
 		callback.apply(uniformCache);
+	}
+
+	public void setGlobalUniform(IUniformCallback globalUniform) {
+		this.globalUniform = globalUniform;
 	}
 
 	public void bindTexture(String samplerName, int textureId) {
@@ -90,6 +94,9 @@ public class ShaderProgram {
 			}
 		}
 		GL20.glUseProgram(programId);
+		if (globalUniform != null) {
+			globalUniform.apply(uniformCache);
+		}
 	}
 
 	public void release() {

@@ -53,7 +53,7 @@ public class TestBlockEntity extends BlockEntity implements IUIHolder {
             double rz = pos.getY() + 1.5;
             double ry = pos.getZ() + 0.5;
             ShaderTrailParticle particle = new ShaderTrailParticle(null, rx, ry, rz,
-                    new ShaderTrailParticle.ShaderTrailRenderType(new ResourceLocation(LDLMod.MODID, "test_trail"), shaderProgram -> {
+                    new ShaderTrailParticle.ShaderTrailRenderType(new ResourceLocation(LDLMod.MODID, "test_trail"), null, shaderProgram -> {
                         shaderProgram.bindTexture("iChannel0", new ResourceLocation("ldlib:textures/particle/kila_tail.png"));
                     }));
             particle.setLifetime(-1);
