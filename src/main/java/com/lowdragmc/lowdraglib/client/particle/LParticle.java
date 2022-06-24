@@ -145,9 +145,17 @@ public abstract class LParticle extends Particle {
 
     @Nonnull
     public LParticle scale(float pScale) {
-        this.quadSize *= pScale;
+        this.quadSize = pScale;
         super.scale(pScale);
         return this;
+    }
+
+    public void setGravity(float gravity) {
+        this.gravity = gravity;
+    }
+
+    public float getGravity() {
+        return gravity;
     }
 
     @Override

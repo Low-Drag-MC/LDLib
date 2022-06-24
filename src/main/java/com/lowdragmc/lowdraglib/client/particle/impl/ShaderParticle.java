@@ -33,6 +33,8 @@ import java.util.function.Function;
 public class ShaderParticle extends LParticle {
     public final ShaderTrailRenderType renderType;
 
+    protected static final Function<ResourceLocation, ShaderTrailRenderType> TYPE = Util.memoize((texture) -> new ShaderTrailRenderType(texture));
+
     public ShaderParticle(ClientLevel level, double x, double y, double z, ShaderTrailRenderType renderType) {
         super(level, x, y, z);
         this.renderType = renderType;
@@ -113,7 +115,5 @@ public class ShaderParticle extends LParticle {
             RenderSystem.depthMask(true);
         }
     }
-
-    protected static final Function<ResourceLocation, ShaderTrailRenderType> TYPE = Util.memoize((texture) -> new ShaderTrailRenderType(texture));
 
 }

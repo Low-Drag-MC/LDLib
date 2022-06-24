@@ -12,6 +12,7 @@ import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.Tesselator;
 import com.mojang.blaze3d.vertex.VertexFormat;
+import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.ParticleRenderType;
@@ -22,6 +23,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 import javax.annotation.Nonnull;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
  * @author KilaBash
@@ -30,11 +32,17 @@ import java.util.function.Consumer;
  */
 @OnlyIn(Dist.CLIENT)
 public class ShaderBeamParticle extends BeamParticle {
-    public final ShaderTrailRenderType renderType;
+    public final ShaderBeamRenderType renderType;
 
-    public ShaderBeamParticle(ClientLevel level, Vector3 from, Vector3 end, ShaderTrailRenderType renderType) {
+    protected static final Function<ResourceLocation, ShaderBeamRenderType> TYPE = Util.memoize((texture) -> new ShaderBeamRenderType(texture));
+
+    public ShaderBeamParticle(ClientLevel level, Vector3 from, Vector3 end, ShaderBeamRenderType renderType) {
         super(level, from, end);
         this.renderType = renderType;
+    }
+
+    public ShaderBeamParticle(ClientLevel level, Vector3 from, Vector3 end, ResourceLocation resourceLocation) {
+        this(level, from, end, TYPE.apply(resourceLocation));
     }
 
     @Override
@@ -43,15 +51,15 @@ public class ShaderBeamParticle extends BeamParticle {
         return renderType;
     }
 
-    public static class ShaderTrailRenderType implements ParticleRenderType {
+    public static class ShaderBeamRenderType implements ParticleRenderType {
         ResourceLocation shader;
         Consumer<ShaderProgram> shaderProgramConsumer;
 
-        public ShaderTrailRenderType(ResourceLocation shader) {
+        public ShaderBeamRenderType(ResourceLocation shader) {
             this.shader = shader;
         }
 
-        public ShaderTrailRenderType(ResourceLocation shader, Consumer<ShaderProgram> shaderProgramConsumer) {
+        public ShaderBeamRenderType(ResourceLocation shader, Consumer<ShaderProgram> shaderProgramConsumer) {
             this(shader);
             this.shaderProgramConsumer = shaderProgramConsumer;
         }
