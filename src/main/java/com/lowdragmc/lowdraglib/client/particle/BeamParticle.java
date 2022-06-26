@@ -60,7 +60,7 @@ public abstract class BeamParticle extends LParticle {
         poseStack.popPose();
     }
 
-    public static void renderRawBeam(PoseStack poseStack, VertexConsumer bufferbuilder, Vector3 o, Vector3 direction, Vector3 cameraPos, float u0, float v0, float u1, float v1, float beamHeight, int color){
+    public void renderRawBeam(PoseStack poseStack, VertexConsumer bufferbuilder, Vector3 o, Vector3 direction, Vector3 cameraPos, float u0, float v0, float u1, float v1, float beamHeight, int color){
         if (direction.x == direction.z && direction.x == 0) {
             direction = direction.copy().add(0.00001, 0, 0.00001);
         }
@@ -85,10 +85,10 @@ public abstract class BeamParticle extends LParticle {
             }
             poseStack.mulPose(new Quaternion(new Vector3f(1.0F, 0.0F, 0.0F), rowX, true));
             Matrix4f mat = poseStack.last().pose();
-            bufferbuilder.vertex(mat, 0, - beamHeight, 0).uv(u0, v0).color(1.0f, 1.0f, 1.0f, 1).uv2(color).endVertex();
-            bufferbuilder.vertex(mat, 0, beamHeight, 0).uv(u0, v1).color(1.0f, 1.0f, 1.0f, 1).uv2(color).endVertex();
-            bufferbuilder.vertex(mat, distance, beamHeight, 0).uv(u1, v1).color(1.0f, 1.0f, 1.0f, 1).uv2(color).endVertex();
-            bufferbuilder.vertex(mat, distance, - beamHeight, 0).uv(u1, v0).color(1.0f, 1.0f, 1.0f, 1).uv2(color).endVertex();
+            bufferbuilder.vertex(mat, 0, - beamHeight, 0).uv(u0, v0).color(rCol, gCol, bCol, alpha).uv2(color).endVertex();
+            bufferbuilder.vertex(mat, 0, beamHeight, 0).uv(u0, v1).color(rCol, gCol, bCol, alpha).uv2(color).endVertex();
+            bufferbuilder.vertex(mat, distance, beamHeight, 0).uv(u1, v1).color(rCol, gCol, bCol, alpha).uv2(color).endVertex();
+            bufferbuilder.vertex(mat, distance, - beamHeight, 0).uv(u1, v0).color(rCol, gCol, bCol, alpha).uv2(color).endVertex();
         }
     }
 

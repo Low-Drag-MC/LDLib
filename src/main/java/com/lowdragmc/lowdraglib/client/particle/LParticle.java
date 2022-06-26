@@ -9,6 +9,7 @@ import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.Particle;
+import net.minecraft.util.FastColor;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
@@ -60,10 +61,9 @@ public abstract class LParticle extends Particle {
         this.moveless = moveless;
     }
 
-    public void setFullLight(int lightColor) {
-        this.lightColor = lightColor;
+    public void setFullLight() {
+        setLight(0xf000f0);
     }
-
     public void setOnUpdate(Consumer<LParticle> onUpdate) {
         this.onUpdate = onUpdate;
     }
@@ -150,6 +150,9 @@ public abstract class LParticle extends Particle {
         return this;
     }
 
+    public void setAlpha(float pAlpha) {
+        this.alpha = pAlpha;
+    }
     public void setGravity(float gravity) {
         this.gravity = gravity;
     }
@@ -164,11 +167,13 @@ public abstract class LParticle extends Particle {
         if (level == null) return 0xf000f0;
         return super.getLightColor(pPartialTick);
     }
-
     public void setLight(int light) {
         this.lightColor = light;
     }
 
+    public void setColor(int color) {
+        this.setColor((float) FastColor.ARGB32.red(color), (float)FastColor.ARGB32.green(color), (float)FastColor.ARGB32.blue(color));
+    }
     @Override
     public boolean shouldCull() {
         return cull;

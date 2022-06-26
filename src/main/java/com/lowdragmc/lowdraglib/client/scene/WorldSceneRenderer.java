@@ -531,7 +531,6 @@ public abstract class WorldSceneRenderer {
 
                 VertexBuffer.unbind();
                 VertexBuffer.unbindVertexArray();
-                layer.format().clearBufferState();
                 layer.clearRenderState();
             }
         }
