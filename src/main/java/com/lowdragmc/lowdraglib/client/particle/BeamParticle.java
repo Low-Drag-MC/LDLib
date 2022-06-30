@@ -60,7 +60,7 @@ public abstract class BeamParticle extends LParticle {
         poseStack.popPose();
     }
 
-    public void renderRawBeam(PoseStack poseStack, VertexConsumer bufferbuilder, Vector3 o, Vector3 direction, Vector3 cameraPos, float u0, float v0, float u1, float v1, float beamHeight, int color){
+    public void renderRawBeam(PoseStack poseStack, VertexConsumer bufferbuilder, Vector3 o, Vector3 direction, Vector3 cameraPos, float u0, float u1, float v0, float v1, float beamHeight, int color){
         if (direction.x == direction.z && direction.x == 0) {
             direction = direction.copy().add(0.00001, 0, 0.00001);
         }
