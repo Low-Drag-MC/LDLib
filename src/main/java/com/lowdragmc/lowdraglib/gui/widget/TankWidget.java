@@ -260,6 +260,7 @@ public class TankWidget extends Widget implements IIngredientSlot {
                 SoundEvent soundevent = initialFluid.getFluid().getAttributes().getFillSound(initialFluid);
                 player.level.playSound(null, player.position().x, player.position().y + 0.5, player.position().z, soundevent, SoundCategory.BLOCKS, 1.0F, 1.0F);
                 gui.entityPlayer.inventory.setCarried(currentStack);
+                gui.getModularUIContainer().sendHeldItemUpdate();
                 return currentStack.getCount();
             }
         }
@@ -277,6 +278,7 @@ public class TankWidget extends Widget implements IIngredientSlot {
                 SoundEvent soundevent = filledFluid.getFluid().getAttributes().getEmptySound(filledFluid);
                 player.level.playSound(null, player.position().x, player.position().y + 0.5, player.position().z, soundevent, SoundCategory.BLOCKS, 1.0F, 1.0F);
                 gui.entityPlayer.inventory.setCarried(currentStack);
+                gui.getModularUIContainer().sendHeldItemUpdate();
                 return currentStack.getCount();
             }
         }
