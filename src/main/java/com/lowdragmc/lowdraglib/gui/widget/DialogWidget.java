@@ -10,14 +10,13 @@ import com.lowdragmc.lowdraglib.gui.util.FileNode;
 import com.lowdragmc.lowdraglib.gui.util.TreeNode;
 import com.lowdragmc.lowdraglib.utils.Size;
 import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.Util;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.lwjgl.glfw.GLFW;
 
 import javax.annotation.Nonnull;
-import java.awt.Desktop;
 import java.io.File;
-import java.io.IOException;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -162,11 +161,7 @@ public class DialogWidget extends WidgetGroup {
         dialog.addWidget(new ButtonWidget(x + 15, y + 15, 20, 20, cd -> {
             File file = selected.get();
             if (file != null) {
-                try {
-                    Desktop.getDesktop().open(file.isDirectory() ? file : file.getParentFile());
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                Util.getPlatform().openFile(file.isDirectory() ? file : file.getParentFile());
             }
         }).setButtonTexture(new ResourceTexture("ldlib:textures/gui/darkened_slot.png"), new TextTexture("F", -1).setDropShadow(true)).setHoverBorderTexture(1, 0xff000000).setHoverTooltips("ldlib.gui.tips.open_folder"));
         dialog.addWidget(new ImageWidget(x + 15, y + 20, WIDTH - 30,10, new TextTexture(title, -1).setWidth(WIDTH - 30).setDropShadow(true)));
