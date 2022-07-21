@@ -7,6 +7,8 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.network.chat.FormattedText;
 import net.minecraft.network.chat.Style;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
@@ -85,6 +87,7 @@ public class TextBoxWidget extends Widget {
     }
 
     @Override
+    @OnlyIn(Dist.CLIENT)
     public void drawInBackground(@Nonnull PoseStack matrixStack, int mouseX, int mouseY, float partialTicks) {
         super.drawInBackground(matrixStack, mouseX, mouseY, partialTicks);
         if (!textLines.isEmpty()) {

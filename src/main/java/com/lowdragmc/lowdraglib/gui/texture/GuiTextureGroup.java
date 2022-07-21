@@ -17,6 +17,7 @@ public class GuiTextureGroup implements IGuiTexture{
     }
 
     @Override
+    @OnlyIn(Dist.CLIENT)
     public void draw(PoseStack stack, int mouseX, int mouseY, float x, float y, int width, int height) {
         for (IGuiTexture texture : textures) {
             texture.draw(stack, mouseX,mouseY,  x, y, width, height);
