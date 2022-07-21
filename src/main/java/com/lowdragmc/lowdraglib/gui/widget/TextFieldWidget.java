@@ -114,6 +114,7 @@ public class TextFieldWidget extends Widget {
     }
 
     @Override
+    @OnlyIn(Dist.CLIENT)
     public void drawInBackground(@Nonnull MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
         super.drawInBackground(matrixStack, mouseX, mouseY, partialTicks);
         this.textField.render(matrixStack, mouseX, mouseY, partialTicks);
