@@ -20,14 +20,14 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.MinecraftForgeClient;
 import net.minecraftforge.client.model.pipeline.BakedQuadBuilder;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
-import java.util.EnumMap;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Used to baked the model with emissive effect. or multi-layer
@@ -44,8 +44,8 @@ public class CustomBakedModel implements BakedModel {
 
     public CustomBakedModel(BakedModel parent) {
         this.parent = parent;
-        this.noSideCache = new HashMap<>(RenderType.chunkBufferLayers().size());
-        this.sideCache = Tables.newCustomTable(new HashMap<>(RenderType.chunkBufferLayers().size()), ()-> new EnumMap<>(Direction.class));
+        this.noSideCache = new ConcurrentHashMap<>(RenderType.chunkBufferLayers().size());
+        this.sideCache = Tables.newCustomTable(new ConcurrentHashMap<>(RenderType.chunkBufferLayers().size()), ConcurrentHashMap::new);
     }
 
     public boolean shouldRenderInLayer(@Nullable BlockState state, Random rand) {
@@ -57,39 +57,37 @@ public class CustomBakedModel implements BakedModel {
     }
 
     @Override
+    @Nonnull
     public List<BakedQuad> getQuads(@Nullable BlockState state, @Nullable Direction side, Random rand) {
         RenderType currentLayer = MinecraftForgeClient.getRenderType();
         currentLayer = currentLayer == null ? RenderType.cutoutMipped() : currentLayer;
         if (side == null) {
-            if (!noSideCache.containsKey(currentLayer)) {
-                reBake(currentLayer, state, null, rand);
-            }
-            return noSideCache.get(currentLayer);
+            return noSideCache.computeIfAbsent(currentLayer, layer->reBake(layer, state, null, rand));
         } else {
             if (!sideCache.contains(currentLayer, side)) {
-                reBake(currentLayer, state, side, rand);
+                sideCache.put(currentLayer, side, reBake(currentLayer, state, side, rand));
             }
             return sideCache.get(currentLayer, side);
         }
     }
 
 
-    public void reBake(RenderType currentLayer, @Nullable BlockState state, @Nullable Direction side, Random rand) {
+    @Nonnull
+    public List<BakedQuad> reBake(RenderType currentLayer, @Nullable BlockState state, @Nullable Direction side, Random rand) {
         List<BakedQuad> parentQuads = parent.getQuads(state, side, rand);
         List<BakedQuad> resultQuads = new LinkedList<>();
         for (BakedQuad quad : parentQuads) {
             TextureAtlasSprite sprite = quad.getSprite();
             boolean isEmissive = LDLMetadataSection.isEmissive(sprite);
             RenderType layer = LDLMetadataSection.getLayer(sprite);
-            layer = layer == null ? RenderType.cutoutMipped() : layer;
+            layer = layer == null ? parent.getClass().getName().contains("MultiLayer") ? currentLayer : RenderType.cutoutMipped() : layer;
             if (currentLayer != layer) continue;
             if (isEmissive) {
                 quad = reBakeEmissive(quad);
             }
             resultQuads.add(quad);
         }
-        if (side == null) noSideCache.put(currentLayer, resultQuads);
-        else sideCache.put(currentLayer, side, resultQuads);
+        return resultQuads;
     }
 
     public static BakedQuad reBakeEmissive(BakedQuad quad) {

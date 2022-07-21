@@ -83,6 +83,7 @@ public class ShaderProgram {
 			}
 			this.unLinked = false;
 		}
+		GL20.glUseProgram(programId);
 		if (!samplers.isEmpty()) {
 			int i = 0;
 			for (Map.Entry<String, Integer> entry : samplers.entrySet()) {
@@ -93,7 +94,6 @@ public class ShaderProgram {
 				i++;
 			}
 		}
-		GL20.glUseProgram(programId);
 		if (globalUniform != null) {
 			globalUniform.apply(uniformCache);
 		}
