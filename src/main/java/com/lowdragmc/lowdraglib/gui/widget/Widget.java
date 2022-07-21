@@ -24,7 +24,6 @@ import org.lwjgl.glfw.GLFW;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.awt.Rectangle;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -86,6 +85,11 @@ public class Widget {
 
     public Widget setHoverTooltips(List<ITextComponent> tooltipText) {
         tooltipTexts = tooltipText;
+        return this;
+    }
+
+    public Widget setHoverTooltip(ITextComponent tooltipText) {
+        tooltipTexts = Collections.singletonList(tooltipText);
         return this;
     }
 
