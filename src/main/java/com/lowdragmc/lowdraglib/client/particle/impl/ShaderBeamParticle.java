@@ -7,6 +7,7 @@ import com.lowdragmc.lowdraglib.client.shader.management.ShaderManager;
 import com.lowdragmc.lowdraglib.client.shader.management.ShaderProgram;
 import com.lowdragmc.lowdraglib.utils.Vector3;
 import com.mojang.blaze3d.pipeline.RenderTarget;
+import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
@@ -21,6 +22,8 @@ import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL30;
 
 import javax.annotation.Nonnull;
 import java.util.function.Consumer;
@@ -68,9 +71,15 @@ public class ShaderBeamParticle extends BeamParticle {
         @Override
         public void begin(@Nonnull BufferBuilder bufferBuilder, @Nonnull TextureManager textureManager) {
             RenderTarget mainTarget = Minecraft.getInstance().getMainRenderTarget();
+            int lastID = GL11.glGetInteger(GL30.GL_FRAMEBUFFER_BINDING);
+            ShaderManager.getTempTarget().clear(false);
             RenderTarget target = ShaderManager.getInstance().renderFullImageInFramebuffer(ShaderManager.getTempTarget(), Shaders.load(Shader.ShaderType.FRAGMENT, shader), null, shaderProgramConsumer);
 
-            mainTarget.bindWrite(!ShaderManager.getInstance().hasViewPort());
+            GlStateManager._glBindFramebuffer(36160, lastID);
+            if (!ShaderManager.getInstance().hasViewPort()) {
+                GlStateManager._viewport(0, 0, mainTarget.viewWidth, mainTarget.viewHeight);
+            }
+
             RenderSystem.enableBlend();
             RenderSystem.defaultBlendFunc();
             RenderSystem.depthMask(true);
