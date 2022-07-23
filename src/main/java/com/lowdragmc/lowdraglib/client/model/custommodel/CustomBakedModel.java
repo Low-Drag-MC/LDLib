@@ -23,10 +23,7 @@ import net.minecraftforge.client.model.pipeline.BakedQuadBuilder;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -67,7 +64,8 @@ public class CustomBakedModel implements BakedModel {
             if (!sideCache.contains(currentLayer, side)) {
                 sideCache.put(currentLayer, side, reBake(currentLayer, state, side, rand));
             }
-            return sideCache.get(currentLayer, side);
+            List<BakedQuad> quads = sideCache.get(currentLayer, side);
+            return quads == null ? Collections.emptyList() : quads;
         }
     }
 
