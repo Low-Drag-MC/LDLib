@@ -18,10 +18,10 @@ import java.util.ArrayList;
  */
 @OnlyIn(Dist.CLIENT)
 public abstract class TrailParticle extends LParticle {
-    protected ArrayList<Vector3> tails = new ArrayList<>();
-    protected int maxTail;
-    protected int freq;
-    protected float width;
+    public ArrayList<Vector3> tails = new ArrayList<>();
+    public int maxTail;
+    public int freq;
+    public float width;
 
     protected TrailParticle(ClientLevel level, double x, double y, double z) {
         super(level, x, y, z);

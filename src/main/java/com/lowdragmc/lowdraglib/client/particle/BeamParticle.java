@@ -21,10 +21,10 @@ import javax.annotation.Nonnull;
  */
 @OnlyIn(Dist.CLIENT)
 public abstract class BeamParticle extends LParticle {
-    protected Vector3 from;
-    protected Vector3 end;
-    protected float width;
-    protected float emit;
+    public Vector3 from;
+    public Vector3 end;
+    public float width;
+    public float emit;
 
     protected BeamParticle(ClientLevel level, Vector3 from, Vector3 end) {
         super(level, from.x, from.y, from.z);

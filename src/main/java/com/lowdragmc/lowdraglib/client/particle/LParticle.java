@@ -26,11 +26,11 @@ import java.util.function.Consumer;
  */
 @OnlyIn(Dist.CLIENT)
 public abstract class LParticle extends Particle {
-    protected float quadSize = 1;
-    protected boolean moveless;
+    public float quadSize = 1;
+    public boolean moveless;
     protected Consumer<LParticle> onUpdate;
-    protected int lightColor = -1;
-    protected boolean cull = true;
+    public int lightColor = -1;
+    public boolean cull = true;
     private Level realLevel;
 
     protected LParticle(ClientLevel level, double x, double y, double z) {
