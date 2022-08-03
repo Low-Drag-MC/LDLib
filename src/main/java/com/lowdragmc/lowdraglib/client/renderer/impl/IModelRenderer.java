@@ -39,6 +39,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 
 public class IModelRenderer implements IRenderer {
@@ -58,7 +59,7 @@ public class IModelRenderer implements IRenderer {
     public IModelRenderer(ResourceLocation modelLocation) {
         this.modelLocation = modelLocation;
         if (LDLMod.isClient()) {
-            blockModels = new EnumMap<>(Direction.class);
+            blockModels = new ConcurrentHashMap<>();
             if (isRaw()) {
                 registerTextureSwitchEvent();
                 CACHE.add(modelLocation);

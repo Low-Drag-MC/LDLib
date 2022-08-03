@@ -6,9 +6,12 @@ import com.lowdragmc.lowdraglib.utils.FacadeBlockAndTintGetter;
 import com.lowdragmc.lowdraglib.utils.BlockInfo;
 import com.lowdragmc.lowdraglib.utils.FacadeBlockWorld;
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.Sheets;
 import net.minecraft.client.renderer.block.BlockRenderDispatcher;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.block.model.ItemTransforms;
@@ -26,6 +29,8 @@ import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.material.FluidState;
+import net.minecraft.world.level.material.Fluids;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.MinecraftForgeClient;
@@ -141,6 +146,9 @@ public class BlockStateRenderer implements IRenderer {
     @Override
     @OnlyIn(Dist.CLIENT)
     public boolean hasTESR(BlockEntity tileEntity) {
+        if (!getBlockInfo().getBlockState().getFluidState().isEmpty()) {
+            return true;
+        }
         tileEntity = getBlockEntity(tileEntity.getLevel(), tileEntity.getBlockPos());
         if (tileEntity == null) {
             return false;
@@ -162,6 +170,12 @@ public class BlockStateRenderer implements IRenderer {
 
     @Override
     public void render(BlockEntity tileEntity, float partialTicks, PoseStack stack, MultiBufferSource buffer, int combinedLight, int combinedOverlay) {
+        BlockInfo block = getBlockInfo();
+        FluidState fluidState = block.getBlockState().getFluidState();
+        if (!fluidState.isEmpty()) {
+            VertexConsumer builder = buffer.getBuffer(RenderType.translucent());
+            Minecraft.getInstance().getBlockRenderer().renderLiquid(tileEntity.getBlockPos(), tileEntity.getLevel(), builder, block.getBlockState(), fluidState);
+        }
         tileEntity = getBlockEntity(tileEntity.getLevel(), tileEntity.getBlockPos());
         if (tileEntity == null) return;
         BlockEntityRenderer<BlockEntity> tesr = Minecraft.getInstance().getBlockEntityRenderDispatcher().getRenderer(tileEntity);

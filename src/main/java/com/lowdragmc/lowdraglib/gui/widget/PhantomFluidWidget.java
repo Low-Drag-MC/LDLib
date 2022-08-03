@@ -67,8 +67,14 @@ public class PhantomFluidWidget extends TankWidget implements IGhostIngredientTa
                     writeClientAction(2, buffer -> buffer.writeNbt(tagCompound));
                 }
 
-                if (isClientSideWidget && fluidStackUpdater != null) {
-                    fluidStackUpdater.accept(ingredientStack);
+                if (isClientSideWidget) {
+                    fluidTank.drain(fluidTank.getCapacity(), IFluidHandler.FluidAction.EXECUTE);
+                    if (ingredientStack != null) {
+                        fluidTank.fill(ingredientStack.copy(), IFluidHandler.FluidAction.EXECUTE);
+                    }
+                    if (fluidStackUpdater != null) {
+                        fluidStackUpdater.accept(ingredientStack);
+                    }
                 }
             }
         });
@@ -82,15 +88,28 @@ public class PhantomFluidWidget extends TankWidget implements IGhostIngredientTa
                 itemStack.setCount(1);
                 itemStack.getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY).ifPresent(handler -> {
                     FluidStack resultFluid = handler.drain(Integer.MAX_VALUE, IFluidHandler.FluidAction.SIMULATE);
-                    fluidStackUpdater.accept(resultFluid);
+                    fluidTank.drain(fluidTank.getCapacity(), IFluidHandler.FluidAction.EXECUTE);
+                    fluidTank.fill(resultFluid.copy(), IFluidHandler.FluidAction.EXECUTE);
+                    if (fluidStackUpdater != null) {
+                        fluidStackUpdater.accept(resultFluid);
+                    }
                 });
             } else {
-                fluidStackUpdater.accept(null);
+                fluidTank.drain(fluidTank.getCapacity(), IFluidHandler.FluidAction.EXECUTE);
+                if (fluidStackUpdater != null) {
+                    fluidStackUpdater.accept(null);
+                }
             }
         } else if (id == 2) {
             FluidStack fluidStack;
             fluidStack = FluidStack.loadFluidStackFromNBT(buffer.readNbt());
-            fluidStackUpdater.accept(fluidStack);
+            fluidTank.drain(fluidTank.getCapacity(), IFluidHandler.FluidAction.EXECUTE);
+            if (fluidStack != null) {
+                fluidTank.fill(fluidStack.copy(), IFluidHandler.FluidAction.EXECUTE);
+            }
+            if (fluidStackUpdater != null) {
+                fluidStackUpdater.accept(fluidStack);
+            }
         }
     }
 
@@ -99,8 +118,11 @@ public class PhantomFluidWidget extends TankWidget implements IGhostIngredientTa
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (isMouseOverElement(mouseX, mouseY)) {
             writeClientAction(1, buffer -> { });
-            if (isClientSideWidget && fluidStackUpdater != null) {
-                fluidStackUpdater.accept(null);
+            if (isClientSideWidget) {
+                fluidTank.drain(fluidTank.getCapacity(), IFluidHandler.FluidAction.EXECUTE);
+                if (fluidStackUpdater != null) {
+                    fluidStackUpdater.accept(null);
+                }
             }
             return true;
         }
