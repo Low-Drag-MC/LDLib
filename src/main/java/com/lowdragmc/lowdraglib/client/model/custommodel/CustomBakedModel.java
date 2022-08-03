@@ -64,7 +64,8 @@ public class CustomBakedModel implements IBakedModel {
             if (!sideCache.contains(currentLayer, side)) {
                 sideCache.put(currentLayer, side, reBake(currentLayer, state, side, rand));
             }
-            return sideCache.get(currentLayer, side);
+            List<BakedQuad> quads = sideCache.get(currentLayer, side);
+            return quads == null ? Collections.emptyList() : quads;
         }
     }
 

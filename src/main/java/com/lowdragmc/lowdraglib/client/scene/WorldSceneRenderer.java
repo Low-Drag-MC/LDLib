@@ -25,6 +25,7 @@ import net.minecraft.client.renderer.vertex.VertexFormat;
 import net.minecraft.crash.CrashReport;
 import net.minecraft.crash.CrashReportCategory;
 import net.minecraft.crash.ReportedException;
+import net.minecraft.fluid.FluidState;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockRayTraceResult;
@@ -486,6 +487,7 @@ public abstract class WorldSceneRenderer {
             }
             BlockState state = world.getBlockState(pos);
             Block block = state.getBlock();
+            FluidState fluidState = state.getFluidState();
             TileEntity te = world.getBlockEntity(pos);
             IModelData modelData = net.minecraftforge.client.model.data.EmptyModelData.INSTANCE;
             if (te != null) {
@@ -497,6 +499,9 @@ public abstract class WorldSceneRenderer {
                 matrixStack.translate(pos.getX(), pos.getY(), pos.getZ());
                 blockrendererdispatcher.renderModel(state, pos, world, matrixStack, buffer, false, world.random, modelData);
                 matrixStack.popPose();
+            }
+            if (!fluidState.isEmpty() && RenderTypeLookup.canRenderInLayer(fluidState, layer)) {
+                blockrendererdispatcher.renderLiquid(pos, world, buffer, fluidState);
             }
             if (maxProgress > 0) {
                 progress++;
