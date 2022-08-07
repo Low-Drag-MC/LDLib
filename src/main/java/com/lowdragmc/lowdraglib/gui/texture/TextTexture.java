@@ -136,7 +136,10 @@ public class TextTexture implements IGuiTexture{
                 fontRenderer.draw(stack, resultText, _x, _y, color);
             }
         } else if (type == TextType.ROLL) {
-            int i = (int) (Math.abs(System.currentTimeMillis() / 1000) % texts.size());
+            int i = 0;
+            if (mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + height) {
+                i = (int) (Math.abs(System.currentTimeMillis() / 1000) % texts.size());
+            }
             String resultText = texts.get(i);
             int textW = fontRenderer.width(resultText);
             float _x = x + (width - textW) / 2f;
@@ -162,7 +165,7 @@ public class TextTexture implements IGuiTexture{
             for (int i = 0; i < texts.size(); i++) {
                 String resultText = texts.get(i);
                 int textW = fontRenderer.width(resultText);
-                float _y = (float) (y + (height - textH) / 2f + i * fontRenderer.lineHeight);
+                float _y = y + (height - textH) / 2f + i * fontRenderer.lineHeight;
                 if (dropShadow) {
                     fontRenderer.drawShadow(stack, resultText, x + width - textW, _y, color);
                 } else {
