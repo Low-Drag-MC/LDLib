@@ -39,7 +39,13 @@ public abstract class JeiRecipeFocusMixin {
                 if (recipeLayout.isMouseOver(mouseX, mouseY)) {
                     Object wrapper = recipeLayout.getRecipe();
                     if (wrapper instanceof ModularWrapper modularWrapper) {
-                        cir.setReturnValue(Stream.concat(cir.getReturnValue(), this.guiScreenHelper.getPluginsIngredientUnderMouse(modularWrapper, mouseX, mouseY)));
+                        Stream<IClickedIngredient<?>> mappedStream = this.guiScreenHelper.getPluginsIngredientUnderMouse(modularWrapper, mouseX, mouseY)
+                                .map(clicked -> new ClickedIngredient<>(clicked.getTypedIngredient(),
+                                        clicked.getArea(),
+                                        false,
+                                        true
+                                ));
+                        cir.setReturnValue(Stream.concat(cir.getReturnValue(), mappedStream));
                     }
                 }
             }
