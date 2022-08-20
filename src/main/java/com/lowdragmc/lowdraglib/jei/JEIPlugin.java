@@ -1,6 +1,7 @@
 package com.lowdragmc.lowdraglib.jei;
 
 import com.lowdragmc.lowdraglib.LDLMod;
+import com.lowdragmc.lowdraglib.core.mixins.accessor.RecipesGuiAccessor;
 import com.lowdragmc.lowdraglib.gui.modular.ModularUIGuiContainer;
 import com.lowdragmc.lowdraglib.gui.modular.ModularUIJeiHandler;
 import mezz.jei.api.IModPlugin;
@@ -8,13 +9,11 @@ import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.registration.IAdvancedRegistration;
 import mezz.jei.api.registration.IGuiHandlerRegistration;
 import mezz.jei.api.runtime.IJeiRuntime;
-import mezz.jei.gui.recipes.RecipeLayout;
-import mezz.jei.gui.recipes.RecipesGui;
+import mezz.jei.common.gui.recipes.RecipesGui;
+import mezz.jei.common.gui.recipes.layout.RecipeLayout;
 import net.minecraft.resources.ResourceLocation;
 
 import javax.annotation.Nonnull;
-import java.lang.reflect.Field;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -24,15 +23,6 @@ import java.util.List;
  */
 @JeiPlugin
 public class JEIPlugin implements IModPlugin {
-    public static Field fieldRecipeLayouts;
-    static {
-        try {
-            fieldRecipeLayouts = RecipesGui.class.getDeclaredField("recipeLayouts");
-            fieldRecipeLayouts.setAccessible(true);
-        } catch (NoSuchFieldException e) {
-            LDLMod.LOGGER.error(e);
-        }
-    }
     
     public static IJeiRuntime jeiRuntime;
     private static final ModularUIJeiHandler modularUIGuiHandler = new ModularUIJeiHandler();
@@ -41,15 +31,9 @@ public class JEIPlugin implements IModPlugin {
         LDLMod.LOGGER.debug("LDLMod JEI Plugin created");
     }
 
-    @SuppressWarnings("unchecked")
     @Nonnull
     public static List<RecipeLayout<?>> getRecipeLayouts(RecipesGui recipesGui) {
-        try {
-            return (List<RecipeLayout<?>>) fieldRecipeLayouts.get(recipesGui);
-        } catch (IllegalAccessException e) {
-            LDLMod.LOGGER.error(e);
-        }
-        return Collections.emptyList();
+        return ((RecipesGuiAccessor)recipesGui).getRecipeLayouts();
     }
 
     @Override
@@ -69,16 +53,7 @@ public class JEIPlugin implements IModPlugin {
 
 
     public static void setupInputHandler() {
-//        try {
-//            Field inputHandlerField = Internal.class.getDeclaredField("inputHandler");
-//            inputHandlerField.setAccessible(true);
-//            InputHandler inputHandler = (InputHandler) inputHandlerField.get(null);
-//            List<IShowsRecipeFocuses> showsRecipeFocuses = ObfuscationReflectionHelper.getPrivateValue(InputHandler.class, inputHandler, "showsRecipeFocuses");
-//            assert showsRecipeFocuses != null;
-//            showsRecipeFocuses.add(0, new InfoRecipeFocusShower());
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
+        //:P
     }
 
     @Override

@@ -1,17 +1,16 @@
 package com.lowdragmc.lowdraglib.jei;
 
-import com.mojang.blaze3d.vertex.PoseStack;
-import mezz.jei.api.gui.IRecipeLayout;
-import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
-import mezz.jei.api.ingredients.IIngredients;
+import com.lowdragmc.lowdraglib.gui.ingredient.IRecipeIngredientSlot;
+import com.lowdragmc.lowdraglib.gui.widget.Widget;
+import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
+import mezz.jei.api.gui.builder.IRecipeSlotBuilder;
+import mezz.jei.api.recipe.IFocusGroup;
+import mezz.jei.api.recipe.RecipeIngredientRole;
 import mezz.jei.api.recipe.category.IRecipeCategory;
-import mezz.jei.deprecated.gui.recipes.RecipeLayoutLegacyAdapter;
-import mezz.jei.gui.recipes.RecipeLayout;
-import mezz.jei.gui.recipes.RecipesGui;
 import net.minecraft.MethodsReturnNonnullByDefault;
-import net.minecraftforge.fml.util.ObfuscationReflectionHelper;
 
 import javax.annotation.ParametersAreNonnullByDefault;
+import java.util.List;
 
 /**
  * @author KilaBash
@@ -23,17 +22,28 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public abstract class ModularUIRecipeCategory<T extends ModularWrapper<?>> implements IRecipeCategory<T> {
 
     @Override
-    public void draw(T recipe, IRecipeSlotsView recipeSlotsView, PoseStack stack, double mouseX, double mouseY) {
-        recipe.draw(stack, (int) mouseX, (int) mouseY);
-    }
-
-    @Override
-    public void setRecipe(IRecipeLayout recipeLayout, T recipe, IIngredients ingredients) {
-        if (recipeLayout instanceof RecipeLayoutLegacyAdapter<?> layout) {
-            RecipeLayout<?> rl = ObfuscationReflectionHelper.getPrivateValue(RecipeLayoutLegacyAdapter.class, layout, "recipeLayout");
-            if (rl != null) {
-                recipe.setRecipeLayout(rl.getPosX(), rl.getPosY());
+    public void setRecipe(IRecipeLayoutBuilder builder, T wrapper, IFocusGroup focuses) {
+        List<Widget> flatVisibleWidgetCollection = wrapper.modularUI.getFlatWidgetCollection();
+        for (int i = 0; i < flatVisibleWidgetCollection.size(); i++) {
+            Widget widget = flatVisibleWidgetCollection.get(i);
+            if (widget instanceof IRecipeIngredientSlot slot) {
+                IRecipeSlotBuilder slotBuilder = builder.addSlot(mapToRole(slot.getIngredientIo()), i, -1);
+                Object ingredient = slot.getJEIIngredient();
+                if (ingredient != null) {
+                    slotBuilder.addIngredientsUnsafe(List.of(ingredient));
+                }
             }
         }
+
     }
+
+    private RecipeIngredientRole mapToRole(IngredientIO ingredientIO) {
+        return switch (ingredientIO) {
+            case INPUT -> RecipeIngredientRole.INPUT;
+            case OUTPUT -> RecipeIngredientRole.OUTPUT;
+            case CATALYST -> RecipeIngredientRole.CATALYST;
+            case RENDER_ONLY -> RecipeIngredientRole.RENDER_ONLY;
+        };
+    }
+
 }

@@ -18,6 +18,7 @@ import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.phys.Vec2;
@@ -54,7 +55,7 @@ public class DrawerHelper {
 
     @OnlyIn(Dist.CLIENT)
     public static void drawFluidForGui(PoseStack poseStack, FluidStack contents, int tankCapacity, int startX, int startY, int widthT, int heightT) {
-        ResourceLocation LOCATION_BLOCKS_TEXTURE = TextureAtlas.LOCATION_BLOCKS;
+        ResourceLocation LOCATION_BLOCKS_TEXTURE = InventoryMenu.BLOCK_ATLAS;
         FluidAttributes fluid = contents.getFluid().getAttributes();
         ResourceLocation fluidStill = fluid.getStillTexture();
         TextureAtlasSprite fluidStillSprite = Minecraft.getInstance().getTextureAtlas(LOCATION_BLOCKS_TEXTURE).apply(fluidStill);
