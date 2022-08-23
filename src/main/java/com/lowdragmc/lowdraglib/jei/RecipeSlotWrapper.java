@@ -15,9 +15,9 @@ import mezz.jei.api.ingredients.IIngredientType;
 import mezz.jei.api.ingredients.ITypedIngredient;
 import mezz.jei.api.recipe.RecipeIngredientRole;
 import mezz.jei.api.runtime.IIngredientVisibility;
-import mezz.jei.common.gui.ingredients.RecipeSlot;
-import mezz.jei.common.ingredients.TypedIngredient;
 import mezz.jei.common.util.ImmutableRect2i;
+import mezz.jei.gui.ingredients.RecipeSlot;
+import mezz.jei.ingredients.TypedIngredient;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Unmodifiable;
@@ -112,8 +112,8 @@ public class RecipeSlotWrapper extends RecipeSlot {
     }
 
     @Override
-    public void set(List<Optional<ITypedIngredient<?>>> ingredients, IntSet focusMatches, IIngredientVisibility ingredientVisibility) {
-        wrapperSlot.set(ingredients, focusMatches, ingredientVisibility);
+    public void set(List<Optional<ITypedIngredient<?>>> ingredients, IntSet focusMatches) {
+        wrapperSlot.set(ingredients, focusMatches);
     }
 
     @Override
@@ -137,8 +137,8 @@ public class RecipeSlotWrapper extends RecipeSlot {
     }
 
     @Override
-    public void drawOverlays(PoseStack poseStack, int xOffset, int yOffset, int mouseX, int mouseY, IModIdHelper modIdHelper) {
-        wrapperSlot.drawOverlays(poseStack, xOffset, yOffset, mouseX, mouseY, modIdHelper);
+    public void drawOverlays(PoseStack poseStack, int xOffset, int yOffset, int mouseX, int mouseY) {
+        wrapperSlot.drawOverlays(poseStack, xOffset, yOffset, mouseX, mouseY);
     }
 
     @Override
@@ -149,16 +149,6 @@ public class RecipeSlotWrapper extends RecipeSlot {
     @Override
     public void setSlotName(String slotName) {
         wrapperSlot.setSlotName(slotName);
-    }
-
-    @Override
-    public Stream<ItemStack> getItemStacks() {
-        return wrapperSlot.getItemStacks();
-    }
-
-    @Override
-    public Optional<ItemStack> getDisplayedItemStack() {
-        return wrapperSlot.getDisplayedItemStack();
     }
 
     public void onPositionUpdate(RecipeLayoutWrapper<?> layoutWrapper) {

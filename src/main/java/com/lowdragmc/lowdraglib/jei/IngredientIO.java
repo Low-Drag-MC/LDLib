@@ -1,7 +1,7 @@
 package com.lowdragmc.lowdraglib.jei;
 
 /**
- *Corresponds to {@link  mezz.jei.api.recipe.RecipeIngredientRole\}
+ *Corresponds to {@link  mezz.jei.api.recipe.RecipeIngredientRole}
  */
 public enum IngredientIO {
 

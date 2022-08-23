@@ -1,10 +1,10 @@
 package com.lowdragmc.lowdraglib.core.mixins.accessor;
 
 import mezz.jei.api.runtime.IIngredientVisibility;
-import mezz.jei.common.gui.elements.DrawableNineSliceTexture;
-import mezz.jei.common.gui.recipes.ShapelessIcon;
-import mezz.jei.common.gui.recipes.layout.RecipeLayout;
-import mezz.jei.common.ingredients.RegisteredIngredients;
+import mezz.jei.gui.elements.DrawableNineSliceTexture;
+import mezz.jei.gui.recipes.RecipeLayout;
+import mezz.jei.gui.recipes.ShapelessIcon;
+import mezz.jei.ingredients.RegisteredIngredients;
 import org.apache.logging.log4j.Logger;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
@@ -20,9 +20,6 @@ public interface RecipeLayoutAccessor {
 
     @Accessor
     RegisteredIngredients getRegisteredIngredients();
-
-    @Accessor
-    IIngredientVisibility getIngredientVisibility();
 
     @Accessor
     DrawableNineSliceTexture getRecipeBorder();
