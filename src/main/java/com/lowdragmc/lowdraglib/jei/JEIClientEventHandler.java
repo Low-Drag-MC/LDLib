@@ -40,9 +40,7 @@ public class JEIClientEventHandler {
             for (RecipeLayout<?> recipeLayout : JEIPlugin.getRecipeLayouts((RecipesGui) event.getGui())) {
                 Object recipe = recipeLayout.getRecipe();
                 if (recipe instanceof ModularWrapper) {
-                    if (((ModularWrapper<?>) recipe).mouseReleased(event.getMouseX(), event.getMouseY(), event.getButton())) {
-                        event.setCanceled(true);
-                    }
+                    ((ModularWrapper<?>) recipe).mouseReleased(event.getMouseX(), event.getMouseY(), event.getButton());
                 }
             }
         }
