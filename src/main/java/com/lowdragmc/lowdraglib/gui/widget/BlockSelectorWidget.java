@@ -38,7 +38,7 @@ public class BlockSelectorWidget extends WidgetGroup {
                     onUpdate();
                 }
             }
-        }).setResourceLocationOnly().setHoverTooltips("multiblocked.gui.tips.block_register");
+        }).setResourceLocationOnly().setHoverTooltips("ldlib.gui.tips.block_selector");
 
         addWidget(new PhantomSlotWidget(handler = new ItemStackHandler(1), 0, 1, 1)
                 .setClearSlotOnRightClick(true)
@@ -76,7 +76,7 @@ public class BlockSelectorWidget extends WidgetGroup {
                     group.addWidget(new LabelWidget(105, 6 + i * 20, property.getName()));
                     i--;
                 }
-            }).setHoverBorderTexture(1, -1).setHoverTooltips("multiblocked.gui.tips.block_meta"));
+            }).setHoverBorderTexture(1, -1).setHoverTooltips("ldlib.gui.tips.block_meta"));
         }
     }
 
