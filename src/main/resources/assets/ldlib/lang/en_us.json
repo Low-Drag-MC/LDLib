@@ -5,5 +5,11 @@
   "ldlib.fluid.amount": "§9Amount: %d/%d mB",
   "ldlib.fluid.temperature": "§cTemperature: %d K",
   "ldlib.fluid.state_gas": "§aState: Gaseous",
-  "ldlib.fluid.state_liquid": "§aState: Liquid"
+  "ldlib.fluid.state_liquid": "§aState: Liquid",
+  "ldlib.gui.tips.block_selector": "Block Name",
+  "ldlib.gui.tips.block_meta": "BlockState Metadata",
+  "ldlib.gui.tips.item_selector": "Item Name",
+  "ldlib.gui.tips.item_tag": "Item Tag",
+  "ldlib.gui.tips.fluid_selector": "Fluid Name",
+  "ldlib.gui.tips.fluid_tag": "Fluid Tag"
 }
