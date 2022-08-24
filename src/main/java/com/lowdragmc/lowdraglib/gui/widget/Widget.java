@@ -103,6 +103,11 @@ public class Widget {
         return this;
     }
 
+    public Widget setKJSHoverTooltips(ITextComponent... tooltipText) {
+        tooltipTexts = Arrays.stream(tooltipText).filter(Objects::nonNull).collect(Collectors.toList());
+        return this;
+    }
+
     public void setGui(ModularUI gui) {
         this.gui = gui;
     }

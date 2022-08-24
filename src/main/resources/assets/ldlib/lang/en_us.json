@@ -11,5 +11,11 @@
   "ldlib.gui.tips.item_selector": "Item Name",
   "ldlib.gui.tips.item_tag": "Item Tag",
   "ldlib.gui.tips.fluid_selector": "Fluid Name",
-  "ldlib.gui.tips.fluid_tag": "Fluid Tag"
+  "ldlib.gui.tips.fluid_tag": "Fluid Tag",
+  "ldlib.gui.text_field.number.0": "from %d to %d",
+  "ldlib.gui.text_field.number.1": "bigger than %d",
+  "ldlib.gui.text_field.number.2": "smaller than %d",
+  "ldlib.gui.text_field.number.3": "any number",
+  "ldlib.gui.text_field.number.wheel": "§ascroll wheel adjusts number§r (%s)",
+  "ldlib.gui.text_field.resourcelocation": "allow [0-9][a-z][_-]"
 }
