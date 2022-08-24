@@ -85,7 +85,9 @@ public class SceneWidget extends WidgetGroup {
     @Override
     public void setGui(ModularUI gui) {
         super.setGui(gui);
-        if (gui != null) {
+        if (gui == null) {
+            releaseCacheBuffer();
+        } else {
             gui.registerCloseListener(this::releaseCacheBuffer);
         }
     }

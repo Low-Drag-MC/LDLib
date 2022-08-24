@@ -9,13 +9,18 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -31,7 +36,10 @@ public class TextFieldWidget extends Widget {
     protected Consumer<String> textResponder;
     protected String currentString;
     protected boolean isBordered;
-    private boolean allowEnter;
+    protected int textColor = -1;
+    protected float wheelDur;
+    protected NumberFormat numberInstance;
+    protected Component hover;
 
     public TextFieldWidget(int xPosition, int yPosition, int width, int height, Supplier<String> textSupplier, Consumer<String> textResponder) {
         super(new Position(xPosition, yPosition), new Size(width, height));
@@ -59,11 +67,6 @@ public class TextFieldWidget extends Widget {
 
     public TextFieldWidget setBackground(IGuiTexture background) {
         super.setBackground(background);
-        return this;
-    }
-
-    public TextFieldWidget setAllowEnter(boolean allowEnter) {
-        this.allowEnter = allowEnter;
         return this;
     }
 
@@ -123,9 +126,7 @@ public class TextFieldWidget extends Widget {
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if (isMouseOverElement(mouseX, mouseY)) {
-            setFocus(true);
-        }
+        setFocus(isMouseOverElement(mouseX, mouseY));
         return this.textField.mouseClicked(mouseX, mouseY, button);
     }
 
@@ -168,11 +169,16 @@ public class TextFieldWidget extends Widget {
         String lastText = currentString;
         String newText = textValidator.apply(newTextString);
         if (!newText.equals(lastText)) {
+            this.textField.setTextColor(textColor);
             setCurrentString(newText);
             if (isClientSideWidget && textResponder != null) {
                 textResponder.accept(newText);
             }
             writeClientAction(1, buffer -> buffer.writeUtf(newText));
+        } else if (!newTextString.equals(newText)){
+            this.textField.setTextColor(0xffdf0000);
+        } else {
+            this.textField.setTextColor(textColor);
         }
     }
 
@@ -201,6 +207,7 @@ public class TextFieldWidget extends Widget {
     }
 
     public TextFieldWidget setTextColor(int textColor) {
+        this.textColor = textColor;
         if (isRemote()) {
             this.textField.setTextColor(textColor);
         }
@@ -231,6 +238,7 @@ public class TextFieldWidget extends Widget {
             } catch (NumberFormatException ignored) { }
             return this.currentString;
         });
+        hover = new TranslatableComponent("ldlib.gui.text_field.resourcelocation");
         return this;
     }
 
@@ -245,7 +253,16 @@ public class TextFieldWidget extends Widget {
             } catch (NumberFormatException ignored) { }
             return this.currentString;
         });
-        return this;
+        if (minValue == Long.MIN_VALUE && maxValue == Long.MAX_VALUE) {
+            hover = new TranslatableComponent("ldlib.gui.text_field.number.3");
+        } else if (minValue == Long.MIN_VALUE) {
+            hover = new TranslatableComponent("ldlib.gui.text_field.number.2", maxValue);
+        } else if (maxValue == Long.MAX_VALUE) {
+            hover = new TranslatableComponent("ldlib.gui.text_field.number.1", minValue);
+        } else {
+            hover = new TranslatableComponent("ldlib.gui.text_field.number.0", minValue, maxValue);
+        }
+        return setWheelDur(1);
     }
 
     public TextFieldWidget setNumbersOnly(int minValue, int maxValue) {
@@ -259,7 +276,16 @@ public class TextFieldWidget extends Widget {
             } catch (NumberFormatException ignored) { }
             return this.currentString;
         });
-        return this;
+        if (minValue == Integer.MIN_VALUE && maxValue == Integer.MAX_VALUE) {
+            hover = new TranslatableComponent("ldlib.gui.text_field.number.3");
+        } else if (minValue == Integer.MIN_VALUE) {
+            hover = new TranslatableComponent("ldlib.gui.text_field.number.2", maxValue);
+        } else if (maxValue == Integer.MAX_VALUE) {
+            hover = new TranslatableComponent("ldlib.gui.text_field.number.1", minValue);
+        } else {
+            hover = new TranslatableComponent("ldlib.gui.text_field.number.0", minValue, maxValue);
+        }
+        return setWheelDur(1);
     }
 
     public TextFieldWidget setNumbersOnly(float minValue, float maxValue) {
@@ -273,7 +299,62 @@ public class TextFieldWidget extends Widget {
             } catch (NumberFormatException ignored) { }
             return this.currentString;
         });
+        if (minValue == Float.MIN_VALUE && maxValue == Float.MAX_VALUE) {
+            hover = new TranslatableComponent("ldlib.gui.text_field.number.3");
+        } else if (minValue == Float.MIN_VALUE) {
+            hover = new TranslatableComponent("ldlib.gui.text_field.number.2", maxValue);
+        } else if (maxValue == Float.MAX_VALUE) {
+            hover = new TranslatableComponent("ldlib.gui.text_field.number.1", minValue);
+        } else {
+            hover = new TranslatableComponent("ldlib.gui.text_field.number.0", minValue, maxValue);
+        }
+        return setWheelDur(0.1f);
+    }
+
+    public TextFieldWidget setWheelDur(float wheelDur) {
+        this.wheelDur = wheelDur;
+        this.numberInstance = NumberFormat.getNumberInstance();
+        numberInstance.setMaximumFractionDigits(4);
         return this;
     }
 
+    public TextFieldWidget setWheelDur(int digits, float wheelDur) {
+        this.wheelDur = wheelDur;
+        this.numberInstance = NumberFormat.getNumberInstance();
+        numberInstance.setMaximumFractionDigits(digits);
+        return this;
+    }
+
+    @Override
+    @OnlyIn(Dist.CLIENT)
+    public boolean mouseWheelMove(double mouseX, double mouseY, double wheelDelta) {
+        if (wheelDur > 0 && numberInstance != null && isMouseOverElement(mouseX, mouseY) && isFocus()) {
+            try {
+                onTextChanged(numberInstance.format(Float.parseFloat(getCurrentString()) + (wheelDelta > 0 ? 1 : -1) * wheelDur));
+            } catch (Exception ignored) {
+            }
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    @OnlyIn(Dist.CLIENT)
+    public void drawInForeground(@Nonnull PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
+        if (isMouseOverElement(mouseX, mouseY) && gui != null &&  gui.getModularUIGui() != null) {
+            List<Component> tips = new ArrayList<>();
+            if (tooltipTexts != null) {
+                tips.addAll(tooltipTexts);
+            }
+            if (hover != null) {
+                tips.add(hover);
+            }
+            if (wheelDur > 0 && numberInstance != null && isFocus()) {
+                tips.add(new TranslatableComponent("ldlib.gui.text_field.number.wheel", numberInstance.format(wheelDur)));
+            }
+            if (!tips.isEmpty()) {
+                gui.getModularUIGui().setHoverTooltip(tips);
+            }
+        }
+    }
 }

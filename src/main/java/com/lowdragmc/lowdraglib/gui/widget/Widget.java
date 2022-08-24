@@ -94,6 +94,11 @@ public class Widget {
         return this;
     }
 
+    public Widget setKJSHoverTooltips(Component... tooltipText) {
+        tooltipTexts = Arrays.stream(tooltipText).filter(Objects::nonNull).collect(Collectors.toList());
+        return this;
+    }
+
     public Widget setBackground(IGuiTexture... backgroundTexture) {
         this.backgroundTexture = backgroundTexture.length > 1 ? new GuiTextureGroup(backgroundTexture) : backgroundTexture[0];
         return this;
