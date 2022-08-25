@@ -18,6 +18,7 @@ public class LDLMod {
     public static final Logger LOGGER = LogManager.getLogger("LowDragLib");
     public static final String MODID_JEI = "jei";
     public static final String MODID_RUBIDIUM = "rubidium";
+    public static final String MODID_REI = "roughlyenoughitems";
     public static final Random random = new Random();
 
     public LDLMod() {
@@ -38,4 +39,14 @@ public class LDLMod {
     public static boolean isModLoaded(String mod) {
         return ModList.get().isLoaded(mod);
     }
+
+    public static boolean isJeiLoaded() {
+        try {
+            Class.forName("mezz.jei.core.config.GiveMode");
+        } catch (ClassNotFoundException e) {
+            return false;
+        }
+        return true;
+    }
+
 }
