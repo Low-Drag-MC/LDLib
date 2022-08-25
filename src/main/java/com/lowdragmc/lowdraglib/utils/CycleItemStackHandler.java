@@ -31,6 +31,10 @@ public class CycleItemStackHandler implements IItemHandler {
         return stackList == null || stackList.isEmpty() ? ItemStack.EMPTY : stackList.get(Math.abs((int)(System.currentTimeMillis() / 1000) % stackList.size()));
     }
 
+    public List<ItemStack> getStackList(int i){
+        return stacks.get(i);
+    }
+
     @Nonnull
     @Override
     public ItemStack insertItem(int i, @Nonnull ItemStack itemStack, boolean b) {

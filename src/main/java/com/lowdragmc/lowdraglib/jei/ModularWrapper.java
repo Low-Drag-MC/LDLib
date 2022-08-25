@@ -17,8 +17,9 @@ import java.util.Optional;
 @OnlyIn(Dist.CLIENT)
 public class ModularWrapper<T extends Widget> extends ModularUIGuiContainer {
     protected T widget;
+
     public ModularWrapper(T widget) {
-        super(new ModularUI(widget.getSize().width, widget.getSize().height, IUIHolder.EMPTY, Minecraft.getInstance().player).widget(widget),  -1);
+        super(new ModularUI(widget.getSize().width, widget.getSize().height, IUIHolder.EMPTY, Minecraft.getInstance().player).widget(widget), -1);
         modularUI.initWidgets();
         this.minecraft = Minecraft.getInstance();
         this.itemRenderer = minecraft.getItemRenderer();
@@ -33,6 +34,17 @@ public class ModularWrapper<T extends Widget> extends ModularUIGuiContainer {
         return widget;
     }
 
+    public int getLeft() {
+        return left;
+    }
+
+    public int getTop() {
+        return top;
+    }
+
+    /**
+     * For JEI to use
+     */
     public void setRecipeLayout(int left, int top) {
         modularUI.initWidgets();
         this.left = left;
@@ -45,14 +57,25 @@ public class ModularWrapper<T extends Widget> extends ModularUIGuiContainer {
 //        this.menu.slots.clear();
     }
 
+    public void setRecipeWidget(int left, int top) {
+        modularUI.initWidgets();
+        this.left = left;
+        this.top = top;
+        this.width = minecraft.getWindow().getGuiScaledWidth();
+        this.height = minecraft.getWindow().getGuiScaledHeight();
+        modularUI.updateScreenSize(this.width, this.height);
+        Position displayOffset = new Position(left, top);
+        modularUI.mainGroup.setParentPosition(displayOffset);
+    }
+
     public void draw(PoseStack matrixStack, int mouseX, int mouseY) {
         if (minecraft.player.tickCount != lastTick) {
             updateScreen();
             lastTick = minecraft.player.tickCount;
         }
-        matrixStack.translate(-left, -top,0);
+        matrixStack.translate(-left, -top, 0);
         render(matrixStack, mouseX + left, mouseY + top, minecraft.getDeltaFrameTime());
-        matrixStack.translate(left, top,0);
+        matrixStack.translate(left, top, 0);
     }
 
     public void updateScreen() {
