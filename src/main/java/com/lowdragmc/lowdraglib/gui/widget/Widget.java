@@ -423,4 +423,8 @@ public class Widget {
         if (parent == widgetGroup) return true;
         return parent.isParent(widgetGroup);
     }
+
+    @OnlyIn(Dist.CLIENT)
+    public void onScreenSizeUpdate(int screenWidth, int screenHeight) {
+    }
 }

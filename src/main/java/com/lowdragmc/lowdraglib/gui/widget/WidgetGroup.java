@@ -152,8 +152,8 @@ public class WidgetGroup extends Widget implements IGhostIngredientTarget, IIngr
         this.widgets.add(index, widget);
         widget.setUiAccess(groupUIAccess);
         widget.setGui(gui);
-        widget.setParentPosition(getPosition());
         widget.setParent(this);
+        widget.setParentPosition(getPosition());
         if (isClientSideWidget) {
             widget.setClientSideWidget();
         }
@@ -446,6 +446,15 @@ public class WidgetGroup extends Widget implements IGhostIngredientTarget, IIngr
             } else {
                 LDLMod.LOGGER.error("xxx");
             }
+        }
+    }
+
+    @Override
+    @OnlyIn(Dist.CLIENT)
+    public void onScreenSizeUpdate(int screenWidth, int screenHeight) {
+        super.onScreenSizeUpdate(screenWidth, screenHeight);
+        for (Widget widget : widgets) {
+            widget.onScreenSizeUpdate(screenWidth, screenHeight);
         }
     }
 

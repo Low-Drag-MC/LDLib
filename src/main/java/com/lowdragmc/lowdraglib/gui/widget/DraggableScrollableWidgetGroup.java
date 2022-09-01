@@ -222,7 +222,8 @@ public class DraggableScrollableWidgetGroup extends WidgetGroup {
         return isMouseOver(pos.x + size.width - yBarWidth, pos.y, yBarWidth, size.height, mouseX, mouseY);
     }
 
-    protected boolean hookDrawInBackground(int mouseX, int mouseY, float partialTicks) {
+    @OnlyIn(Dist.CLIENT)
+    protected boolean hookDrawInBackground(@Nonnull PoseStack matrixStack, int mouseX, int mouseY, float partialTicks) {
         return false;
     }
 
@@ -243,12 +244,12 @@ public class DraggableScrollableWidgetGroup extends WidgetGroup {
         int height = getSize().height;
         if (useScissor) {
             RenderUtils.useScissor(x, y, width - yBarWidth, height - xBarHeight, ()->{
-                if(!hookDrawInBackground(mouseX, mouseY, partialTicks)) {
+                if(!hookDrawInBackground(matrixStack, mouseX, mouseY, partialTicks)) {
                     super.drawInBackground(matrixStack, mouseX, mouseY, partialTicks);
                 }
             });
         } else {
-            if(!hookDrawInBackground(mouseX, mouseY, partialTicks)) {
+            if(!hookDrawInBackground(matrixStack, mouseX, mouseY, partialTicks)) {
                 super.drawInBackground(matrixStack, mouseX, mouseY, partialTicks);
             }
         }

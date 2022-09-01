@@ -266,7 +266,7 @@ public class DrawerHelper {
         Matrix4f mat = poseStack.last().pose();
         RenderSystem.setShader(GameRenderer::getPositionColorShader);
         if (startColor == endColor) {
-            bufferbuilder.begin(VertexFormat.Mode.LINE_STRIP, DefaultVertexFormat.POSITION_COLOR);
+            bufferbuilder.begin(VertexFormat.Mode.DEBUG_LINE_STRIP, DefaultVertexFormat.POSITION_COLOR);
             for (Vec2 point : points) {
                 bufferbuilder.vertex(mat, point.x, point.y, 0).color(startColor).endVertex();
             }
@@ -279,7 +279,7 @@ public class DrawerHelper {
             float endRed     = (float)(endColor   >> 16 & 255) / 255.0F;
             float endGreen   = (float)(endColor   >>  8 & 255) / 255.0F;
             float endBlue    = (float)(endColor         & 255) / 255.0F;
-            bufferbuilder.begin(VertexFormat.Mode.LINE_STRIP, DefaultVertexFormat.POSITION_COLOR);
+            bufferbuilder.begin(VertexFormat.Mode.DEBUG_LINE_STRIP, DefaultVertexFormat.POSITION_COLOR);
             int size = points.size();
 
             for (int i = 0; i < size; i++) {

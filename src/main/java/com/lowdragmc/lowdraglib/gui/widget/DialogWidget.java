@@ -11,6 +11,7 @@ import com.lowdragmc.lowdraglib.gui.util.TreeNode;
 import com.lowdragmc.lowdraglib.utils.Size;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.Util;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.lwjgl.glfw.GLFW;
@@ -82,6 +83,7 @@ public class DialogWidget extends WidgetGroup {
     @OnlyIn(Dist.CLIENT)
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
         if (!super.keyPressed(keyCode, scanCode, modifiers) && keyCode == GLFW.GLFW_KEY_ESCAPE) {
+            writeClientAction(-1, x->{});
             close();
         }
         return true;
@@ -99,6 +101,14 @@ public class DialogWidget extends WidgetGroup {
     public boolean charTyped(char codePoint, int modifiers) {
         super.charTyped(codePoint, modifiers);
         return true;
+    }
+
+    @Override
+    public void handleClientAction(int id, FriendlyByteBuf buffer) {
+        super.handleClientAction(id, buffer);
+        if (id == -1) {
+            close();
+        }
     }
 
     public static Predicate<TreeNode<File, File>> suffixFilter(String suffix) {

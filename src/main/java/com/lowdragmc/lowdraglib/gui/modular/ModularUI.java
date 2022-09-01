@@ -111,6 +111,7 @@ public final class ModularUI {
         this.screenHeight = screenHeight;
         Position displayOffset = new Position(getGuiLeft(), getGuiTop());
         mainGroup.setParentPosition(displayOffset);
+        mainGroup.onScreenSizeUpdate(screenWidth, screenHeight);
     }
 
     public void initWidgets() {
