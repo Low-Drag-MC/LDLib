@@ -33,14 +33,6 @@ public class ModularWrapper<T extends Widget> extends ModularUIGuiContainer {
         return widget;
     }
 
-    public int getLeft() {
-        return left;
-    }
-
-    public int getTop() {
-        return top;
-    }
-
     public void setRecipeLayout(int left, int top) {
         modularUI.initWidgets();
         this.left = left;

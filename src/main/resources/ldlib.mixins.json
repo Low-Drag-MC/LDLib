@@ -7,15 +7,11 @@
   "client": [
     "BlockModelShaperMixin",
     "ItemRendererMixin",
-    "JeiRecipeLayoutMixin",
     "TileEntityRendererDispatcherMixin",
-    "WorldRendererMixin",
-    "accessor.RecipeLayoutAccessor",
-    "accessor.RecipesGuiAccessor",
-    "accessor.RecipeSlotAccessor",
-    "accessor.RecipeSlotsAccessor"
+    "WorldRendererMixin"
   ],
   "mixins": [
-    "DimensionTypeAccessor"
+    "DimensionTypeAccessor",
+    "JeiRecipeFocusMixin"
   ]
 }
