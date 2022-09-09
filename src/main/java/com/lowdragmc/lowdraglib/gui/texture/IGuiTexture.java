@@ -6,6 +6,10 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 public interface IGuiTexture {
 
+    default IGuiTexture setColor(int color){
+        return this;
+    }
+
     @OnlyIn(Dist.CLIENT)
     @Deprecated
     default void draw(PoseStack stack, float x, float y, int width, int height) {

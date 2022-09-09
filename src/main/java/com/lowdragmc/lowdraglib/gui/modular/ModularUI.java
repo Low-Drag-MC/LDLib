@@ -28,6 +28,7 @@ public final class ModularUI {
     private ModularUIGuiContainer guiContainer;
     private ModularUIContainer container;
     private final List<Runnable> uiCloseCallback;
+    private long tickCount;
 
     /**
      * UIHolder of this modular UI
@@ -84,6 +85,14 @@ public final class ModularUI {
         }
 
         return widgetList;
+    }
+
+    public long getTickCount() {
+        return tickCount;
+    }
+
+    void addTick() {
+        this.tickCount += 1;
     }
 
     @OnlyIn(Dist.CLIENT)

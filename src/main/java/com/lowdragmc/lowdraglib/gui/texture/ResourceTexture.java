@@ -14,6 +14,7 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 import static com.mojang.blaze3d.vertex.DefaultVertexFormat.POSITION_TEX;
+import static com.mojang.blaze3d.vertex.DefaultVertexFormat.POSITION_TEX_COLOR;
 
 public class ResourceTexture implements IGuiTexture {
 
@@ -24,7 +25,7 @@ public class ResourceTexture implements IGuiTexture {
 
     public final float imageWidth;
     public final float imageHeight;
-
+    private int color = -1;
 
     public ResourceTexture(ResourceLocation imageLocation, float offsetX, float offsetY, float width, float height) {
         this.imageLocation = imageLocation;
@@ -54,6 +55,11 @@ public class ResourceTexture implements IGuiTexture {
                 this.imageHeight * (float)height);
     }
 
+    public ResourceTexture setColor(int color) {
+        this.color = color;
+        return this;
+    }
+
     @OnlyIn(Dist.CLIENT)
     public void draw(PoseStack stack, int mouseX, int mouseY, float x, float y, int width, int height) {
         drawSubArea(stack, x, y, width, height, 0, 0, 1, 1);
@@ -68,14 +74,14 @@ public class ResourceTexture implements IGuiTexture {
         float imageHeight = this.imageHeight * drawnHeight;
         Tesselator tessellator = Tesselator.getInstance();
         BufferBuilder bufferbuilder = tessellator.getBuilder();
-        RenderSystem.setShader(GameRenderer::getPositionTexShader);
+        RenderSystem.setShader(GameRenderer::getPositionTexColorShader);
         RenderSystem.setShaderTexture(0, imageLocation);
         Matrix4f matrix4f = stack.last().pose();
-        bufferbuilder.begin(VertexFormat.Mode.QUADS, POSITION_TEX);
-        bufferbuilder.vertex(matrix4f, x, y + height, 0).uv(imageU, imageV + imageHeight).endVertex();
-        bufferbuilder.vertex(matrix4f, x + width, y + height, 0).uv(imageU + imageWidth, imageV + imageHeight).endVertex();
-        bufferbuilder.vertex(matrix4f, x + width, y, 0).uv(imageU + imageWidth, imageV).endVertex();
-        bufferbuilder.vertex(matrix4f, x, y, 0).uv(imageU, imageV).endVertex();
+        bufferbuilder.begin(VertexFormat.Mode.QUADS, POSITION_TEX_COLOR);
+        bufferbuilder.vertex(matrix4f, x, y + height, 0).uv(imageU, imageV + imageHeight).color(color).endVertex();
+        bufferbuilder.vertex(matrix4f, x + width, y + height, 0).uv(imageU + imageWidth, imageV + imageHeight).color(color).endVertex();
+        bufferbuilder.vertex(matrix4f, x + width, y, 0).uv(imageU + imageWidth, imageV).color(color).endVertex();
+        bufferbuilder.vertex(matrix4f, x, y, 0).uv(imageU, imageV).color(color).endVertex();
         tessellator.end();
     }
 

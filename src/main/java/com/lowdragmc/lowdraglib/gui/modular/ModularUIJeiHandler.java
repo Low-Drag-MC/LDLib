@@ -12,6 +12,12 @@ import java.util.stream.Collectors;
 
 public class ModularUIJeiHandler implements IGuiContainerHandler<ModularUIGuiContainer>, IGhostIngredientHandler<ModularUIGuiContainer>{
 
+    @Override
+    @Nonnull
+    public List<Rect2i> getGuiExtraAreas(@Nonnull ModularUIGuiContainer containerScreen) {
+        return containerScreen.getGuiExtraAreas();
+    }
+
     @Nullable
     @Override
     public Object getIngredientUnderMouse(ModularUIGuiContainer gui, double mouseX, double mouseY) {

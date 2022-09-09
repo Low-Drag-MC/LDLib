@@ -427,4 +427,16 @@ public class Widget {
     @OnlyIn(Dist.CLIENT)
     public void onScreenSizeUpdate(int screenWidth, int screenHeight) {
     }
+
+    @OnlyIn(Dist.CLIENT)
+    public List<Rect2i> getGuiExtraAreas(Rect2i guiRect, List<Rect2i> list) {
+        Rect2i rect2i = toRectangleBox();
+        if (rect2i.getX() < guiRect.getX()
+                || rect2i.getX() + rect2i.getWidth() >  guiRect.getX() + guiRect.getWidth()
+                || rect2i.getY() < guiRect.getY()
+                || rect2i.getY() + rect2i.getHeight() >  guiRect.getY() + guiRect.getHeight()){
+            list.add(toRectangleBox());
+        }
+        return list;
+    }
 }

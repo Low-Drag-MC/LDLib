@@ -14,7 +14,8 @@ public class Interpolator {
     private final Consumer<Number> interpolate;
     private final Consumer<Number> callback;
 
-    private float tick = 0;
+    private float tick = -1;
+    private float startTick = 0;
 
     public Interpolator(float from, float to, float durationTick, IEase ease, Consumer<Number> interpolate) {
         this(from, to, durationTick, ease, interpolate, null);
@@ -30,7 +31,7 @@ public class Interpolator {
     }
 
     public void reset() {
-        tick = 0;
+        tick = -1;
     }
 
     public boolean isFinish(){
@@ -38,13 +39,27 @@ public class Interpolator {
     }
 
     public void update(float tickTime) {
-        if (tick >= durationTick) {
+        if (tick == -2) {
             return;
         }
-        tick = tickTime;
-        if (tick >= durationTick) {
-            callback.accept(ease.getInterpolation(tick / durationTick) * (to - from) + from);
+
+        if (tick == -1) {
+            startTick = tickTime;
         }
-        interpolate.accept(ease.getInterpolation(tick / durationTick) * (to - from) + from);
+
+        if ((tick - startTick) >= durationTick) {
+            tick = -2;
+            if (interpolate != null) {
+                interpolate.accept(ease.getInterpolation(1) * (to - from) + from);
+            }
+            if (callback != null) {
+                callback.accept(ease.getInterpolation(1) * (to - from) + from);
+            }
+        } else {
+            tick = tickTime;
+            if (interpolate != null) {
+                interpolate.accept(ease.getInterpolation((tick - startTick) / durationTick) * (to - from) + from);
+            }
+        }
     }
 }

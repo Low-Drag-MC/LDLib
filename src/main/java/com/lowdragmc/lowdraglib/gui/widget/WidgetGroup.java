@@ -1,6 +1,6 @@
 package com.lowdragmc.lowdraglib.gui.widget;
 
-import com.lowdragmc.lowdraglib.LDLMod;
+import com.lowdragmc.lowdraglib.gui.animation.Animation;
 import com.lowdragmc.lowdraglib.gui.ingredient.IGhostIngredientTarget;
 import com.lowdragmc.lowdraglib.gui.ingredient.IIngredientSlot;
 import com.lowdragmc.lowdraglib.gui.ingredient.Target;
@@ -9,15 +9,14 @@ import com.lowdragmc.lowdraglib.utils.Position;
 import com.lowdragmc.lowdraglib.utils.Size;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 import javax.annotation.Nonnull;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.function.Consumer;
 
 public class WidgetGroup extends Widget implements IGhostIngredientTarget, IIngredientSlot {
@@ -27,12 +26,14 @@ public class WidgetGroup extends Widget implements IGhostIngredientTarget, IIngr
     private final boolean isDynamicSized;
     protected final List<Widget> waitToRemoved;
     protected final List<Widget> waitToAdded;
+    protected final Map<Widget, Animation> animations;
 
     public WidgetGroup(int x, int y, int width, int height) {
         super(x, y, width, height);
         this.isDynamicSized = false;
         waitToRemoved = new ArrayList<>();
         waitToAdded = new ArrayList<>();
+        animations = new HashMap<>();
     }
 
     public WidgetGroup(Position position) {
@@ -40,6 +41,7 @@ public class WidgetGroup extends Widget implements IGhostIngredientTarget, IIngr
         this.isDynamicSized = true;
         waitToRemoved = new ArrayList<>();
         waitToAdded = new ArrayList<>();
+        animations = new HashMap<>();
     }
 
     public WidgetGroup(Position position, Size size) {
@@ -47,6 +49,7 @@ public class WidgetGroup extends Widget implements IGhostIngredientTarget, IIngr
         this.isDynamicSized = false;
         waitToRemoved = new ArrayList<>();
         waitToAdded = new ArrayList<>();
+        animations = new HashMap<>();
     }
 
     @Override
@@ -173,6 +176,30 @@ public class WidgetGroup extends Widget implements IGhostIngredientTarget, IIngr
         return this;
     }
 
+    public void addWidgetAnima(Widget widget, Animation animation) {
+        addWidget(widget);
+        if (isRemote()) {
+            animations.put(widget, animation.setWidget(widget).setIn());
+        } else {
+            Runnable runnable = animation.getOnFinish();
+            if (runnable != null){
+                runnable.run();
+            }
+        }
+    }
+
+    public void removeWidgetAnima(Widget widget, Animation animation) {
+        if (isRemote()) {
+            animations.put(widget, animation.setWidget(widget).setOut());
+        } else {
+            Runnable runnable = animation.getOnFinish();
+            if (runnable != null){
+                runnable.run();
+            }
+            waitToRemoved(widget);
+        }
+    }
+
     public void waitToRemoved(Widget widget) {
         synchronized (waitToRemoved) {
             waitToRemoved.add(widget);
@@ -277,9 +304,19 @@ public class WidgetGroup extends Widget implements IGhostIngredientTarget, IIngr
     @Override
     @OnlyIn(Dist.CLIENT)
     public void updateScreen() {
+        super.updateScreen();
         for (Widget widget : widgets) {
             if (widget.isActive()) {
                 widget.updateScreen();
+            }
+            if (animations.containsKey(widget)) {
+                var animation = animations.get(widget);
+                if (animation.isFinish()) {
+                    if (!animation.isIn()) {
+                        waitToRemoved(widget);
+                    }
+                    animations.remove(widget);
+                }
             }
         }
         handleSyncWidget();
@@ -308,7 +345,12 @@ public class WidgetGroup extends Widget implements IGhostIngredientTarget, IIngr
             if (widget.isVisible()) {
                 RenderSystem.setShaderColor(1, 1, 1, 1);
                 RenderSystem.enableBlend();
-                widget.drawInForeground(poseStack, mouseX, mouseY, partialTicks);
+                if (animations.containsKey(widget)) {
+                    var animation = animations.get(widget);
+                    animation.drawInForeground(poseStack, mouseX, mouseY, partialTicks);
+                } else {
+                    widget.drawInForeground(poseStack, mouseX, mouseY, partialTicks);
+                }
             }
         }
     }
@@ -321,7 +363,12 @@ public class WidgetGroup extends Widget implements IGhostIngredientTarget, IIngr
             if (widget.isVisible()) {
                 RenderSystem.setShaderColor(1, 1, 1, 1);
                 RenderSystem.enableBlend();
-                widget.drawInBackground(poseStack, mouseX, mouseY, partialTicks);
+                if (animations.containsKey(widget)) {
+                    var animation = animations.get(widget);
+                    animation.drawInBackground(poseStack, mouseX, mouseY, partialTicks);
+                } else {
+                    widget.drawInBackground(poseStack, mouseX, mouseY, partialTicks);
+                }
             }
         }
     }
@@ -425,10 +472,25 @@ public class WidgetGroup extends Widget implements IGhostIngredientTarget, IIngr
         if (id == 1) {
             int widgetIndex = buffer.readVarInt();
             int widgetUpdateId = buffer.readVarInt();
-            Widget widget = widgets.get(widgetIndex);
+            Widget widget;
+            if (widgetIndex < widgets.size()) {
+                widget = widgets.get(widgetIndex);
+            } else {
+                synchronized (waitToAdded) {
+                    widget = waitToAdded.get(widgets.size() - widgetIndex);
+                }
+            }
             widget.readUpdateInfo(widgetUpdateId, buffer);
         } else if (id == 2) { // additional widget init
-            Widget widget = widgets.get(buffer.readVarInt());
+            int widgetIndex = buffer.readVarInt();
+            Widget widget;
+            if (widgetIndex < widgets.size()) {
+                widget = widgets.get(widgetIndex);
+            } else {
+                synchronized (waitToAdded) {
+                    widget = waitToAdded.get(widgets.size() - widgetIndex);
+                }
+            }
             if (!widget.isClientSideWidget && widget.isInitialized()) {
                 widget.readInitialData(buffer);
             }
@@ -440,12 +502,15 @@ public class WidgetGroup extends Widget implements IGhostIngredientTarget, IIngr
         if (id == 1) {
             int widgetIndex = buffer.readVarInt();
             int widgetUpdateId = buffer.readVarInt();
+            Widget widget;
             if (widgetIndex < widgets.size()) {
-                Widget widget = widgets.get(widgetIndex);
-                widget.handleClientAction(widgetUpdateId, buffer);
+                widget = widgets.get(widgetIndex);
             } else {
-                LDLMod.LOGGER.error("xxx");
+                synchronized (waitToAdded) {
+                    widget = waitToAdded.get(widgets.size() - widgetIndex);
+                }
             }
+            widget.handleClientAction(widgetUpdateId, buffer);
         }
     }
 
@@ -505,5 +570,14 @@ public class WidgetGroup extends Widget implements IGhostIngredientTarget, IIngr
             });
         }
 
+    }
+
+    @Override
+    @OnlyIn(Dist.CLIENT)
+    public List<Rect2i> getGuiExtraAreas(Rect2i guiRect, List<Rect2i> list) {
+        for (Widget widget : widgets) {
+            list = widget.getGuiExtraAreas(guiRect, list);
+        }
+        return super.getGuiExtraAreas(guiRect, list);
     }
 }

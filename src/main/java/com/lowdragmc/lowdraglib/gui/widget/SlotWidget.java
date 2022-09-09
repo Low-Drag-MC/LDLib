@@ -128,7 +128,7 @@ public class SlotWidget extends Widget implements IIngredientSlot {
             }
         }
         if (!itemStack.isEmpty()) {
-            DrawerHelper.drawItemStack(mStack, itemStack, pos.x+ 1, pos.y + 1, null);
+            DrawerHelper.drawItemStack(mStack, itemStack, pos.x+ 1, pos.y + 1, -1, null);
         }
     }
 
