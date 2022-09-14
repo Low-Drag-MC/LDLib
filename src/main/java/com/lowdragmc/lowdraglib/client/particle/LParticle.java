@@ -179,13 +179,21 @@ public abstract class LParticle extends Particle {
         return cull;
     }
 
-    protected abstract float getU0(float pPartialTicks);
+    protected float getU0(float pPartialTicks) {
+        return 0;
+    }
 
-    protected abstract float getU1(float pPartialTicks);
+    protected float getU1(float pPartialTicks) {
+        return 1;
+    }
 
-    protected abstract float getV0(float pPartialTicks);
+    protected float getV0(float pPartialTicks) {
+        return 0;
+    }
 
-    protected abstract float getV1(float pPartialTicks);
+    protected float getV1(float pPartialTicks) {
+        return 1;
+    }
 
     public int getAge() {
         return age;
@@ -208,5 +216,9 @@ public abstract class LParticle extends Particle {
         } else {
             Minecraft.getInstance().particleEngine.add(this);
         }
+    }
+
+    public void resetAge() {
+        this.age = 0;
     }
 }
