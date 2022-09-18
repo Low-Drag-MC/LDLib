@@ -18,6 +18,7 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.sounds.SoundEvents;
+import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.lwjgl.glfw.GLFW;
@@ -252,7 +253,7 @@ public class Widget {
     @OnlyIn(Dist.CLIENT)
     public void drawInForeground(@Nonnull PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
         if (tooltipTexts != null && isMouseOverElement(mouseX, mouseY) && tooltipTexts.size() > 0 && gui != null &&  gui.getModularUIGui() != null) {
-            gui.getModularUIGui().setHoverTooltip(tooltipTexts);
+            gui.getModularUIGui().setHoverTooltip(tooltipTexts, ItemStack.EMPTY, null, null);
         }
     }
 

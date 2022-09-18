@@ -90,7 +90,7 @@ public class SlotWidget extends Widget implements IIngredientSlot {
         if (drawHoverTips && isMouseOverElement(mouseX, mouseY) && isActive()) {
             ItemStack stack = slotReference.getItem();
             if (!stack.isEmpty() && gui != null) {
-                setHoverTooltips(getToolTips(gui.getModularUIGui().getTooltipFromItem(stack)));
+                gui.getModularUIGui().setHoverTooltip(getToolTips(gui.getModularUIGui().getTooltipFromItem(stack)), stack, null, stack.getTooltipImage().orElse(null));
                 super.drawInForeground(mStack, mouseX, mouseY, partialTicks);
             }
         }
