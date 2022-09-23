@@ -2,6 +2,7 @@ package com.lowdragmc.lowdraglib.gui.widget;
 
 import com.google.common.base.Preconditions;
 import com.lowdragmc.lowdraglib.LDLMod;
+import com.lowdragmc.lowdraglib.gui.animation.Animation;
 import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
 import com.lowdragmc.lowdraglib.gui.modular.ModularUIGuiContainer;
 import com.lowdragmc.lowdraglib.gui.modular.WidgetUIAccess;
@@ -53,6 +54,7 @@ public class Widget {
     protected IGuiTexture backgroundTexture;
     protected IGuiTexture hoverTexture;
     protected WidgetGroup parent;
+    protected Animation animation;
     private boolean initialized;
 
     public Widget(Position selfPosition, Size size) {
@@ -108,6 +110,22 @@ public class Widget {
     public Widget setHoverTexture(IGuiTexture... hoverTexture) {
         this.hoverTexture = hoverTexture.length > 1 ? new GuiTextureGroup(hoverTexture) : hoverTexture[0];
         return this;
+    }
+
+    public void animation(Animation animation) {
+        if (isRemote()) {
+            this.animation = animation;
+            this.animation.setWidget(this);
+        } else {
+            Runnable runnable = animation.getOnFinish();
+            if (runnable != null){
+                runnable.run();
+            }
+        }
+    }
+
+    protected boolean inAnimate() {
+        return animation != null && !animation.isFinish();
     }
 
     public void setGui(ModularUI gui) {

@@ -26,14 +26,11 @@ public class WidgetGroup extends Widget implements IGhostIngredientTarget, IIngr
     private final boolean isDynamicSized;
     protected final List<Widget> waitToRemoved;
     protected final List<Widget> waitToAdded;
-    protected final Map<Widget, Animation> animations;
-
     public WidgetGroup(int x, int y, int width, int height) {
         super(x, y, width, height);
         this.isDynamicSized = false;
         waitToRemoved = new ArrayList<>();
         waitToAdded = new ArrayList<>();
-        animations = new HashMap<>();
     }
 
     public WidgetGroup(Position position) {
@@ -41,7 +38,6 @@ public class WidgetGroup extends Widget implements IGhostIngredientTarget, IIngr
         this.isDynamicSized = true;
         waitToRemoved = new ArrayList<>();
         waitToAdded = new ArrayList<>();
-        animations = new HashMap<>();
     }
 
     public WidgetGroup(Position position, Size size) {
@@ -49,7 +45,6 @@ public class WidgetGroup extends Widget implements IGhostIngredientTarget, IIngr
         this.isDynamicSized = false;
         waitToRemoved = new ArrayList<>();
         waitToAdded = new ArrayList<>();
-        animations = new HashMap<>();
     }
 
     @Override
@@ -178,26 +173,14 @@ public class WidgetGroup extends Widget implements IGhostIngredientTarget, IIngr
 
     public void addWidgetAnima(Widget widget, Animation animation) {
         addWidget(widget);
-        if (isRemote()) {
-            animations.put(widget, animation.setWidget(widget).setIn());
-        } else {
-            Runnable runnable = animation.getOnFinish();
-            if (runnable != null){
-                runnable.run();
-            }
-        }
+        widget.animation(animation.setIn());
     }
 
     public void removeWidgetAnima(Widget widget, Animation animation) {
-        if (isRemote()) {
-            animations.put(widget, animation.setWidget(widget).setOut());
-        } else {
-            Runnable runnable = animation.getOnFinish();
-            if (runnable != null){
-                runnable.run();
-            }
+        widget.animation(animation.setOut().setOnFinish(() -> {
+            widget.setVisible(false);
             waitToRemoved(widget);
-        }
+        }));
     }
 
     public void waitToRemoved(Widget widget) {
@@ -309,15 +292,6 @@ public class WidgetGroup extends Widget implements IGhostIngredientTarget, IIngr
             if (widget.isActive()) {
                 widget.updateScreen();
             }
-            if (animations.containsKey(widget)) {
-                var animation = animations.get(widget);
-                if (animation.isFinish()) {
-                    if (!animation.isIn()) {
-                        waitToRemoved(widget);
-                    }
-                    animations.remove(widget);
-                }
-            }
         }
         handleSyncWidget();
     }
@@ -345,12 +319,12 @@ public class WidgetGroup extends Widget implements IGhostIngredientTarget, IIngr
             if (widget.isVisible()) {
                 RenderSystem.setShaderColor(1, 1, 1, 1);
                 RenderSystem.enableBlend();
-                if (animations.containsKey(widget)) {
-                    var animation = animations.get(widget);
-                    animation.drawInForeground(poseStack, mouseX, mouseY, partialTicks);
+                if (widget.inAnimate()) {
+                    widget.animation.drawInForeground(poseStack, mouseX, mouseY, partialTicks);
                 } else {
                     widget.drawInForeground(poseStack, mouseX, mouseY, partialTicks);
                 }
+
             }
         }
     }
@@ -363,9 +337,8 @@ public class WidgetGroup extends Widget implements IGhostIngredientTarget, IIngr
             if (widget.isVisible()) {
                 RenderSystem.setShaderColor(1, 1, 1, 1);
                 RenderSystem.enableBlend();
-                if (animations.containsKey(widget)) {
-                    var animation = animations.get(widget);
-                    animation.drawInBackground(poseStack, mouseX, mouseY, partialTicks);
+                if (widget.inAnimate()) {
+                    widget.animation.drawInBackground(poseStack, mouseX, mouseY, partialTicks);
                 } else {
                     widget.drawInBackground(poseStack, mouseX, mouseY, partialTicks);
                 }

@@ -97,6 +97,7 @@ public class ModularUIGuiContainer extends AbstractContainerScreen<ModularUICont
         tooltipComponent = null;
 
         DrawerHelper.drawGradientRect(poseStack, 0, 0, this.width, this.height, -1072689136, -804253680);
+        net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(new net.minecraftforge.client.event.ScreenEvent.BackgroundDrawnEvent(this, poseStack));
 
         modularUI.mainGroup.drawInBackground(poseStack, mouseX, mouseY, partialTicks);
         net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(new net.minecraftforge.client.event.ContainerScreenEvent.DrawBackground(this, poseStack, mouseX, mouseY));

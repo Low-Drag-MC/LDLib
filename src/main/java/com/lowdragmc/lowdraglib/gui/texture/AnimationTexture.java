@@ -20,7 +20,7 @@ import static com.mojang.blaze3d.vertex.DefaultVertexFormat.POSITION_TEX_COLOR;
  */
 public class AnimationTexture implements IGuiTexture{
     public final ResourceLocation imageLocation;
-    protected int cellSize, from, to, color = -1, dur = 1, currentFrame;
+    protected int cellSize, from, to, color = -1, animation, currentFrame, currentTime;
 
     public AnimationTexture(String imageLocation) {
         this.imageLocation = new ResourceLocation(imageLocation);
@@ -31,7 +31,7 @@ public class AnimationTexture implements IGuiTexture{
     }
 
     public AnimationTexture copy() {
-        return new AnimationTexture(imageLocation).setCellSize(cellSize).setAnimation(from, to).setDur(dur).setColor(color);
+        return new AnimationTexture(imageLocation).setCellSize(cellSize).setAnimation(from, to).setAnimation(animation).setColor(color);
     }
 
     public AnimationTexture setCellSize(int cellSize) {
@@ -46,8 +46,8 @@ public class AnimationTexture implements IGuiTexture{
         return this;
     }
 
-    public AnimationTexture setDur(int dur) {
-        this.dur = dur;
+    public AnimationTexture setAnimation(int animation) {
+        this.animation = animation;
         return this;
     }
 
@@ -59,7 +59,12 @@ public class AnimationTexture implements IGuiTexture{
 
     @Override
     public void updateTick() {
-        currentFrame += 1;
+        if (currentTime >= animation) {
+            currentTime = 0;
+            currentFrame += 1;
+        } else {
+            currentTime++;
+        }
         if (currentFrame > to) {
             currentFrame = from;
         }

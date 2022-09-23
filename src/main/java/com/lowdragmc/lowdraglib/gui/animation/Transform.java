@@ -32,6 +32,11 @@ public class Transform extends Animation {
         Size size = widget.getSize();
         float oX = position.x + size.width / 2f;
         float oY = position.y + size.height / 2f;
+        if (isIn()) {
+            poseStack.translate(xOffset * (1 - getTime()), yOffset * (1 - getTime()), 0);
+        } else {
+            poseStack.translate(xOffset * getTime(), yOffset * getTime(), 0);
+        }
         poseStack.translate(oX, oY,0);
         if (isIn()) {
             poseStack.scale(scale + (1 - scale) * getTime(), scale + (1 - scale) * getTime(), 1);
@@ -39,11 +44,6 @@ public class Transform extends Animation {
             poseStack.scale(scale + (1 - scale) * (1- getTime()), scale + (1 - scale) * (1- getTime()), 1);
         }
         poseStack.translate(-oX, -oY,0);
-        if (isIn()) {
-            poseStack.translate(xOffset * (1 - getTime()), yOffset * (1 - getTime()), 0);
-        } else {
-            poseStack.translate(xOffset * getTime(), yOffset * getTime(), 0);
-        }
     }
 
     @Override
