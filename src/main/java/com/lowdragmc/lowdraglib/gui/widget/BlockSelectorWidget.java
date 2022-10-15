@@ -4,13 +4,17 @@ import com.lowdragmc.lowdraglib.gui.texture.ColorBorderTexture;
 import com.lowdragmc.lowdraglib.gui.texture.ColorRectTexture;
 import com.lowdragmc.lowdraglib.gui.texture.ItemStackTexture;
 import com.lowdragmc.lowdraglib.gui.texture.ResourceBorderTexture;
+import com.lowdragmc.lowdraglib.utils.FluidUtils;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
+import net.minecraft.fluid.Fluid;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.state.Property;
 import net.minecraft.util.ResourceLocation;
+import net.minecraftforge.common.util.LazyOptional;
+import net.minecraftforge.fluids.capability.IFluidHandlerItem;
 import net.minecraftforge.items.IItemHandlerModifiable;
 import net.minecraftforge.items.ItemStackHandler;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -47,12 +51,22 @@ public class BlockSelectorWidget extends WidgetGroup {
                 .setChangeListener(() -> {
                     ItemStack stack = handler.getStackInSlot(0);
                     if (stack.isEmpty() || !(stack.getItem() instanceof BlockItem)) {
-                        if (block != null) {
+                        LazyOptional<IFluidHandlerItem> optional = FluidUtils.getFluidHandler(stack);
+                        if (optional.isPresent()) {
+                            IFluidHandlerItem handler = optional.orElse(null);
+                            if (handler.getTanks() > 0) {
+                                Fluid fluid = handler.getFluidInTank(0).getFluid();
+                                setBlock(fluid.defaultFluidState().createLegacyBlock());
+                                onUpdate();
+                                return;
+                            }
+                        }
+                        if (block != null){
                             setBlock(null);
                             onUpdate();
                         }
                     } else {
-                        setBlock(((BlockItem)stack.getItem()).getBlock().defaultBlockState());
+                        setBlock(((BlockItem) stack.getItem()).getBlock().defaultBlockState());
                         onUpdate();
                     }
                 }).setBackgroundTexture(new ColorBorderTexture(1, -1)));

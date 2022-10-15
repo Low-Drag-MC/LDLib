@@ -23,6 +23,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.state.properties.BlockStateProperties;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Direction;
+import net.minecraft.util.Rotation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IBlockDisplayReader;
 import net.minecraft.world.World;
@@ -61,11 +62,21 @@ public class BlockStateRenderer implements IRenderer {
     }
 
     public BlockState getState(BlockState blockState) {
-        BlockState state = blockInfo.getBlockState();
-        if (blockState.hasProperty(BlockStateProperties.FACING) && state.hasProperty(BlockStateProperties.FACING)) {
-            state = state.setValue(BlockStateProperties.FACING, blockState.getValue(BlockStateProperties.FACING));
-        } else if (blockState.hasProperty(BlockStateProperties.HORIZONTAL_FACING)&& state.hasProperty(BlockStateProperties.HORIZONTAL_FACING)) {
-            state = state.setValue(BlockStateProperties.HORIZONTAL_FACING, blockState.getValue(BlockStateProperties.HORIZONTAL_FACING));
+        BlockState state = getBlockInfo().getBlockState();
+        Direction facing = Direction.NORTH;
+        if (blockState.hasProperty(BlockStateProperties.FACING)) {
+            facing = blockState.getValue(BlockStateProperties.FACING);
+        } else if (blockState.hasProperty(BlockStateProperties.HORIZONTAL_FACING)) {
+            facing = blockState.getValue(BlockStateProperties.HORIZONTAL_FACING);
+        }
+        try {
+            switch (facing) {
+                case EAST: state = state.rotate(null, null, Rotation.CLOCKWISE_90); break;
+                case WEST: state = state.rotate(null, null, Rotation.COUNTERCLOCKWISE_90); break;
+                case SOUTH: state = state.rotate(null, null, Rotation.CLOCKWISE_180); break;
+            }
+        } catch (Exception ignore) {
+
         }
         return state;
     }
@@ -131,6 +142,7 @@ public class BlockStateRenderer implements IRenderer {
         if (tile != null && world != null) {
             try {
                 tile.setLevelAndPosition(new FacadeBlockWorld(world, pos, getState(world.getBlockState(pos)), tile), pos);
+                tile.setChanged();
             } catch (Throwable throwable) {
                 blockInfo.setTileEntity(null);
             }
