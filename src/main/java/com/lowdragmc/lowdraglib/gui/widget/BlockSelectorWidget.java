@@ -4,6 +4,7 @@ import com.lowdragmc.lowdraglib.gui.texture.ColorBorderTexture;
 import com.lowdragmc.lowdraglib.gui.texture.ColorRectTexture;
 import com.lowdragmc.lowdraglib.gui.texture.ItemStackTexture;
 import com.lowdragmc.lowdraglib.gui.texture.ResourceBorderTexture;
+import com.lowdragmc.lowdraglib.utils.FluidUtils;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
@@ -45,7 +46,17 @@ public class BlockSelectorWidget extends WidgetGroup {
                 .setChangeListener(() -> {
                     ItemStack stack = handler.getStackInSlot(0);
                     if (stack.isEmpty() || !(stack.getItem() instanceof BlockItem itemBlock)) {
-                        if (block != null) {
+                        var optional = FluidUtils.getFluidHandler(stack);
+                        if (optional.isPresent()) {
+                            var handler = optional.orElse(null);
+                            if (handler.getTanks() > 0) {
+                                var fluid = handler.getFluidInTank(0).getFluid();
+                                setBlock(fluid.defaultFluidState().createLegacyBlock());
+                                onUpdate();
+                                return;
+                            }
+                        }
+                        if (block != null){
                             setBlock(null);
                             onUpdate();
                         }

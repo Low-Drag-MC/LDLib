@@ -218,6 +218,10 @@ public class DummyWorld extends Level {
         super(SPAWN_WORLD_INFO, null, new Holder.Direct<>(DIMENSION_TYPE), ()-> dummyProfiler,true, false, 0);
     }
 
+    public DummyWorld(Level world) {
+        super((WritableLevelData) world.getLevelData(), world.dimension(), world.dimensionTypeRegistration(), world::getProfiler,true, false, 0);
+    }
+
     @Override
     public boolean setBlock(BlockPos pPos, BlockState pState, int pFlags, int pRecursionLeft) {
         return false;

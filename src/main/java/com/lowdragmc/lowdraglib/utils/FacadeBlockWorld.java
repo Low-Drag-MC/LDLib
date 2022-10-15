@@ -32,6 +32,7 @@ public class FacadeBlockWorld extends DummyWorld {
     public final BlockEntity tile;
 
     public FacadeBlockWorld(Level world, BlockPos pos, BlockState state, BlockEntity tile) {
+        super(world);
         this.world = world;
         this.pos = pos;
         this.state = state;
@@ -40,61 +41,63 @@ public class FacadeBlockWorld extends DummyWorld {
 
     @Nullable
     @Override
-    public BlockEntity getBlockEntity(BlockPos pPos) {
-        return pPos.equals(pos) ? tile : world.getBlockEntity(pPos);
+    public BlockEntity getBlockEntity(@Nonnull BlockPos pPos) {
+        return world == null ? super.getBlockEntity(pPos) : pPos.equals(pos) ? tile : world.getBlockEntity(pPos);
     }
 
     @Override
     @ParametersAreNonnullByDefault
     @Nonnull
     public BlockState getBlockState(BlockPos pPos) {
-        return pPos.equals(pos) ? state : world.getBlockState(pPos);
+        return  world == null ? super.getBlockState(pPos) : pPos.equals(pos) ? state : world.getBlockState(pPos);
     }
 
     @Override
+    @Nonnull
     public LevelLightEngine getLightEngine() {
-        return world.getLightEngine();
+        return world == null ? super.getLightEngine() : world.getLightEngine();
     }
 
     @Override
     public int getBrightness(@Nonnull LightLayer lightType, @Nonnull BlockPos pos) {
-        return world.getBrightness(lightType, pos);
+        return  world == null ? super.getBrightness(lightType, pos) : world.getBrightness(lightType, pos);
     }
 
     @Override
     public int getBlockTint(@Nonnull BlockPos blockPos, @Nonnull ColorResolver colorResolver) {
-        return world.getBlockTint(blockPos, colorResolver);
+        return  world == null ? super.getBlockTint(blockPos, colorResolver) : world.getBlockTint(blockPos, colorResolver);
     }
 
     @Override
     public boolean canSeeSky(@Nonnull BlockPos pos) {
-        return world.canSeeSky(pos);
+        return  world == null ? super.canSeeSky(pos) : world.canSeeSky(pos);
     }
 
     @Nonnull
     @Override
     public DimensionType dimensionType() {
-        return world.dimensionType();
+        return  world == null ? super.dimensionType() : world.dimensionType();
     }
 
     @Override
-    public boolean isEmptyBlock(BlockPos pPos) {
-        return !pPos.equals(pos) && world.isEmptyBlock(pPos);
+    public boolean isEmptyBlock(@Nonnull BlockPos pPos) {
+        return  world == null ? super.isEmptyBlock(pPos) : !pPos.equals(pos) && world.isEmptyBlock(pPos);
     }
 
     @Nonnull
     @Override
     @OnlyIn(Dist.CLIENT)
     public Holder<Biome> getBiome(@Nonnull BlockPos pos) {
-        return world.getBiome(pos);
+        return  world == null ? super.getBiome(pos) : world.getBiome(pos);
     }
 
     @Override
     public @Nullable BlockEntity getExistingBlockEntity(BlockPos pos) {
-        return pos.equals(this.pos) ? tile : world.getExistingBlockEntity(pos);
+        return  world == null ? super.getExistingBlockEntity(pos) : pos.equals(this.pos) ? tile : world.getExistingBlockEntity(pos);
     }
 
     @Override
+    @OnlyIn(Dist.CLIENT)
     public void setParticleManager(@Nonnull ParticleManager particleManager) {
         super.setParticleManager(particleManager);
         if (world instanceof DummyWorld dummyWorld) {
@@ -104,6 +107,7 @@ public class FacadeBlockWorld extends DummyWorld {
 
     @Nullable
     @Override
+    @OnlyIn(Dist.CLIENT)
     public ParticleManager getParticleManager() {
         ParticleManager particleManager = super.getParticleManager();
         if (particleManager == null && world instanceof DummyWorld dummyWorld) {
