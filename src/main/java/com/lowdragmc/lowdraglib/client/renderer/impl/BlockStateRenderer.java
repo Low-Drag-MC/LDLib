@@ -11,7 +11,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.Sheets;
 import net.minecraft.client.renderer.block.BlockRenderDispatcher;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.block.model.ItemTransforms;
@@ -26,11 +25,11 @@ import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.RenderShape;
+import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.material.FluidState;
-import net.minecraft.world.level.material.Fluids;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.MinecraftForgeClient;
@@ -66,11 +65,21 @@ public class BlockStateRenderer implements IRenderer {
     }
 
     public BlockState getState(BlockState blockState) {
-        BlockState state = blockInfo.getBlockState();
-        if (blockState.hasProperty(BlockStateProperties.FACING) && state.hasProperty(BlockStateProperties.FACING)) {
-            state = state.setValue(BlockStateProperties.FACING, blockState.getValue(BlockStateProperties.FACING));
-        } else if (blockState.hasProperty(BlockStateProperties.HORIZONTAL_FACING)&& state.hasProperty(BlockStateProperties.HORIZONTAL_FACING)) {
-            state = state.setValue(BlockStateProperties.HORIZONTAL_FACING, blockState.getValue(BlockStateProperties.HORIZONTAL_FACING));
+        BlockState state = getBlockInfo().getBlockState();
+        Direction facing = Direction.NORTH;
+        if (blockState.hasProperty(BlockStateProperties.FACING)) {
+            facing = blockState.getValue(BlockStateProperties.FACING);
+        } else if (blockState.hasProperty(BlockStateProperties.HORIZONTAL_FACING)) {
+            facing = blockState.getValue(BlockStateProperties.HORIZONTAL_FACING);
+        }
+        try {
+            switch (facing) {
+                case EAST -> state = state.rotate(null, null, Rotation.CLOCKWISE_90);
+                case WEST -> state = state.rotate(null, null, Rotation.COUNTERCLOCKWISE_90);
+                case SOUTH -> state = state.rotate(null, null, Rotation.CLOCKWISE_180);
+            }
+        } catch (Exception ignore) {
+
         }
         return state;
     }
@@ -135,7 +144,9 @@ public class BlockStateRenderer implements IRenderer {
         BlockEntity tile = blockInfo.getBlockEntity(pos);
         if (tile != null && world instanceof Level) {
             try {
-                tile.setLevel(new FacadeBlockWorld((Level) world, pos, getState(world.getBlockState(pos)), tile));
+                var state = getState(world.getBlockState(pos));
+                tile.setBlockState(state);
+                tile.setLevel(new FacadeBlockWorld((Level) world, pos, state, tile));
             } catch (Throwable throwable) {
                 blockInfo.setHasBlockEntity(false);
             }
