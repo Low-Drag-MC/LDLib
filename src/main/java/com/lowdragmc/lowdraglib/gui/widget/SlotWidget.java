@@ -22,6 +22,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.IItemHandlerModifiable;
 import net.minecraftforge.items.SlotItemHandler;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import java.util.List;
@@ -135,7 +136,9 @@ public class SlotWidget extends Widget implements IIngredientSlot {
     @Override
     @OnlyIn(Dist.CLIENT)
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if (isMouseOverElement(mouseX, mouseY) && gui != null && (canPutItems || canTakeItems)) {
+        if (isMouseOverElement(mouseX, mouseY) && gui != null) {
+            var stack = slotReference.getItem();
+            if (!(canPutItems && stack.isEmpty() || canTakeItems && !stack.isEmpty())) return false;
             ModularUIGuiContainer modularUIGui = gui.getModularUIGui();
             boolean last = modularUIGui.getQuickCrafting();
             InputConstants.Key mouseKey = InputConstants.Type.MOUSE.getOrCreate(button);
@@ -278,7 +281,7 @@ public class SlotWidget extends Widget implements IIngredientSlot {
 
         @Override
         public void set(@Nonnull ItemStack stack) {
-            if(!SlotWidget.this.canPutStack(stack)) return;
+//            if(!SlotWidget.this.canPutStack(stack)) return;
             super.set(stack);
             if (changeListener != null) {
                 changeListener.run();
@@ -315,11 +318,20 @@ public class SlotWidget extends Widget implements IIngredientSlot {
 
         @Override
         public void set(@Nonnull ItemStack stack) {
-            if(!SlotWidget.this.canPutStack(stack)) return;
             super.set(stack);
             if (changeListener != null) {
                 changeListener.run();
             }
+        }
+
+        @NotNull
+        @Override
+        public ItemStack remove(int amount) {
+            var result = super.remove(amount);
+            if (changeListener != null && !getItem().isEmpty()) {
+                changeListener.run();
+            }
+            return result;
         }
 
         @Override
