@@ -8,7 +8,7 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 public class ItemStackTexture implements IGuiTexture{
-    private final ItemStack[] itemStack;
+    public final ItemStack[] itemStack;
     private int index = 0;
     private int ticks = 0;
     private int color = -1;

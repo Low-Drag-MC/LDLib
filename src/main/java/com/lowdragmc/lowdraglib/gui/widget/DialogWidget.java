@@ -31,7 +31,15 @@ public class DialogWidget extends WidgetGroup {
     public DialogWidget(WidgetGroup parent, boolean isClient) {
         super(0, 0, parent.getSize().width, parent.getSize().height);
         if (isClient) setClientSideWidget();
-        parent.addWidget(this);
+        if (waitToAdd()) {
+            parent.waitToAdded(this);
+        } else {
+            parent.addWidget(this);
+        }
+    }
+
+    protected boolean waitToAdd() {
+        return false;
     }
 
     public DialogWidget setOnClosed(Runnable onClosed) {
