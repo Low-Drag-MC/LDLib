@@ -2,24 +2,20 @@ package com.lowdragmc.lowdraglib.jei;
 
 import com.lowdragmc.lowdraglib.core.mixins.accessor.RecipeSlotAccessor;
 import com.lowdragmc.lowdraglib.gui.ingredient.IRecipeIngredientSlot;
-import com.lowdragmc.lowdraglib.gui.widget.SlotWidget;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import mezz.jei.api.gui.drawable.IDrawable;
 import mezz.jei.api.gui.ingredient.IRecipeSlotTooltipCallback;
-import mezz.jei.api.helpers.IModIdHelper;
 import mezz.jei.api.ingredients.IIngredientRenderer;
 import mezz.jei.api.ingredients.IIngredientType;
 import mezz.jei.api.ingredients.ITypedIngredient;
 import mezz.jei.api.recipe.RecipeIngredientRole;
-import mezz.jei.api.runtime.IIngredientVisibility;
 import mezz.jei.common.util.ImmutableRect2i;
 import mezz.jei.gui.ingredients.RecipeSlot;
 import mezz.jei.ingredients.TypedIngredient;
 import net.minecraft.MethodsReturnNonnullByDefault;
-import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Unmodifiable;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -170,11 +166,8 @@ public class RecipeSlotWrapper extends RecipeSlot {
     }
 
     private Optional<ITypedIngredient<?>> getDisplayIngredient() {
-        if (widget instanceof IRecipeIngredientSlot slot) {
+        if (widget instanceof IRecipeIngredientSlot slot && slot.getJEIIngredient() != null) {
             return TypedIngredient.create(((RecipeSlotAccessor) this).getRegisteredIngredients(), slot.getJEIIngredient());
-        }
-        if (widget instanceof SlotWidget slotWidget) {
-            return TypedIngredient.create(((RecipeSlotAccessor) this).getRegisteredIngredients(), slotWidget.getRealStack(slotWidget.getHandle().getItem()));
         }
         return Optional.empty();
     }

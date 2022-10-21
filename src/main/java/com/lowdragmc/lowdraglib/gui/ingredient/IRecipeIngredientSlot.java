@@ -1,23 +1,27 @@
 package com.lowdragmc.lowdraglib.gui.ingredient;
 
+import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import com.lowdragmc.lowdraglib.jei.IngredientIO;
-import net.minecraft.world.item.crafting.Ingredient;
-import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
+import javax.annotation.Nullable;
 
-public interface IRecipeIngredientSlot {
+public interface IRecipeIngredientSlot extends IIngredientSlot{
 
-    Object getIngredientOverMouse(double mouseX, double mouseY);
+    default Widget self() {
+        return (Widget) this;
+    }
 
-    @NotNull
-    Object getContent();
+    @Nullable
+    @Override
+    default Object getIngredientOverMouse(double mouseX, double mouseY) {
+        if (self().isMouseOverElement(mouseX, mouseY)) {
+            return getJEIIngredient();
+        }
+        return null;
+    }
 
+    @Nullable
     Object getJEIIngredient();
-
-    int getPosX();
-
-    int getPosY();
 
     default IngredientIO getIngredientIo(){
         return IngredientIO.RENDER_ONLY;
