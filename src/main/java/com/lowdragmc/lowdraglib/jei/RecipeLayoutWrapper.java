@@ -1,0 +1,172 @@
+package com.lowdragmc.lowdraglib.jei;
+
+import com.lowdragmc.lowdraglib.core.mixins.accessor.RecipeLayoutAccessor;
+import com.lowdragmc.lowdraglib.core.mixins.accessor.RecipeSlotsAccessor;
+import com.lowdragmc.lowdraglib.gui.widget.Widget;
+import com.lowdragmc.lowdraglib.utils.Position;
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.PoseStack;
+import mezz.jei.api.gui.drawable.IDrawable;
+import mezz.jei.api.recipe.IFocusGroup;
+import mezz.jei.api.recipe.category.IRecipeCategory;
+import mezz.jei.common.util.ImmutableRect2i;
+import mezz.jei.gui.ingredients.RecipeSlot;
+import mezz.jei.gui.ingredients.RecipeSlotsView;
+import mezz.jei.gui.recipes.RecipeLayout;
+import mezz.jei.gui.recipes.ShapelessIcon;
+import mezz.jei.gui.recipes.builder.RecipeLayoutBuilder;
+import mezz.jei.ingredients.RegisteredIngredients;
+import net.minecraft.client.Minecraft;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * To reduce workload and allow for customization, we wrapped and expanded {@link RecipeLayout}  to fit our needs.
+ */
+public class RecipeLayoutWrapper<R extends ModularWrapper<?>> extends RecipeLayout<R> {
+
+    private static final int RECIPE_BORDER_PADDING = 4;
+
+    private final RecipeLayoutAccessor accessor = (RecipeLayoutAccessor) this;
+
+    /**
+     * LDLib wraps the recipe inside ModularWrapper so that we can control the rendering of the recipe ourselves.
+     */
+    private final ModularWrapper<?> wrapper;
+
+    public static <T extends ModularWrapper<?>> RecipeLayout<T> createWrapper(
+            int index,
+            IRecipeCategory<T> recipeCategory,
+            T recipe,
+            IFocusGroup focuses,
+            RegisteredIngredients registeredIngredients,
+            int posX,
+            int posY
+            ) {
+        RecipeLayoutWrapper<T> wrapper = new RecipeLayoutWrapper<>(index, recipeCategory, recipe, focuses, registeredIngredients, posX, posY);
+        if (wrapper.setRecipeLayout(recipeCategory, recipe, focuses) || wrapper.getLegacyAdapter().setRecipeLayout(recipeCategory, recipe)) {
+            recipe.setRecipeLayout(posX, posY);
+            List<RecipeSlot> recipeSlots = new ArrayList<>();
+            List<Widget> allWidgets = recipe.modularUI.getFlatWidgetCollection();
+            for (RecipeSlot slot : wrapper.getRecipeSlots().getSlots()) {
+                ImmutableRect2i rect = slot.getRect();
+                Widget widget = allWidgets.get(rect.getX());
+                Position position = widget.getPosition();
+                recipeSlots.add(new RecipeSlotWrapper(widget, slot, position.x - posX, position.y - posY));
+            }
+            wrapper.setRecipeSlots(recipeSlots);
+            return wrapper;
+        }
+        return null;
+    }
+
+    private boolean setRecipeLayout(
+            IRecipeCategory<R> recipeCategory,
+            R recipe,
+            IFocusGroup focuses
+    ) {
+        RecipeLayoutBuilder builder = new RecipeLayoutBuilder(accessor.getRegisteredIngredients(), accessor.getIngredientCycleOffset());
+        try {
+            recipeCategory.setRecipe(builder, recipe, focuses);
+            if (builder.isUsed()) {
+                builder.setRecipeLayout(this, focuses);
+                return true;
+            }
+        } catch (RuntimeException | LinkageError e) {
+            accessor.getLogger().error("Error caught from Recipe Category: {}", recipeCategory.getRecipeType().getUid(), e);
+        }
+        return false;
+    }
+
+    private void setRecipeSlots(List<RecipeSlot> recipeSlots) {
+        ((RecipeSlotsAccessor) this.getRecipeSlots()).setSlots(recipeSlots);
+        ((RecipeSlotsAccessor) this.getRecipeSlots()).setView(new RecipeSlotsView(recipeSlots));
+    }
+
+    public RecipeLayoutWrapper(
+            int index,
+            IRecipeCategory<R> recipeCategory,
+            R recipe,
+            IFocusGroup focuses,
+            RegisteredIngredients registeredIngredients,
+            int posX,
+            int posY
+    ) {
+        super(index, recipeCategory, recipe, focuses, registeredIngredients, posX, posY);
+        this.wrapper = recipe;
+    }
+
+    public ModularWrapper<?> getWrapper() {
+        return wrapper;
+    }
+
+    /**
+     * Rewrite the rendering of the recipe to use the LDLib wrapped rendering method.
+     */
+    @Override
+    public void drawRecipe(@NotNull PoseStack poseStack, int mouseX, int mouseY) {
+        IRecipeCategory<R> recipeCategory = getRecipeCategory();
+        IDrawable background = recipeCategory.getBackground();
+
+        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+
+        int posX = getPosX();
+        int posY = getPosY();
+        final int recipeMouseX = mouseX - posX;
+        final int recipeMouseY = mouseY - posY;
+
+        poseStack.pushPose();
+        {
+            poseStack.translate(posX, posY, 0);
+
+            IDrawable categoryBackground = recipeCategory.getBackground();
+            int width = categoryBackground.getWidth() + (2 * RECIPE_BORDER_PADDING);
+            int height = categoryBackground.getHeight() + (2 * RECIPE_BORDER_PADDING);
+            accessor.getRecipeBorder().draw(poseStack, -RECIPE_BORDER_PADDING, -RECIPE_BORDER_PADDING, width, height);
+            background.draw(poseStack);
+
+            // defensive push/pop to protect against recipe categories changing the last pose
+            poseStack.pushPose();
+            {
+                wrapper.draw(poseStack, recipeMouseX, recipeMouseY);
+                //drawExtras and drawInfo often render text which messes with the color, this clears it
+                RenderSystem.setShaderColor(1, 1, 1, 1);
+            }
+            poseStack.popPose();
+
+            //We have any shapeless recipes?
+            ShapelessIcon shapelessIcon = accessor.getShapelessIcon();
+            if (shapelessIcon != null) {
+                shapelessIcon.draw(poseStack);
+            }
+
+        }
+        poseStack.popPose();
+
+        if (getRecipeTransferButton() != null) {
+            Minecraft minecraft = Minecraft.getInstance();
+            float partialTicks = minecraft.getFrameTime();
+            getRecipeTransferButton().render(poseStack, mouseX, mouseY, partialTicks);
+        }
+        RenderSystem.disableBlend();
+    }
+
+    @Override
+    public void drawOverlays(@NotNull PoseStack poseStack, int mouseX, int mouseY) {
+        //:P
+    }
+
+    /**
+     * Sync slots position.
+     */
+    public void onPositionUpdate() {
+        this.getRecipeSlots().getSlots()
+                .stream()
+                .filter(RecipeSlotWrapper.class::isInstance)
+                .map(RecipeSlotWrapper.class::cast)
+                .forEach(slotWrapper -> slotWrapper.onPositionUpdate(this));
+    }
+
+}

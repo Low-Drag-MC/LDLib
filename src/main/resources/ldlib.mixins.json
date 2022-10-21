@@ -8,11 +8,17 @@
     "BlockModelShaperMixin",
     "ItemRendererMixin",
     "ParticleEngineMixin",
+    "JeiRecipeLayoutMixin",
+    "ReiJEIWrappedCategoryMixin",
     "TileEntityRendererDispatcherMixin",
-    "WorldRendererMixin"
+    "WorldRendererMixin",
+    "accessor.RecipeLayoutAccessor",
+    "accessor.RecipesGuiAccessor",
+    "accessor.RecipeSlotAccessor",
+    "accessor.RecipeSlotsAccessor"
   ],
   "mixins": [
     "DimensionTypeAccessor",
-    "JeiRecipeFocusMixin"
+    "accessor.AbstractDisplayViewingScreenAccessor"
   ]
 }

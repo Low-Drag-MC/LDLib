@@ -87,12 +87,24 @@ public final class ModularUI {
         return widgetList;
     }
 
+
     public long getTickCount() {
         return tickCount;
     }
 
     void addTick() {
         this.tickCount += 1;
+    }
+    
+    public List<Widget> getFlatWidgetCollection() {
+        List<Widget> widgetList = new ArrayList<>();
+        for (Widget widget : mainGroup.widgets) {
+            widgetList.add(widget);
+            if (widget instanceof WidgetGroup) {
+                widgetList.addAll(((WidgetGroup) widget).getContainedWidgets(true));
+            }
+        }
+        return widgetList;
     }
 
     @OnlyIn(Dist.CLIENT)
@@ -103,7 +115,7 @@ public final class ModularUI {
             getModularUIGui().init();
         }
     }
-    
+
     public void updateScreenSize(int screenWidth, int screenHeight) {
         this.screenWidth = screenWidth;
         this.screenHeight = screenHeight;

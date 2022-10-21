@@ -2,8 +2,8 @@ package com.lowdragmc.lowdraglib.jei;
 
 import mezz.jei.gui.recipes.RecipeLayout;
 import mezz.jei.gui.recipes.RecipesGui;
-import net.minecraftforge.client.event.ScreenEvent;
 import net.minecraftforge.client.event.RecipesUpdatedEvent;
+import net.minecraftforge.client.event.ScreenEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 
@@ -50,22 +50,23 @@ public class JEIClientEventHandler {
     public static void onMouseDragEventPre(ScreenEvent.MouseDragEvent.Pre event) {
         if (event.getScreen() instanceof RecipesGui) {
             for (RecipeLayout<?> recipeLayout : JEIPlugin.getRecipeLayouts((RecipesGui) event.getScreen())) {
-                Object recipe = recipeLayout.getRecipe();
-                if (recipe instanceof ModularWrapper) {
-                    if (((ModularWrapper<?>) recipe).mouseDragged(event.getMouseX(), event.getMouseY(), event.getMouseButton(), event.getDragX(), event.getDragY())) {
+                if (recipeLayout instanceof RecipeLayoutWrapper recipeLayoutWrapper){
+                    if (recipeLayoutWrapper.getWrapper().mouseDragged(event.getMouseX(), event.getMouseY(), event.getMouseButton(), event.getDragX(), event.getDragY())) {
+                        recipeLayoutWrapper.onPositionUpdate();
                         event.setCanceled(true);
                     }
                 }
             }
         }
     }
+
     @SubscribeEvent
     public static void onMouseScrollEventPre(ScreenEvent.MouseScrollEvent.Pre event) {
         if (event.getScreen() instanceof RecipesGui) {
             for (RecipeLayout<?> recipeLayout : JEIPlugin.getRecipeLayouts((RecipesGui) event.getScreen())) {
-                Object recipe = recipeLayout.getRecipe();
-                if (recipe instanceof ModularWrapper) {
-                    if (((ModularWrapper<?>) recipe).mouseScrolled(event.getMouseX(), event.getMouseY(), event.getScrollDelta())) {
+                if (recipeLayout instanceof RecipeLayoutWrapper recipeLayoutWrapper){
+                    if (recipeLayoutWrapper.getWrapper().mouseScrolled(event.getMouseX(), event.getMouseY(), event.getScrollDelta())) {
+                        recipeLayoutWrapper.onPositionUpdate();
                         event.setCanceled(true);
                     }
                 }
