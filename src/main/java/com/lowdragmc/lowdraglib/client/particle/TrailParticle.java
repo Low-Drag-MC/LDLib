@@ -7,6 +7,7 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.util.Mth;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
@@ -14,7 +15,7 @@ import java.util.ArrayList;
 /**
  * @author KilaBash
  * @date 2022/05/30
- * @implNote TraiTrailParticle
+ * @implNote TrailParticle
  */
 @OnlyIn(Dist.CLIENT)
 public abstract class TrailParticle extends LParticle {
@@ -40,10 +41,17 @@ public abstract class TrailParticle extends LParticle {
         this.width = width;
     }
 
+    protected boolean shouldAddTail(Vector3 newTail) {
+        return true;
+    }
+
     @Override
     public final void tick() {
         if (age % freq == 0) {
-            tails.add(getTail());
+            Vector3 tail = getTail();
+            if (shouldAddTail(tail)) {
+                tails.add(getTail());
+            }
             while (tails.size() > maxTail) {
                 tails.remove(0);
             }
@@ -55,12 +63,17 @@ public abstract class TrailParticle extends LParticle {
         return new Vector3(this.xo, this.yo, this.zo);
     }
 
-    public void render(@Nonnull VertexConsumer pBuffer, @Nonnull Camera camera, float partialTicks) {
+    @Override
+    public void render(@NotNull VertexConsumer pBuffer, Camera pRenderInfo, float pPartialTicks) {
+        renderInternal(pBuffer, pRenderInfo, pPartialTicks);
+    }
 
+    public void renderInternal(@Nonnull VertexConsumer pBuffer, @Nonnull Camera camera, float partialTicks) {
         Vector3[] verts = new Vector3[tails.size() * 2];
         double x = (Mth.lerp(partialTicks, this.xo, this.x));
         double y = (Mth.lerp(partialTicks, this.yo, this.y));
         double z = (Mth.lerp(partialTicks, this.zo, this.z));
+        float a = Mth.lerp(partialTicks, this.alphao, this.alpha);
         Vector3 lastTail = new Vector3(x, y, z);
         Vector3 cameraPos = new Vector3(camera.getPosition());
         int size = tails.size() - 1;
@@ -81,13 +94,13 @@ public abstract class TrailParticle extends LParticle {
             float v1 = getV1(i, partialTicks);
             int light = getLightColor(i, partialTicks);
 
-            pBuffer.vertex(currentD.x, currentD.y, currentD.z).uv(u1, v0).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(light).endVertex();
-            pBuffer.vertex(currentU.x, currentU.y, currentU.z).uv(u1, v1).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(light).endVertex();
-            pBuffer.vertex(nextD.x, nextD.y, nextD.z).uv(u0, v0).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(light).endVertex();
+            pBuffer.vertex(currentD.x, currentD.y, currentD.z).uv(u1, v0).color(this.rCol, this.gCol, this.bCol, a).uv2(light).endVertex();
+            pBuffer.vertex(currentU.x, currentU.y, currentU.z).uv(u1, v1).color(this.rCol, this.gCol, this.bCol, a).uv2(light).endVertex();
+            pBuffer.vertex(nextD.x, nextD.y, nextD.z).uv(u0, v0).color(this.rCol, this.gCol, this.bCol, a).uv2(light).endVertex();
 
-            pBuffer.vertex(nextD.x, nextD.y, nextD.z).uv(u0, v0).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(light).endVertex();
-            pBuffer.vertex(currentU.x, currentU.y, currentU.z).uv(u1, v1).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(15728880).endVertex();
-            pBuffer.vertex(nextU.x, nextU.y, nextU.z).uv(u0, v1).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(light).endVertex();
+            pBuffer.vertex(nextD.x, nextD.y, nextD.z).uv(u0, v0).color(this.rCol, this.gCol, this.bCol, a).uv2(light).endVertex();
+            pBuffer.vertex(currentU.x, currentU.y, currentU.z).uv(u1, v1).color(this.rCol, this.gCol, this.bCol, a).uv2(light).endVertex();
+            pBuffer.vertex(nextU.x, nextU.y, nextU.z).uv(u0, v1).color(this.rCol, this.gCol, this.bCol, a).uv2(light).endVertex();
         }
     }
 

@@ -8,6 +8,7 @@ import com.lowdragmc.lowdraglib.utils.Position;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
+import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -89,12 +90,15 @@ public class ModularWrapper<T extends Widget> extends ModularUIGuiContainer {
         RenderSystem.disableDepthTest();
 
         tooltipTexts = null;
+        tooltipFont = null;
+        tooltipStack = ItemStack.EMPTY;
+        tooltipComponent = null;
 
         modularUI.mainGroup.drawInBackground(matrixStack, mouseX, mouseY, partialTicks);
         modularUI.mainGroup.drawInForeground(matrixStack, mouseX, mouseY, partialTicks);
 
         if (tooltipTexts != null && tooltipTexts.size() > 0) {
-            renderTooltip(matrixStack, tooltipTexts, Optional.empty(), mouseX, mouseY);
+            renderTooltip(matrixStack, tooltipTexts, Optional.ofNullable(tooltipComponent), mouseX, mouseY, tooltipFont, tooltipStack);
         }
 
         RenderSystem.depthMask(true);

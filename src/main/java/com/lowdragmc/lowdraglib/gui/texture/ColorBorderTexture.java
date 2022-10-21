@@ -26,8 +26,9 @@ public class ColorBorderTexture implements IGuiTexture{
         return this;
     }
 
-    public void setColor(int color) {
+    public ColorBorderTexture setColor(int color) {
         this.color = color;
+        return this;
     }
 
     public int getColor() {

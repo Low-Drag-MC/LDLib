@@ -8,9 +8,10 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 public class ItemStackTexture implements IGuiTexture{
-    private final ItemStack[] itemStack;
+    public final ItemStack[] itemStack;
     private int index = 0;
     private int ticks = 0;
+    private int color = -1;
 
     public ItemStackTexture(ItemStack... itemStacks) {
         this.itemStack = itemStacks;
@@ -21,6 +22,12 @@ public class ItemStackTexture implements IGuiTexture{
         for(int i = 0; i < items.length; i++) {
             itemStack[i] = new ItemStack(items[i]);
         }
+    }
+
+    @Override
+    public ItemStackTexture setColor(int color) {
+        this.color = color;
+        return this;
     }
 
     @Override
@@ -38,7 +45,7 @@ public class ItemStackTexture implements IGuiTexture{
         mStack.scale(width / 16f, height / 16f, (width + height) / 32f);
         //TODO fix scale z offset
         mStack.translate(x * 16 / width, y * 16 / height, -200 * (width + height) / 32f);
-        DrawerHelper.drawItemStack(mStack, itemStack[index], 0, 0, null);
+        DrawerHelper.drawItemStack(mStack, itemStack[index], 0, 0, color, null);
         mStack.popPose();
     }
 }

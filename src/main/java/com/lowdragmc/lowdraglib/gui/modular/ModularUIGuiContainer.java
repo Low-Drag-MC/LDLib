@@ -7,18 +7,20 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
-import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
-import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -31,7 +33,10 @@ public class ModularUIGuiContainer extends AbstractContainerScreen<ModularUICont
     public boolean focused;
     public int dragSplittingLimit;
     public int dragSplittingButton;
-    public List<Component> tooltipTexts;
+    protected List<Component> tooltipTexts;
+    protected Font tooltipFont;
+    protected ItemStack tooltipStack = ItemStack.EMPTY;
+    protected TooltipComponent tooltipComponent;
 
     public ModularUIGuiContainer(ModularUI modularUI, int windowId) {
         super(new ModularUIContainer(modularUI, windowId), modularUI.entityPlayer.getInventory(), new TextComponent("modularUI"));
@@ -39,9 +44,12 @@ public class ModularUIGuiContainer extends AbstractContainerScreen<ModularUICont
         modularUI.setModularUIGui(this);
     }
 
-    public void setHoverTooltip(List<Component> tooltipTexts) {
+    public void setHoverTooltip(List<Component> tooltipTexts, ItemStack tooltipStack, @Nullable Font tooltipFont, @Nullable TooltipComponent tooltipComponent) {
         if (this.tooltipTexts != null) return;
         this.tooltipTexts = tooltipTexts;
+        this.tooltipStack = tooltipStack;
+        this.tooltipFont = tooltipFont;
+        this.tooltipComponent = tooltipComponent;
     }
 
     @Override
@@ -66,6 +74,7 @@ public class ModularUIGuiContainer extends AbstractContainerScreen<ModularUICont
             modularUI.entityPlayer.closeContainer();
         }
         modularUI.mainGroup.updateScreen();
+        modularUI.addTick();
     }
 
     public void handleWidgetUpdate(SPacketUIWidgetUpdate packet) {
@@ -83,14 +92,21 @@ public class ModularUIGuiContainer extends AbstractContainerScreen<ModularUICont
         RenderSystem.depthMask(false);
 
         tooltipTexts = null;
+        tooltipFont = null;
+        tooltipStack = ItemStack.EMPTY;
+        tooltipComponent = null;
 
         DrawerHelper.drawGradientRect(poseStack, 0, 0, this.width, this.height, -1072689136, -804253680);
+        net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(new net.minecraftforge.client.event.ScreenEvent.BackgroundDrawnEvent(this, poseStack));
+
         modularUI.mainGroup.drawInBackground(poseStack, mouseX, mouseY, partialTicks);
+        net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(new net.minecraftforge.client.event.ContainerScreenEvent.DrawBackground(this, poseStack, mouseX, mouseY));
+
         modularUI.mainGroup.drawInForeground(poseStack, mouseX, mouseY, partialTicks);
 
         if (tooltipTexts != null && tooltipTexts.size() > 0) {
             poseStack.translate(0, 0, 200);
-            renderTooltip(poseStack, tooltipTexts, Optional.empty(), mouseX, mouseY);
+            renderTooltip(poseStack, tooltipTexts, Optional.ofNullable(tooltipComponent), mouseX, mouseY, tooltipFont, tooltipStack);
             poseStack.translate(0, 0, -200);
         }
 
@@ -275,5 +291,9 @@ public class ModularUIGuiContainer extends AbstractContainerScreen<ModularUICont
     @Override
     protected void renderBg(@Nonnull PoseStack pPoseStack, float pPartialTicks, int pX, int pY) {
         
+    }
+
+    public List<Rect2i> getGuiExtraAreas() {
+        return modularUI.mainGroup.getGuiExtraAreas(modularUI.mainGroup.toRectangleBox(), new ArrayList<>());
     }
 }

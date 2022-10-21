@@ -1,6 +1,7 @@
 package com.lowdragmc.lowdraglib;
 
 import com.lowdragmc.lowdraglib.gui.factory.BlockEntityUIFactory;
+import com.lowdragmc.lowdraglib.gui.factory.HeldItemUIFactory;
 import com.lowdragmc.lowdraglib.gui.factory.UIFactory;
 import com.lowdragmc.lowdraglib.networking.LDLNetworking;
 import com.lowdragmc.lowdraglib.test.TestBlock;
@@ -23,6 +24,7 @@ public class CommonProxy {
         eventBus.register(this);
         LDLNetworking.init();
         UIFactory.register(BlockEntityUIFactory.INSTANCE);
+        UIFactory.register(HeldItemUIFactory.INSTANCE);
     }
     @SubscribeEvent
     public void registerBlocks(RegistryEvent.Register<Block> event) {

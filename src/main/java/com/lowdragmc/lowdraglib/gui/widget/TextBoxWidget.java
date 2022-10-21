@@ -105,7 +105,7 @@ public class TextBoxWidget extends Widget {
                 if (isCenter) {
                     x = (size.width / scale - font.width(textLine)) / 2;
                 }
-                if (isShadow) {
+                if (!isShadow) {
                     font.draw(matrixStack, textLine, x, y, fontColor);
                 } else {
                     font.drawShadow(matrixStack, textLine, x, y, fontColor);

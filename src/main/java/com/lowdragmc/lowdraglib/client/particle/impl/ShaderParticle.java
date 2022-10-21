@@ -65,26 +65,6 @@ public class ShaderParticle extends LParticle {
         return renderType;
     }
 
-    @Override
-    protected float getU0(float pPartialTicks) {
-        return 0;
-    }
-
-    @Override
-    protected float getU1(float pPartialTicks) {
-        return 1;
-    }
-
-    @Override
-    protected float getV0(float pPartialTicks) {
-        return 0;
-    }
-
-    @Override
-    protected float getV1(float pPartialTicks) {
-        return 1;
-    }
-
     public static class ShaderTrailRenderType implements ParticleRenderType {
         ResourceLocation shader;
         Consumer<ShaderProgram> shaderProgramConsumer;

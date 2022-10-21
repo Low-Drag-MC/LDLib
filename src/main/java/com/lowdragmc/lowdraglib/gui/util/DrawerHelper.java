@@ -146,13 +146,17 @@ public class DrawerHelper {
     }
 
     @OnlyIn(Dist.CLIENT)
-    public static void drawItemStack(PoseStack poseStack, ItemStack itemStack, int x, int y, @Nullable String altTxt) {
+    public static void drawItemStack(PoseStack poseStack, ItemStack itemStack, int x, int y, int color, @Nullable String altTxt) {
         PoseStack posestack = RenderSystem.getModelViewStack();
         posestack.pushPose();
         posestack.mulPoseMatrix(poseStack.last().pose());
         posestack.translate(0.0D, 0.0D, 32.0D);
         RenderSystem.applyModelViewMatrix();
-        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+        float a = (float)(color >> 24 & 255) / 255.0F;
+        float r   = (float)(color >> 16 & 255) / 255.0F;
+        float g = (float)(color >>  8 & 255) / 255.0F;
+        float b  = (float)(color       & 255) / 255.0F;
+        RenderSystem.setShaderColor(r, g, b, a);
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
 
         RenderSystem.enableDepthTest();
@@ -266,7 +270,7 @@ public class DrawerHelper {
         Matrix4f mat = poseStack.last().pose();
         RenderSystem.setShader(GameRenderer::getPositionColorShader);
         if (startColor == endColor) {
-            bufferbuilder.begin(VertexFormat.Mode.LINE_STRIP, DefaultVertexFormat.POSITION_COLOR);
+            bufferbuilder.begin(VertexFormat.Mode.DEBUG_LINE_STRIP, DefaultVertexFormat.POSITION_COLOR);
             for (Vec2 point : points) {
                 bufferbuilder.vertex(mat, point.x, point.y, 0).color(startColor).endVertex();
             }
@@ -279,7 +283,7 @@ public class DrawerHelper {
             float endRed     = (float)(endColor   >> 16 & 255) / 255.0F;
             float endGreen   = (float)(endColor   >>  8 & 255) / 255.0F;
             float endBlue    = (float)(endColor         & 255) / 255.0F;
-            bufferbuilder.begin(VertexFormat.Mode.LINE_STRIP, DefaultVertexFormat.POSITION_COLOR);
+            bufferbuilder.begin(VertexFormat.Mode.DEBUG_LINE_STRIP, DefaultVertexFormat.POSITION_COLOR);
             int size = points.size();
 
             for (int i = 0; i < size; i++) {

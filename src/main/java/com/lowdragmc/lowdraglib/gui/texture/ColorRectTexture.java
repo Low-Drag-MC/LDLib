@@ -18,8 +18,9 @@ public class ColorRectTexture implements IGuiTexture{
         this.color = color.getRGB();
     }
 
-    public void setColor(int color) {
+    public ColorRectTexture setColor(int color) {
         this.color = color;
+        return this;
     }
 
     public int getColor() {

@@ -12,6 +12,7 @@ import net.minecraft.client.particle.Particle;
 import net.minecraft.util.FastColor;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -27,11 +28,14 @@ import java.util.function.Consumer;
 @OnlyIn(Dist.CLIENT)
 public abstract class LParticle extends Particle {
     public float quadSize = 1;
+    public int fadeIn = -1;
+    public int fadeOut = -1;
     public boolean moveless;
     protected Consumer<LParticle> onUpdate;
     public int lightColor = -1;
     public boolean cull = true;
     private Level realLevel;
+    protected float alphao = 1;
 
     protected LParticle(ClientLevel level, double x, double y, double z) {
         super(level, x, y, z);
@@ -61,6 +65,10 @@ public abstract class LParticle extends Particle {
         this.moveless = moveless;
     }
 
+    public void setPhysics(boolean hasPhysics) {
+        this.hasPhysics = hasPhysics;
+    }
+
     public void setFullLight() {
         setLight(0xf000f0);
     }
@@ -72,17 +80,45 @@ public abstract class LParticle extends Particle {
         return moveless;
     }
 
+    public void setFadeIn(int fadeIn) {
+        this.fadeIn = fadeIn;
+        this.setAlpha(0, true);
+    }
+
+    public void setFadeOut(int fadeOut) {
+        this.fadeOut = fadeOut;
+    }
+
+    public void setFade(int fade) {
+        setFadeIn(fade);
+        setFadeOut(fade);
+    }
+
+    public void setRoll(float roll, boolean setOrigin) {
+        this.roll = roll;
+        if (setOrigin) {
+            this.oRoll = roll;
+        }
+    }
+
+
     @Override
     public void tick() {
         this.xo = this.x;
         this.yo = this.y;
         this.zo = this.z;
+        this.alphao = this.alpha;
         if (this.age++ >= this.lifetime && lifetime > 0) {
             this.remove();
         } else if (onUpdate == null){
             update();
         } else {
             onUpdate.accept(this);
+        }
+        if (fadeIn > 0 && this.age <= fadeIn) {
+            this.alpha = this.age * 1f / fadeIn;
+        } else if (fadeOut > 0 && this.lifetime > 0 && (this.lifetime - this.age) <= fadeOut) {
+            this.alpha = (this.lifetime - this.age) * 1f / fadeOut;
         }
     }
 
@@ -109,6 +145,7 @@ public abstract class LParticle extends Particle {
         float f = (float)(Mth.lerp(pPartialTicks, this.xo, this.x) - vec3.x());
         float f1 = (float)(Mth.lerp(pPartialTicks, this.yo, this.y) - vec3.y());
         float f2 = (float)(Mth.lerp(pPartialTicks, this.zo, this.z) - vec3.z());
+        float a = Mth.lerp(pPartialTicks, this.alphao, this.alpha);
         Quaternion quaternion;
         if (this.roll == 0.0F) {
             quaternion = pRenderInfo.rotation();
@@ -133,10 +170,10 @@ public abstract class LParticle extends Particle {
         float f5 = this.getV0(pPartialTicks);
         float f6 = this.getV1(pPartialTicks);
         int j = this.getLightColor(pPartialTicks);
-        pBuffer.vertex(avector3f[0].x(), avector3f[0].y(), avector3f[0].z()).uv(f8, f6).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(j).endVertex();
-        pBuffer.vertex(avector3f[1].x(), avector3f[1].y(), avector3f[1].z()).uv(f8, f5).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(j).endVertex();
-        pBuffer.vertex(avector3f[2].x(), avector3f[2].y(), avector3f[2].z()).uv(f7, f5).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(j).endVertex();
-        pBuffer.vertex(avector3f[3].x(), avector3f[3].y(), avector3f[3].z()).uv(f7, f6).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(j).endVertex();
+        pBuffer.vertex(avector3f[0].x(), avector3f[0].y(), avector3f[0].z()).uv(f8, f6).color(this.rCol, this.gCol, this.bCol, a).uv2(j).endVertex();
+        pBuffer.vertex(avector3f[1].x(), avector3f[1].y(), avector3f[1].z()).uv(f8, f5).color(this.rCol, this.gCol, this.bCol, a).uv2(j).endVertex();
+        pBuffer.vertex(avector3f[2].x(), avector3f[2].y(), avector3f[2].z()).uv(f7, f5).color(this.rCol, this.gCol, this.bCol, a).uv2(j).endVertex();
+        pBuffer.vertex(avector3f[3].x(), avector3f[3].y(), avector3f[3].z()).uv(f7, f6).color(this.rCol, this.gCol, this.bCol, a).uv2(j).endVertex();
     }
 
     public float getQuadSize(float pPartialTicks) {
@@ -150,9 +187,27 @@ public abstract class LParticle extends Particle {
         return this;
     }
 
-    public void setAlpha(float pAlpha) {
-        this.alpha = pAlpha;
+    public void setAlpha(float alpha, boolean setOrigin) {
+        this.alpha = alpha;
+        if (setOrigin) {
+            this.alphao = alpha;
+        }
     }
+
+    public void setPos(double pX, double pY, double pZ, boolean setOrigin) {
+        this.x = pX;
+        this.y = pY;
+        this.z = pZ;
+        if (setOrigin) {
+            this.xo = x;
+            this.yo = y;
+            this.zo = z;
+        }
+        float f = this.bbWidth / 2.0F;
+        float f1 = this.bbHeight;
+        this.setBoundingBox(new AABB(pX - (double)f, pY, pZ - (double)f, pX + (double)f, pY + (double)f1, pZ + (double)f));
+    }
+
     public void setGravity(float gravity) {
         this.gravity = gravity;
     }
@@ -179,13 +234,21 @@ public abstract class LParticle extends Particle {
         return cull;
     }
 
-    protected abstract float getU0(float pPartialTicks);
+    protected float getU0(float pPartialTicks) {
+        return 0;
+    }
 
-    protected abstract float getU1(float pPartialTicks);
+    protected float getU1(float pPartialTicks) {
+        return 1;
+    }
 
-    protected abstract float getV0(float pPartialTicks);
+    protected float getV0(float pPartialTicks) {
+        return 0;
+    }
 
-    protected abstract float getV1(float pPartialTicks);
+    protected float getV1(float pPartialTicks) {
+        return 1;
+    }
 
     public int getAge() {
         return age;
@@ -199,6 +262,10 @@ public abstract class LParticle extends Particle {
         setLifetime(-1);
     }
 
+    public void setFriction(float friction) {
+        this.friction = friction;
+    }
+
     public void addParticle() {
         if (getLevel() instanceof DummyWorld dummyWorld) {
             ParticleManager particleManager = dummyWorld.getParticleManager();
@@ -208,5 +275,9 @@ public abstract class LParticle extends Particle {
         } else {
             Minecraft.getInstance().particleEngine.add(this);
         }
+    }
+
+    public void resetAge() {
+        this.age = 0;
     }
 }

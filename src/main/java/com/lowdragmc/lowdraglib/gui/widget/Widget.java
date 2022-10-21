@@ -2,6 +2,7 @@ package com.lowdragmc.lowdraglib.gui.widget;
 
 import com.google.common.base.Preconditions;
 import com.lowdragmc.lowdraglib.LDLMod;
+import com.lowdragmc.lowdraglib.gui.animation.Animation;
 import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
 import com.lowdragmc.lowdraglib.gui.modular.ModularUIGuiContainer;
 import com.lowdragmc.lowdraglib.gui.modular.WidgetUIAccess;
@@ -18,6 +19,7 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.sounds.SoundEvents;
+import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.lwjgl.glfw.GLFW;
@@ -52,6 +54,7 @@ public class Widget {
     protected IGuiTexture backgroundTexture;
     protected IGuiTexture hoverTexture;
     protected WidgetGroup parent;
+    protected Animation animation;
     private boolean initialized;
 
     public Widget(Position selfPosition, Size size) {
@@ -107,6 +110,22 @@ public class Widget {
     public Widget setHoverTexture(IGuiTexture... hoverTexture) {
         this.hoverTexture = hoverTexture.length > 1 ? new GuiTextureGroup(hoverTexture) : hoverTexture[0];
         return this;
+    }
+
+    public void animation(Animation animation) {
+        if (isRemote()) {
+            this.animation = animation;
+            this.animation.setWidget(this);
+        } else {
+            Runnable runnable = animation.getOnFinish();
+            if (runnable != null){
+                runnable.run();
+            }
+        }
+    }
+
+    protected boolean inAnimate() {
+        return animation != null && !animation.isFinish();
     }
 
     public void setGui(ModularUI gui) {
@@ -252,7 +271,7 @@ public class Widget {
     @OnlyIn(Dist.CLIENT)
     public void drawInForeground(@Nonnull PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
         if (tooltipTexts != null && isMouseOverElement(mouseX, mouseY) && tooltipTexts.size() > 0 && gui != null &&  gui.getModularUIGui() != null) {
-            gui.getModularUIGui().setHoverTooltip(tooltipTexts);
+            gui.getModularUIGui().setHoverTooltip(tooltipTexts, ItemStack.EMPTY, null, null);
         }
     }
 
@@ -422,5 +441,21 @@ public class Widget {
         if (parent == null) return false;
         if (parent == widgetGroup) return true;
         return parent.isParent(widgetGroup);
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    public void onScreenSizeUpdate(int screenWidth, int screenHeight) {
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    public List<Rect2i> getGuiExtraAreas(Rect2i guiRect, List<Rect2i> list) {
+        Rect2i rect2i = toRectangleBox();
+        if (rect2i.getX() < guiRect.getX()
+                || rect2i.getX() + rect2i.getWidth() >  guiRect.getX() + guiRect.getWidth()
+                || rect2i.getY() < guiRect.getY()
+                || rect2i.getY() + rect2i.getHeight() >  guiRect.getY() + guiRect.getHeight()){
+            list.add(toRectangleBox());
+        }
+        return list;
     }
 }

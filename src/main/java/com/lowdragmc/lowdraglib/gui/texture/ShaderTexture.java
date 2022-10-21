@@ -24,6 +24,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import java.util.function.Consumer;
 
 public class ShaderTexture implements IGuiTexture {
+    public ResourceLocation location;
     @OnlyIn(Dist.CLIENT)
     private ShaderProgram program;
     @OnlyIn(Dist.CLIENT)
@@ -74,12 +75,15 @@ public class ShaderTexture implements IGuiTexture {
     }
 
     public static ShaderTexture createShader(ResourceLocation location) {
+        ShaderTexture texture;
         if (LDLMod.isRemote() && ShaderManager.allowedShader()) {
             Shader shader = Shaders.load(Shader.ShaderType.FRAGMENT, location);
-            return new ShaderTexture(shader, false);
+            texture = new ShaderTexture(shader, false);
         } else {
-            return new ShaderTexture(false);
+            texture = new ShaderTexture(false);
         }
+        texture.location = location;
+        return texture;
     }
 
     public static ShaderTexture createRawShader(String rawShader) {

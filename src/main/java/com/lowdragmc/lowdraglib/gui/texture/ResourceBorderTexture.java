@@ -23,6 +23,12 @@ public class ResourceBorderTexture extends ResourceTexture {
         this.pixelCornerHeight = cornerHeight;
     }
 
+    @Override
+    public ResourceBorderTexture setColor(int color) {
+        super.setColor(color);
+        return this;
+    }
+
     @OnlyIn(Dist.CLIENT)
     @Override
     public void drawSubArea(PoseStack stack, float x, float y, int width, int height, float drawnU, float drawnV, float drawnWidth, float drawnHeight) {

@@ -28,6 +28,7 @@ import java.util.function.Function;
 public class TextureParticle extends LParticle {
 
     public ResourceLocation texture = new ResourceLocation(LDLMod.MODID, "textures/particle/kila_tail.png");
+    public boolean depthTest = true;
 
     public TextureParticle(ClientLevel level, double x, double y, double z) {
         super(level, x, y, z);
@@ -37,28 +38,13 @@ public class TextureParticle extends LParticle {
         super(level, x, y, z, sX, sY, sZ);
     }
 
-    @Override
-    protected float getU0(float pPartialTicks) {
-        return 0;
-    }
-
-    @Override
-    protected float getU1(float pPartialTicks) {
-        return 1;
-    }
-
-    @Override
-    protected float getV0(float pPartialTicks) {
-        return 0;
-    }
-
-    @Override
-    protected float getV1(float pPartialTicks) {
-        return 1;
-    }
-
     public TextureParticle setTexture(ResourceLocation texture) {
         this.texture = texture;
+        return this;
+    }
+
+    public TextureParticle setDepth(boolean depthTest) {
+        this.depthTest = depthTest;
         return this;
     }
 
@@ -81,9 +67,30 @@ public class TextureParticle extends LParticle {
         }
     });
 
+    protected static final Function<ResourceLocation, ParticleRenderType> NO_DEPTH_TYPE = Util.memoize((texture) -> new ParticleRenderType() {
+        @Override
+        public void begin(@Nonnull BufferBuilder bufferBuilder, @Nonnull
+        TextureManager textureManager) {
+            RenderSystem.enableBlend();
+            RenderSystem.defaultBlendFunc();
+            RenderSystem.disableDepthTest();
+            RenderSystem.depthMask(true);
+            RenderSystem.setShader(GameRenderer::getParticleShader);
+            RenderSystem.setShaderTexture(0, texture);
+            RenderSystem.enableCull();
+            bufferBuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.PARTICLE);
+        }
+
+        @Override
+        public void end(@Nonnull Tesselator tesselator) {
+            tesselator.end();
+            RenderSystem.enableDepthTest();
+        }
+    });
+
     @Override
     @Nonnull
     public ParticleRenderType getRenderType() {
-        return TYPE.apply(texture);
+        return depthTest ? TYPE.apply(texture) : NO_DEPTH_TYPE.apply(texture);
     }
 }

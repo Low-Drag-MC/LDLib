@@ -5,11 +5,13 @@ import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.utils.Position;
 import com.lowdragmc.lowdraglib.utils.Size;
 import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.util.Mth;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 import javax.annotation.Nonnull;
+import java.util.List;
 
 public class DraggableScrollableWidgetGroup extends WidgetGroup {
     protected int scrollXOffset;
@@ -222,7 +224,8 @@ public class DraggableScrollableWidgetGroup extends WidgetGroup {
         return isMouseOver(pos.x + size.width - yBarWidth, pos.y, yBarWidth, size.height, mouseX, mouseY);
     }
 
-    protected boolean hookDrawInBackground(int mouseX, int mouseY, float partialTicks) {
+    @OnlyIn(Dist.CLIENT)
+    protected boolean hookDrawInBackground(@Nonnull PoseStack matrixStack, int mouseX, int mouseY, float partialTicks) {
         return false;
     }
 
@@ -243,12 +246,12 @@ public class DraggableScrollableWidgetGroup extends WidgetGroup {
         int height = getSize().height;
         if (useScissor) {
             RenderUtils.useScissor(x, y, width - yBarWidth, height - xBarHeight, ()->{
-                if(!hookDrawInBackground(mouseX, mouseY, partialTicks)) {
+                if(!hookDrawInBackground(matrixStack, mouseX, mouseY, partialTicks)) {
                     super.drawInBackground(matrixStack, mouseX, mouseY, partialTicks);
                 }
             });
         } else {
-            if(!hookDrawInBackground(mouseX, mouseY, partialTicks)) {
+            if(!hookDrawInBackground(matrixStack, mouseX, mouseY, partialTicks)) {
                 super.drawInBackground(matrixStack, mouseX, mouseY, partialTicks);
             }
         }
@@ -404,6 +407,18 @@ public class DraggableScrollableWidgetGroup extends WidgetGroup {
             return super.mouseReleased(mouseX, mouseY, button);
         }
         return true;
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    public List<Rect2i> getGuiExtraAreas(Rect2i guiRect, List<Rect2i> list) {
+        Rect2i rect2i = toRectangleBox();
+        if (rect2i.getX() < guiRect.getX()
+                || rect2i.getX() + rect2i.getWidth() >  guiRect.getX() + guiRect.getWidth()
+                || rect2i.getY() < guiRect.getY()
+                || rect2i.getY() + rect2i.getHeight() >  guiRect.getY() + guiRect.getHeight()){
+            list.add(toRectangleBox());
+        }
+        return list;
     }
 
     public void setSelected(Widget widget) {

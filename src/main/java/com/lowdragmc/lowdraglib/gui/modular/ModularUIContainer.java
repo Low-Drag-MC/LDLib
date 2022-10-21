@@ -117,6 +117,7 @@ public class ModularUIContainer extends AbstractContainerMenu implements WidgetU
             modularUI.entityPlayer.closeContainer();
         }
         modularUI.mainGroup.detectAndSendChanges();
+        modularUI.addTick();
     }
 
     @Override

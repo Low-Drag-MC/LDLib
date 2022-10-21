@@ -28,6 +28,7 @@ public final class ModularUI {
     private ModularUIGuiContainer guiContainer;
     private ModularUIContainer container;
     private final List<Runnable> uiCloseCallback;
+    private long tickCount;
 
     /**
      * UIHolder of this modular UI
@@ -86,6 +87,15 @@ public final class ModularUI {
         return widgetList;
     }
 
+
+    public long getTickCount() {
+        return tickCount;
+    }
+
+    void addTick() {
+        this.tickCount += 1;
+    }
+    
     public List<Widget> getFlatWidgetCollection() {
         List<Widget> widgetList = new ArrayList<>();
         for (Widget widget : mainGroup.widgets) {
@@ -111,6 +121,7 @@ public final class ModularUI {
         this.screenHeight = screenHeight;
         Position displayOffset = new Position(getGuiLeft(), getGuiTop());
         mainGroup.setParentPosition(displayOffset);
+        mainGroup.onScreenSizeUpdate(screenWidth, screenHeight);
     }
 
     public void initWidgets() {

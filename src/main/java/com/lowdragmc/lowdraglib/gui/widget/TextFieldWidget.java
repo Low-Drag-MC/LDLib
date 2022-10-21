@@ -13,6 +13,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -353,7 +354,7 @@ public class TextFieldWidget extends Widget {
                 tips.add(new TranslatableComponent("ldlib.gui.text_field.number.wheel", numberInstance.format(wheelDur)));
             }
             if (!tips.isEmpty()) {
-                gui.getModularUIGui().setHoverTooltip(tips);
+                gui.getModularUIGui().setHoverTooltip(tips, ItemStack.EMPTY, null, null);
             }
         }
     }
