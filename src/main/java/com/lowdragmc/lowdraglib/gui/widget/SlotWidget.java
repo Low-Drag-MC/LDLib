@@ -1,9 +1,10 @@
 package com.lowdragmc.lowdraglib.gui.widget;
 
-import com.lowdragmc.lowdraglib.gui.ingredient.IIngredientSlot;
+import com.lowdragmc.lowdraglib.gui.ingredient.IRecipeIngredientSlot;
 import com.lowdragmc.lowdraglib.gui.modular.ModularUIGuiContainer;
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.util.DrawerHelper;
+import com.lowdragmc.lowdraglib.jei.IngredientIO;
 import com.lowdragmc.lowdraglib.utils.Position;
 import com.lowdragmc.lowdraglib.utils.Size;
 import com.mojang.blaze3d.platform.InputConstants;
@@ -29,7 +30,7 @@ import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
-public class SlotWidget extends Widget implements IIngredientSlot {
+public class SlotWidget extends Widget implements IRecipeIngredientSlot {
 
     protected final Slot slotReference;
     protected final boolean canTakeItems;
@@ -42,6 +43,7 @@ public class SlotWidget extends Widget implements IIngredientSlot {
     protected Runnable changeListener;
     protected BiConsumer<SlotWidget, List<Component>> onAddedTooltips;
     protected Function<ItemStack, ItemStack> itemHook;
+    protected IngredientIO ingredientIO = IngredientIO.RENDER_ONLY;
 
     public SlotWidget(Container inventory, int slotIndex, int xPosition, int yPosition, boolean canTakeItems, boolean canPutItems) {
         super(new Position(xPosition, yPosition), new Size(18, 18));
@@ -59,6 +61,11 @@ public class SlotWidget extends Widget implements IIngredientSlot {
 
     public SlotWidget setItemHook(Function<ItemStack, ItemStack> itemHook) {
         this.itemHook = itemHook;
+        return this;
+    }
+
+    public SlotWidget setIngredientIO(IngredientIO ingredientIO) {
+        this.ingredientIO = ingredientIO;
         return this;
     }
 
@@ -250,11 +257,13 @@ public class SlotWidget extends Widget implements IIngredientSlot {
     }
 
     @Override
-    public Object getIngredientOverMouse(double mouseX, double mouseY) {
-        if (isMouseOverElement(mouseX, mouseY)) {
-            return getRealStack(getHandle().getItem());
-        }
-        return null;
+    public Object getJEIIngredient() {
+        return getRealStack(getHandle().getItem());
+    }
+
+    @Override
+    public IngredientIO getIngredientIo() {
+        return ingredientIO;
     }
 
     public ItemStack getRealStack(ItemStack itemStack) {

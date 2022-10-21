@@ -1,9 +1,11 @@
 package com.lowdragmc.lowdraglib.gui.widget;
 
 import com.lowdragmc.lowdraglib.gui.ingredient.IIngredientSlot;
+import com.lowdragmc.lowdraglib.gui.ingredient.IRecipeIngredientSlot;
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.util.DrawerHelper;
 import com.lowdragmc.lowdraglib.gui.util.TextFormattingUtil;
+import com.lowdragmc.lowdraglib.jei.IngredientIO;
 import com.lowdragmc.lowdraglib.utils.FluidUtils;
 import com.lowdragmc.lowdraglib.utils.Position;
 import com.lowdragmc.lowdraglib.utils.Size;
@@ -33,7 +35,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiConsumer;
 
-public class TankWidget extends Widget implements IIngredientSlot {
+public class TankWidget extends Widget implements IRecipeIngredientSlot {
 
     public final IFluidTank fluidTank;
 
@@ -46,6 +48,7 @@ public class TankWidget extends Widget implements IIngredientSlot {
     protected FluidStack lastFluidInTank;
     protected int lastTankCapacity;
     protected BiConsumer<TankWidget, List<Component>> onAddedTooltips;
+    protected IngredientIO ingredientIO = IngredientIO.RENDER_ONLY;
 
     public TankWidget(IFluidTank fluidTank, int x, int y, boolean allowClickContainerFilling, boolean allowClickContainerEmptying) {
         super(new Position(x, y), new Size(18, 18));
@@ -100,12 +103,19 @@ public class TankWidget extends Widget implements IIngredientSlot {
         return this;
     }
 
+    public TankWidget setIngredientIO(IngredientIO ingredientIO) {
+        this.ingredientIO = ingredientIO;
+        return this;
+    }
+
     @Override
-    public Object getIngredientOverMouse(double mouseX, double mouseY) {
-        if (isMouseOverElement(mouseX, mouseY) && !lastFluidInTank.isEmpty()) {
-            return lastFluidInTank;
-        }
-        return null;
+    public Object getJEIIngredient() {
+        return lastFluidInTank.isEmpty() ? null : lastFluidInTank;
+    }
+
+    @Override
+    public IngredientIO getIngredientIo() {
+        return ingredientIO;
     }
 
     private List<Component> getToolTips(List<Component> list) {

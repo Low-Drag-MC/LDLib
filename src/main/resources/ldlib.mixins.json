@@ -9,7 +9,6 @@
     "ItemRendererMixin",
     "ParticleEngineMixin",
     "JeiRecipeLayoutMixin",
-    "ReiJEIWrappedCategoryMixin",
     "TileEntityRendererDispatcherMixin",
     "WorldRendererMixin",
     "accessor.RecipeLayoutAccessor",

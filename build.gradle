@@ -13,7 +13,17 @@ buildscript {
 }
 
 repositories {
-    maven { url 'https://dvs1.progwml6.com/files/maven' }
+    maven { url "https://maven.shedaniel.me" }
+    maven {
+        // location of the maven that hosts JEI files
+        name = "Progwml6 maven"
+        url = "https://dvs1.progwml6.com/files/maven/"
+    }
+    maven {
+        // location of a maven mirror for JEI files, as a fallback
+        name = "ModMaven"
+        url = "https://modmaven.dev"
+    }
     maven {
         url "https://www.cursemaven.com"
         content {
@@ -105,21 +115,15 @@ dependencies {
     // Apply Mixin AP
 
     //JEI
-    compileOnly fg.deobf("mezz.jei:jei-${minecraft_version}:${jei_version}")
+    compileOnly fg.deobf("mezz.jei:jei-${minecraft_version}:${jei_version}:api")
+    implementation fg.deobf("mezz.jei:jei-${minecraft_version}:${jei_version}")
     //REI
-    compileOnly fg.deobf("curse.maven:roughly-enough-items-310111:3939267")
-    compileOnly fg.deobf("curse.maven:cloth-config-348521:3782776")
+    compileOnly fg.deobf("me.shedaniel:RoughlyEnoughItems-default-plugin-forge:${rei_version}")
+    compileOnly fg.deobf("me.shedaniel:RoughlyEnoughItems-api-forge:${rei_version}")
+    compileOnly fg.deobf("me.shedaniel:RoughlyEnoughItems-forge:${rei_version}")
 
-    if (project.runtime_itemview_mod == 'jei') {
-        runtimeOnly fg.deobf("mezz.jei:jei-${minecraft_version}:${jei_version}")
-    }
-
-    if (project.runtime_itemview_mod == 'rei') {
-        runtimeOnly fg.deobf("curse.maven:roughly-enough-items-310111:3939267")
-        runtimeOnly fg.deobf("curse.maven:architectury-api-419699:3929416")
-        runtimeOnly fg.deobf("curse.maven:roughly-enough-items-hacks-521393:3939270")
-        runtimeOnly fg.deobf("curse.maven:cloth-config-348521:3782776")
-    }
+    compileOnly fg.deobf("dev.architectury:architectury-forge:${architectury_version}")
+    compileOnly fg.deobf("me.shedaniel.cloth:cloth-config-forge:${cloth_config_version}")
 
     if (System.getProperty('idea.sync.active') != 'true') {
         annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
