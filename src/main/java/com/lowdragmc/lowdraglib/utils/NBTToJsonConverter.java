@@ -18,34 +18,18 @@ public class NBTToJsonConverter{
         this.tag = tag;
     }
 
-    public String convert(boolean pretty) {
-        JsonObject json = getObject(this.tag);
-        String jsonString = json.toString();
-        JsonParser parser = new JsonParser();
-        GsonBuilder builder = new GsonBuilder();
-        if (pretty) {
-            builder.setPrettyPrinting();
-        }
-
-        Gson gson = builder.create();
-        JsonElement el = parser.parse(jsonString);
-        return gson.toJson(el);
-    }
-
-    public static JsonObject getObject(CompoundTag tag) {
+    public static JsonElement getObject(CompoundTag tag) {
         Set<String> keys = tag.getAllKeys();
         JsonObject jsonRoot = new JsonObject();
         for (String key : keys) {
-            JsonObject keyObject = new JsonObject();
-            jsonRoot.add(key, keyObject);
+            JsonElement value;
             Tag nbt = tag.get(key);
-            keyObject.addProperty("type", nbt.getId());
             if (nbt instanceof CompoundTag) {
-                keyObject.add("value", getObject((CompoundTag)nbt));
+                value = getObject((CompoundTag)nbt);
             } else if (nbt instanceof NumericTag) {
-                keyObject.addProperty("value", ((NumericTag)nbt).getAsDouble());
+                value = new JsonPrimitive(((NumericTag)nbt).getAsDouble());
             } else if (nbt instanceof StringTag) {
-                keyObject.addProperty("value", nbt.getAsString());
+                value = new JsonPrimitive(nbt.getAsString());
             } else {
                 JsonArray array;
                 if (nbt instanceof ListTag tagList) {
@@ -58,8 +42,7 @@ public class NBTToJsonConverter{
                             array.add(new JsonPrimitive(tagList.getString(i)));
                         }
                     }
-
-                    keyObject.add("value", array);
+                    value = array;
                 } else {
                     if (!(nbt instanceof IntArrayTag intArray)) {
                         byte var10002 = nbt.getId();
@@ -71,10 +54,10 @@ public class NBTToJsonConverter{
                     for (int i : intArray.getAsIntArray()) {
                         array.add(new JsonPrimitive(i));
                     }
-
-                    keyObject.add("value", array);
+                    value = array;
                 }
             }
+            jsonRoot.add(key, value);
         }
 
         return jsonRoot;

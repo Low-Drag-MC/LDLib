@@ -11,13 +11,18 @@ import com.lowdragmc.lowdraglib.gui.util.DrawerHelper;
 import com.lowdragmc.lowdraglib.utils.BlockPosFace;
 import com.lowdragmc.lowdraglib.utils.TrackedDummyWorld;
 import com.lowdragmc.lowdraglib.utils.Vector3;
+import com.lowdragmc.lowdraglib.utils.interpolate.Eases;
+import com.lowdragmc.lowdraglib.utils.interpolate.Interpolator;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Vector3f;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
@@ -26,11 +31,10 @@ import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 import java.util.function.BiConsumer;
 
 public class SceneWidget extends WidgetGroup {
@@ -41,26 +45,37 @@ public class SceneWidget extends WidgetGroup {
     protected boolean dragging;
     protected boolean renderFacing = true;
     protected boolean renderSelect = true;
+    protected boolean draggable = true;
+    protected boolean scalable = true;
+    protected boolean hoverTips;
     protected int currentMouseX;
     protected int currentMouseY;
     protected Vector3f center;
     protected float rotationYaw = 25;
     protected float rotationPitch = -135;
     protected float zoom = 5;
+    protected float range;
     protected BlockPosFace clickPosFace;
     protected BlockPosFace hoverPosFace;
     protected BlockPosFace selectedPosFace;
+    protected ItemStack hoverItem;
     protected BiConsumer<BlockPos, Direction> onSelected;
     protected Set<BlockPos> core;
     protected boolean useCache;
+    protected boolean useOrtho = false;
     protected boolean autoReleased;
-
+    protected BiConsumer<SceneWidget, List<Component>> onAddedTooltips;
 
     public SceneWidget(int x, int y, int width, int height, Level world) {
         super(x, y, width, height);
         if (isRemote()) {
             createScene(world);
         }
+    }
+
+    public SceneWidget setOnAddedTooltips(BiConsumer<SceneWidget, List<Component>> onAddedTooltips) {
+        this.onAddedTooltips = onAddedTooltips;
+        return this;
     }
 
     public SceneWidget useCacheBuffer() {
@@ -74,6 +89,26 @@ public class SceneWidget extends WidgetGroup {
             renderer.useCacheBuffer(true);
         }
         return this;
+    }
+
+    public SceneWidget useOrtho() {
+        return useOrtho(true);
+    }
+
+    public SceneWidget useOrtho(boolean useOrtho) {
+        this.useOrtho = useOrtho;
+        if (isRemote() && renderer != null) {
+            renderer.useOrtho(useOrtho);
+        }
+        return this;
+    }
+
+    private float camZoom() {
+        if (useOrtho) {
+            return 0.1f;
+        } else {
+            return zoom;
+        }
     }
 
     @OnlyIn(Dist.CLIENT)
@@ -125,13 +160,15 @@ public class SceneWidget extends WidgetGroup {
         }
         renderer = new ImmediateWorldSceneRenderer(dummyWorld);
         center = new Vector3f();
+        renderer.useOrtho(useOrtho);
         renderer.setOnLookingAt(ray -> {});
         renderer.setAfterWorldRender(this::renderBlockOverLay);
-        renderer.setCameraLookAt(center, zoom, Math.toRadians(rotationPitch), Math.toRadians(rotationYaw));
+        renderer.setCameraLookAt(center, camZoom(), Math.toRadians(rotationPitch), Math.toRadians(rotationYaw));
         renderer.useCacheBuffer(useCache);
         renderer.setParticleManager(new ParticleManager());
         clickPosFace = null;
         hoverPosFace = null;
+        hoverItem = null;
         selectedPosFace = null;
     }
 
@@ -168,6 +205,21 @@ public class SceneWidget extends WidgetGroup {
         return this;
     }
 
+    public SceneWidget setDraggable(boolean draggable) {
+        this.draggable = draggable;
+        return this;
+    }
+
+    public SceneWidget setScalable(boolean scalable) {
+        this.scalable = scalable;
+        return this;
+    }
+
+    public SceneWidget setHoverTips(boolean hoverTips) {
+        this.hoverTips = hoverTips;
+        return this;
+    }
+
     public SceneWidget setRenderedCore(Collection<BlockPos> blocks, ISceneRenderHook renderHook) {
         if (isRemote()) {
             core.clear();
@@ -189,16 +241,25 @@ public class SceneWidget extends WidgetGroup {
             center = new Vector3f((minX + maxX) / 2f + 0.5F, (minY + maxY) / 2f + 0.5F, (minZ + maxZ) / 2f + 0.5F);
             renderer.addRenderedBlocks(core, renderHook);
             this.zoom = (float) (3.5 * Math.sqrt(Math.max(Math.max(Math.max(maxX - minX + 1, maxY - minY + 1), maxZ - minZ + 1), 1)));
-            renderer.setCameraLookAt(center, zoom, Math.toRadians(rotationPitch), Math.toRadians(rotationYaw));
+            renderer.setCameraOrtho(range * zoom, range * zoom, range * zoom);
+            renderer.setCameraLookAt(center, camZoom(), Math.toRadians(rotationPitch), Math.toRadians(rotationYaw));
             needCompileCache();
         }
         return this;
+    }
+
+    private List<Component> getToolTips(List<Component> list) {
+        if (this.onAddedTooltips != null) {
+            this.onAddedTooltips.accept(this, list);
+        }
+        return list;
     }
 
     @OnlyIn(Dist.CLIENT)
     public void renderBlockOverLay(WorldSceneRenderer renderer) {
         PoseStack matrixStack = new PoseStack();
         hoverPosFace = null;
+        hoverItem = null;
         if (isMouseOverElement(currentMouseX, currentMouseY)) {
             BlockHitResult hit = renderer.getLastTraceResult();
             if (hit != null) {
@@ -227,6 +288,10 @@ public class SceneWidget extends WidgetGroup {
                     }
                 }
             }
+        }
+        if (hoverPosFace != null) {
+            var state = getDummyWorld().getBlockState(hoverPosFace.pos);
+            hoverItem = state.getCloneItemStack(renderer.getLastTraceResult(), getDummyWorld(), hoverPosFace.pos, Minecraft.getInstance().player);
         }
         BlockPosFace tmp = dragging ? clickPosFace : hoverPosFace;
         if (selectedPosFace != null || tmp != null) {
@@ -262,6 +327,15 @@ public class SceneWidget extends WidgetGroup {
     }
 
     @Override
+    public Object getIngredientOverMouse(double mouseX, double mouseY) {
+        Object result = super.getIngredientOverMouse(mouseX, mouseY);
+        if (result == null && hoverItem != null && !hoverItem.isEmpty()) {
+            return hoverItem;
+        }
+        return result;
+    }
+
+    @Override
     public void handleClientAction(int id, FriendlyByteBuf buffer) {
         if (id == -1) {
             selectedPosFace = new BlockPosFace(buffer.readBlockPos(), buffer.readEnum(Direction.class));
@@ -280,7 +354,9 @@ public class SceneWidget extends WidgetGroup {
             return true;
         }
         if (isMouseOverElement(mouseX, mouseY)) {
-            dragging = true;
+            if (draggable) {
+                dragging = true;
+            }
             clickPosFace = hoverPosFace;
             return true;
         }
@@ -291,10 +367,11 @@ public class SceneWidget extends WidgetGroup {
     @Override
     @OnlyIn(Dist.CLIENT)
     public boolean mouseWheelMove(double mouseX, double mouseY, double wheelDelta) {
-        if (isMouseOverElement(mouseX, mouseY)) {
+        if (isMouseOverElement(mouseX, mouseY) && scalable) {
             zoom = (float) Mth.clamp(zoom + (wheelDelta < 0 ? 0.5 : -0.5), 0.1, 999);
             if (renderer != null) {
-                renderer.setCameraLookAt(center, zoom, Math.toRadians(rotationPitch), Math.toRadians(rotationYaw));
+                renderer.setCameraOrtho(range * zoom, range * zoom, range * zoom);
+                renderer.setCameraLookAt(center, camZoom(), Math.toRadians(rotationPitch), Math.toRadians(rotationYaw));
             }
         }
         return super.mouseWheelMove(mouseX, mouseY, wheelDelta);
@@ -308,7 +385,7 @@ public class SceneWidget extends WidgetGroup {
             rotationPitch = rotationPitch % 360;
             rotationYaw = (float) Mth.clamp(rotationYaw + dragY, -89.9, 89.9);
             if (renderer != null) {
-                renderer.setCameraLookAt(center, zoom, Math.toRadians(rotationPitch), Math.toRadians(rotationYaw));
+                renderer.setCameraLookAt(center, camZoom(), Math.toRadians(rotationPitch), Math.toRadians(rotationYaw));
             }
             return false;
         }
@@ -337,11 +414,26 @@ public class SceneWidget extends WidgetGroup {
 
     @Override
     @OnlyIn(Dist.CLIENT)
+    public void drawInForeground(@NotNull PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
+        if (hoverTips) {
+            if (hoverItem != null && !hoverItem.isEmpty()) {
+                gui.getModularUIGui().setHoverTooltip(getToolTips(gui.getModularUIGui().getTooltipFromItem(hoverItem)), hoverItem, null, hoverItem.getTooltipImage().orElse(null));
+            }
+            gui.getModularUIGui().setHoverTooltip(getToolTips(new ArrayList<>()), hoverItem, null, null);
+        }
+        super.drawInForeground(poseStack, mouseX, mouseY, partialTicks);
+    }
+
+    @Override
+    @OnlyIn(Dist.CLIENT)
     public void drawInBackground(@Nonnull PoseStack matrixStack, int mouseX, int mouseY, float partialTicks) {
         int x = getPosition().x;
         int y = getPosition().y;
         int width = getSize().width;
         int height = getSize().height;
+        if (interpolator != null) {
+            interpolator.update(gui.getTickCount() + partialTicks);
+        }
         if (renderer != null) {
             renderer.render(x, y, width, height, mouseX, mouseY);
             if (renderer.isCompiling()) {
@@ -361,7 +453,24 @@ public class SceneWidget extends WidgetGroup {
     public SceneWidget setCenter(Vector3f center) {
         this.center = center;
         if (renderer != null) {
-            renderer.setCameraLookAt(this.center, zoom, Math.toRadians(rotationPitch), Math.toRadians(rotationYaw));
+            renderer.setCameraLookAt(this.center, camZoom(), Math.toRadians(rotationPitch), Math.toRadians(rotationYaw));
+        }
+        return this;
+    }
+
+    public SceneWidget setZoom(float zoom) {
+        this.zoom = zoom;
+        if (renderer != null) {
+            renderer.setCameraOrtho(range * zoom, range * zoom, range * zoom);
+            renderer.setCameraLookAt(this.center, camZoom(), Math.toRadians(rotationPitch), Math.toRadians(rotationYaw));
+        }
+        return this;
+    }
+
+    public SceneWidget setOrthoRange(float range) {
+        this.range = range;
+        if (renderer != null) {
+            renderer.setCameraOrtho(range * zoom, range * zoom, range * zoom);
         }
         return this;
     }
@@ -370,8 +479,57 @@ public class SceneWidget extends WidgetGroup {
         this.rotationYaw = rotationYaw;
         this.rotationPitch = rotationPitch;
         if (renderer != null) {
-            renderer.setCameraLookAt(this.center, zoom, Math.toRadians(rotationPitch), Math.toRadians(rotationYaw));
+            renderer.setCameraLookAt(this.center, camZoom(), Math.toRadians(rotationPitch), Math.toRadians(rotationYaw));
         }
         return this;
+    }
+
+    Interpolator interpolator;
+    long startTick;
+
+    public void setCameraYawAndPitchAnima(float rotationYaw, float rotationPitch, int dur) {
+        if (interpolator != null) return ;
+        final float oRotationYaw = this.rotationYaw;
+        final float oRotationPitch = this.rotationPitch;
+        startTick = gui.getTickCount();
+        interpolator = new Interpolator(0, 1, dur, Eases.EaseQuadOut, value -> {
+            this.rotationYaw = (rotationYaw - oRotationYaw) * value.floatValue() + oRotationYaw;
+            this.rotationPitch = (rotationPitch - oRotationPitch) * value.floatValue() + oRotationPitch;
+            if (renderer != null) {
+                renderer.setCameraLookAt(this.center, camZoom(), Math.toRadians(this.rotationPitch), Math.toRadians(this.rotationYaw));
+            }
+        }, x -> interpolator = null);
+    }
+
+    public Vector3f getCenter() {
+        return center;
+    }
+
+    public float getRotationYaw() {
+        return rotationYaw;
+    }
+
+    public float getRotationPitch() {
+        return rotationPitch;
+    }
+
+    public float getZoom() {
+        return zoom;
+    }
+
+    public BlockPosFace getClickPosFace() {
+        return clickPosFace;
+    }
+
+    public BlockPosFace getHoverPosFace() {
+        return hoverPosFace;
+    }
+
+    public BlockPosFace getSelectedPosFace() {
+        return selectedPosFace;
+    }
+
+    public ItemStack getHoverItem() {
+        return hoverItem;
     }
 }

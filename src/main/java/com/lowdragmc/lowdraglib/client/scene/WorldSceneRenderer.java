@@ -78,6 +78,7 @@ public abstract class WorldSceneRenderer {
     protected VertexBuffer[] vertexBuffers;
     protected Set<BlockPos> tileEntities;
     protected boolean useCache;
+    protected boolean ortho;
     protected AtomicReference<CacheState> cacheState;
     protected int maxProgress;
     protected int progress;
@@ -95,6 +96,8 @@ public abstract class WorldSceneRenderer {
     private Vector3f lookAt = new Vector3f(0, 0, 0);
     private Vector3f worldUp = new Vector3f(0, 1, 0);
     private Matrix4f lastProject;
+    private float fov = 60f;
+    private float minX, maxX, minY, maxY, minZ, maxZ;
 
     public WorldSceneRenderer(Level world) {
         this.world = world;
@@ -140,6 +143,11 @@ public abstract class WorldSceneRenderer {
             cacheState.set(CacheState.NEED);
         }
         this.useCache = useCache;
+        return this;
+    }
+
+    public WorldSceneRenderer useOrtho(boolean ortho) {
+        this.ortho = ortho;
         return this;
     }
 
@@ -275,6 +283,28 @@ public abstract class WorldSceneRenderer {
         setCameraLookAt(pos.add(lookAt.x(), lookAt.y(), lookAt.z()).vector3f(), lookAt, worldUp);
     }
 
+    public void setFov(float fov) {
+        this.fov = fov;
+    }
+
+    public void setCameraOrtho(float x, float y, float z) {
+        this.minX = -x;
+        this.maxX = x;
+        this.minY = -y;
+        this.maxY = y;
+        this.minZ = -z;
+        this.maxZ = z;
+    }
+
+    public void setCameraOrtho(float minX, float maxX, float minY, float maxY, float minZ, float maxZ) {
+        this.minX = minX;
+        this.maxX = maxX;
+        this.minY = minY;
+        this.maxY = maxY;
+        this.minZ = minZ;
+        this.maxZ = maxZ;
+    }
+
     protected PositionedRect getPositionedRect(int x, int y, int width, int height) {
         return new PositionedRect(new Position(x, y), new Size(width, height));
     }
@@ -297,7 +327,11 @@ public abstract class WorldSceneRenderer {
         lastProject = RenderSystem.getProjectionMatrix();
 
         float aspectRatio = width / (height * 1.0f);
-        RenderSystem.setProjectionMatrix(Matrix4f.perspective(60.0f, aspectRatio, 0.1f, 10000.0f));
+        if (ortho) {
+            RenderSystem.setProjectionMatrix(Matrix4f.orthographic(minX, maxX, maxY / aspectRatio, minY / aspectRatio, minZ, maxZ));
+        } else {
+            RenderSystem.setProjectionMatrix(Matrix4f.perspective(fov, aspectRatio, 0.1f, 10000.0f));
+        }
 
         //setup modelview matrix
         PoseStack posesStack = RenderSystem.getModelViewStack();
@@ -601,6 +635,9 @@ public abstract class WorldSceneRenderer {
 
     public BlockHitResult rayTrace(Vector3f hitPos) {
         Vec3 startPos = new Vec3(this.eyePos.x(), this.eyePos.y(), this.eyePos.z());
+        if (ortho) {
+            startPos = startPos.add(new Vec3(startPos.x - lookAt.x(), startPos.y - lookAt.y(), startPos.z - lookAt.z()).multiply(500, 500, 500));
+        }
         hitPos.mul(2); // Double view range to ensure pos can be seen.
         Vec3 endPos = new Vec3((hitPos.x() - startPos.x), (hitPos.y() - startPos.y), (hitPos.z() - startPos.z));
         try {

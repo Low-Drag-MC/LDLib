@@ -262,7 +262,7 @@ public class WidgetGroup extends Widget implements IGhostIngredientTarget, IIngr
     @Override
     public Object getIngredientOverMouse(double mouseX, double mouseY) {
         if (!isVisible()) {
-            return Collections.emptyList();
+            return null;
         }
         for (Widget widget : widgets) {
             if (widget.isVisible() && widget instanceof IIngredientSlot) {
