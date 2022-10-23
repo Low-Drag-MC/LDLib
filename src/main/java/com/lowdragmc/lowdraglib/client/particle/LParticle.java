@@ -227,7 +227,7 @@ public abstract class LParticle extends Particle {
     }
 
     public void setColor(int color) {
-        this.setColor((float) FastColor.ARGB32.red(color), (float)FastColor.ARGB32.green(color), (float)FastColor.ARGB32.blue(color));
+        this.setColor((float) FastColor.ARGB32.red(color) / 255, (float)FastColor.ARGB32.green(color) / 255, (float)FastColor.ARGB32.blue(color) / 255);
     }
     @Override
     public boolean shouldCull() {

@@ -97,6 +97,7 @@ public class ShaderTrailParticle extends TrailParticle {
             RenderSystem.setShader(GameRenderer::getParticleShader);
             RenderSystem.setShaderTexture(0, target.getColorTextureId());
             RenderSystem.enableCull();
+            Minecraft.getInstance().gameRenderer.lightTexture().turnOnLightLayer();
             bufferBuilder.begin(VertexFormat.Mode.TRIANGLES, DefaultVertexFormat.PARTICLE);
         }
 
