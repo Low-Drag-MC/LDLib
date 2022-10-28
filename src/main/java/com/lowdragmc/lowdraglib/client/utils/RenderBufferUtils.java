@@ -2,7 +2,11 @@ package com.lowdragmc.lowdraglib.client.utils;
 
 import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.mojang.math.Matrix3f;
 import com.mojang.math.Matrix4f;
+import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -101,6 +105,47 @@ public class RenderBufferUtils {
         buffer.vertex(mat, maxX, minY, maxZ).color(r, g, b, a).endVertex();
         buffer.vertex(mat, maxX, maxY, maxZ).color(r, g, b, a).endVertex();
         buffer.vertex(mat, minX, maxY, maxZ).color(r, g, b, a).endVertex();
+    }
+
+    public static void renderCubeFace(PoseStack matrixStack, VertexConsumer buffer, float minX, float minY, float minZ, float maxX, float maxY, float maxZ, int color, int combinedLight, TextureAtlasSprite textureSprite) {
+        Matrix4f mat = matrixStack.last().pose();
+        Matrix3f normal = matrixStack.last().normal();
+        float uMin = textureSprite.getU0();
+        float uMax = textureSprite.getU1();
+        float vMin = textureSprite.getV0();
+        float vMax = textureSprite.getV1();
+
+        buffer.vertex(mat, minX, minY, minZ).color(color).uv(uMin, vMax).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(combinedLight).normal(normal, -1, 0, 0).endVertex();
+        buffer.vertex(mat, minX, minY, maxZ).color(color).uv(uMax, vMax).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(combinedLight).normal(normal, -1, 0, 0).endVertex();
+        buffer.vertex(mat, minX, maxY, maxZ).color(color).uv(uMax, vMin).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(combinedLight).normal(normal, -1, 0, 0).endVertex();
+        buffer.vertex(mat, minX, maxY, minZ).color(color).uv(uMin, vMin).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(combinedLight).normal(normal, -1, 0, 0).endVertex();
+
+        buffer.vertex(mat, maxX, minY, minZ).color(color).uv(uMin, vMax).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(combinedLight).normal(normal, 1, 0, 0).endVertex();
+        buffer.vertex(mat, maxX, maxY, minZ).color(color).uv(uMax, vMax).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(combinedLight).normal(normal, 1, 0, 0).endVertex();
+        buffer.vertex(mat, maxX, maxY, maxZ).color(color).uv(uMax, vMin).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(combinedLight).normal(normal, 1, 0, 0).endVertex();
+        buffer.vertex(mat, maxX, minY, maxZ).color(color).uv(uMin, vMin).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(combinedLight).normal(normal, 1, 0, 0).endVertex();
+
+
+        buffer.vertex(mat, minX, minY, minZ).color(color).uv(uMin, vMax).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(combinedLight).normal(normal, 0, -1, 0).endVertex();
+        buffer.vertex(mat, maxX, minY, minZ).color(color).uv(uMax, vMax).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(combinedLight).normal(normal, 0, -1, 0).endVertex();
+        buffer.vertex(mat, maxX, minY, maxZ).color(color).uv(uMax, vMin).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(combinedLight).normal(normal, 0, -1, 0).endVertex();
+        buffer.vertex(mat, minX, minY, maxZ).color(color).uv(uMin, vMin).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(combinedLight).normal(normal, 0, -1, 0).endVertex();
+
+
+        buffer.vertex(mat, minX, maxY, minZ).color(color).uv(uMin, vMax).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(combinedLight).normal(normal, 0, 1, 0).endVertex();
+        buffer.vertex(mat, minX, maxY, maxZ).color(color).uv(uMax, vMax).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(combinedLight).normal(normal, 0, 1, 0).endVertex();
+        buffer.vertex(mat, maxX, maxY, maxZ).color(color).uv(uMax, vMin).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(combinedLight).normal(normal, 0, 1, 0).endVertex();
+        buffer.vertex(mat, maxX, maxY, minZ).color(color).uv(uMin, vMin).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(combinedLight).normal(normal, 0, 1, 0).endVertex();
+
+        buffer.vertex(mat, minX, minY, minZ).color(color).uv(uMin, vMax).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(combinedLight).normal(normal, 0, 0, -1).endVertex();
+        buffer.vertex(mat, minX, maxY, minZ).color(color).uv(uMax, vMax).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(combinedLight).normal(normal, 0, 0, -1).endVertex();
+        buffer.vertex(mat, maxX, maxY, minZ).color(color).uv(uMax, vMin).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(combinedLight).normal(normal, 0, 0, -1).endVertex();
+        buffer.vertex(mat, maxX, minY, minZ).color(color).uv(uMin, vMin).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(combinedLight).normal(normal, 0, 0, -1).endVertex();
+
+        buffer.vertex(mat, minX, minY, maxZ).color(color).uv(uMin, vMax).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(combinedLight).normal(normal, 0, 0, 1).endVertex();
+        buffer.vertex(mat, maxX, minY, maxZ).color(color).uv(uMax, vMax).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(combinedLight).normal(normal, 0, 0, 1).endVertex();
+        buffer.vertex(mat, maxX, maxY, maxZ).color(color).uv(uMax, vMin).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(combinedLight).normal(normal, 0, 0, 1).endVertex();
+        buffer.vertex(mat, minX, maxY, maxZ).color(color).uv(uMin, vMin).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(combinedLight).normal(normal, 0, 0, 1).endVertex();
     }
 
 }

@@ -415,7 +415,7 @@ public class SceneWidget extends WidgetGroup {
     @Override
     @OnlyIn(Dist.CLIENT)
     public void drawInForeground(@NotNull PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
-        if (hoverTips) {
+        if (hoverTips && isMouseOverElement(mouseX, mouseY)) {
             if (hoverItem != null && !hoverItem.isEmpty()) {
                 gui.getModularUIGui().setHoverTooltip(getToolTips(gui.getModularUIGui().getTooltipFromItem(hoverItem)), hoverItem, null, hoverItem.getTooltipImage().orElse(null));
             }
