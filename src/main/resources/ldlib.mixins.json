@@ -7,8 +7,9 @@
   "client": [
     "BlockModelShaperMixin",
     "ItemRendererMixin",
-    "ParticleEngineMixin",
     "JeiRecipeLayoutMixin",
+    "ModelBakeryMixin",
+    "ParticleEngineMixin",
     "TileEntityRendererDispatcherMixin",
     "WorldRendererMixin",
     "accessor.RecipeLayoutAccessor",
