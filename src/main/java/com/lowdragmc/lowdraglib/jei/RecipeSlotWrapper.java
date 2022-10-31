@@ -8,13 +8,15 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import mezz.jei.api.gui.drawable.IDrawable;
 import mezz.jei.api.gui.ingredient.IRecipeSlotTooltipCallback;
+import mezz.jei.api.helpers.IModIdHelper;
 import mezz.jei.api.ingredients.IIngredientRenderer;
 import mezz.jei.api.ingredients.IIngredientType;
 import mezz.jei.api.ingredients.ITypedIngredient;
 import mezz.jei.api.recipe.RecipeIngredientRole;
+import mezz.jei.api.runtime.IIngredientVisibility;
+import mezz.jei.common.gui.ingredients.RecipeSlot;
+import mezz.jei.common.ingredients.TypedIngredient;
 import mezz.jei.common.util.ImmutableRect2i;
-import mezz.jei.gui.ingredients.RecipeSlot;
-import mezz.jei.ingredients.TypedIngredient;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import org.jetbrains.annotations.Unmodifiable;
 
@@ -108,8 +110,9 @@ public class RecipeSlotWrapper extends RecipeSlot {
     }
 
     @Override
-    public void set(List<Optional<ITypedIngredient<?>>> ingredients, IntSet focusMatches) {
-        wrapperSlot.set(ingredients, focusMatches);
+    public void set(List<Optional<ITypedIngredient<?>>> ingredients, IntSet focusMatches, IIngredientVisibility ingredientVisibility) {
+        wrapperSlot.set(ingredients, focusMatches, ingredientVisibility);
+
     }
 
     @Override
@@ -133,8 +136,8 @@ public class RecipeSlotWrapper extends RecipeSlot {
     }
 
     @Override
-    public void drawOverlays(PoseStack poseStack, int xOffset, int yOffset, int mouseX, int mouseY) {
-        wrapperSlot.drawOverlays(poseStack, xOffset, yOffset, mouseX, mouseY);
+    public void drawOverlays(PoseStack poseStack, int xOffset, int yOffset, int mouseX, int mouseY, IModIdHelper modIdHelper) {
+        wrapperSlot.drawOverlays(poseStack, xOffset, yOffset, mouseX, mouseY, modIdHelper);
     }
 
     @Override

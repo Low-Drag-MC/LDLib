@@ -115,8 +115,9 @@ dependencies {
     // Apply Mixin AP
 
     //JEI
-    compileOnly fg.deobf("mezz.jei:jei-${minecraft_version}:${jei_version}:api")
-    implementation fg.deobf("mezz.jei:jei-${minecraft_version}:${jei_version}")
+    compileOnly fg.deobf("mezz.jei:jei-${minecraft_version}-common-api:${jei_version}")
+    compileOnly fg.deobf("mezz.jei:jei-${minecraft_version}-forge-api:${jei_version}")
+    implementation fg.deobf("mezz.jei:jei-${minecraft_version}-forge:${jei_version}")
     //REI
     compileOnly fg.deobf("me.shedaniel:RoughlyEnoughItems-default-plugin-forge:${rei_version}")
     compileOnly fg.deobf("me.shedaniel:RoughlyEnoughItems-api-forge:${rei_version}")

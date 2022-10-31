@@ -7,15 +7,18 @@ import com.lowdragmc.lowdraglib.utils.Position;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import mezz.jei.api.gui.drawable.IDrawable;
+import mezz.jei.api.helpers.IModIdHelper;
 import mezz.jei.api.recipe.IFocusGroup;
 import mezz.jei.api.recipe.category.IRecipeCategory;
+import mezz.jei.api.runtime.IIngredientVisibility;
+import mezz.jei.common.gui.ingredients.RecipeSlot;
+import mezz.jei.common.gui.ingredients.RecipeSlotsView;
+import mezz.jei.common.gui.recipes.ShapelessIcon;
+import mezz.jei.common.gui.recipes.layout.RecipeLayout;
+import mezz.jei.common.gui.recipes.layout.RecipeLayoutBuilder;
+import mezz.jei.common.gui.textures.Textures;
+import mezz.jei.common.ingredients.RegisteredIngredients;
 import mezz.jei.common.util.ImmutableRect2i;
-import mezz.jei.gui.ingredients.RecipeSlot;
-import mezz.jei.gui.ingredients.RecipeSlotsView;
-import mezz.jei.gui.recipes.RecipeLayout;
-import mezz.jei.gui.recipes.ShapelessIcon;
-import mezz.jei.gui.recipes.builder.RecipeLayoutBuilder;
-import mezz.jei.ingredients.RegisteredIngredients;
 import net.minecraft.client.Minecraft;
 import org.jetbrains.annotations.NotNull;
 
@@ -42,10 +45,13 @@ public class RecipeLayoutWrapper<R extends ModularWrapper<?>> extends RecipeLayo
             T recipe,
             IFocusGroup focuses,
             RegisteredIngredients registeredIngredients,
+            IIngredientVisibility ingredientVisibility,
+            IModIdHelper modIdHelper,
             int posX,
-            int posY
+            int posY,
+            Textures textures
             ) {
-        RecipeLayoutWrapper<T> wrapper = new RecipeLayoutWrapper<>(index, recipeCategory, recipe, focuses, registeredIngredients, posX, posY);
+        RecipeLayoutWrapper<T> wrapper = new RecipeLayoutWrapper<>(index, recipeCategory, recipe, focuses, registeredIngredients, ingredientVisibility, modIdHelper, posX, posY, textures);
         if (wrapper.setRecipeLayout(recipeCategory, recipe, focuses) || wrapper.getLegacyAdapter().setRecipeLayout(recipeCategory, recipe)) {
             recipe.setRecipeLayout(posX, posY);
             List<RecipeSlot> recipeSlots = new ArrayList<>();
@@ -67,7 +73,7 @@ public class RecipeLayoutWrapper<R extends ModularWrapper<?>> extends RecipeLayo
             R recipe,
             IFocusGroup focuses
     ) {
-        RecipeLayoutBuilder builder = new RecipeLayoutBuilder(accessor.getRegisteredIngredients(), accessor.getIngredientCycleOffset());
+        RecipeLayoutBuilder builder = new RecipeLayoutBuilder(accessor.getRegisteredIngredients(), accessor.getIngredientVisibility(), accessor.getIngredientCycleOffset());
         try {
             recipeCategory.setRecipe(builder, recipe, focuses);
             if (builder.isUsed()) {
@@ -91,10 +97,13 @@ public class RecipeLayoutWrapper<R extends ModularWrapper<?>> extends RecipeLayo
             R recipe,
             IFocusGroup focuses,
             RegisteredIngredients registeredIngredients,
+            IIngredientVisibility ingredientVisibility,
+            IModIdHelper modIdHelper,
             int posX,
-            int posY
+            int posY,
+            Textures textures
     ) {
-        super(index, recipeCategory, recipe, focuses, registeredIngredients, posX, posY);
+        super(index, recipeCategory, recipe, focuses, registeredIngredients, ingredientVisibility, modIdHelper, posX, posY, textures);
         this.wrapper = recipe;
     }
 

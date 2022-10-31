@@ -367,14 +367,16 @@ public class SceneWidget extends WidgetGroup {
     @Override
     @OnlyIn(Dist.CLIENT)
     public boolean mouseWheelMove(double mouseX, double mouseY, double wheelDelta) {
-        if (isMouseOverElement(mouseX, mouseY) && scalable) {
+        var result = super.mouseWheelMove(mouseX, mouseY, wheelDelta);
+        if (!result && isMouseOverElement(mouseX, mouseY) && scalable) {
             zoom = (float) Mth.clamp(zoom + (wheelDelta < 0 ? 0.5 : -0.5), 0.1, 999);
             if (renderer != null) {
                 renderer.setCameraOrtho(range * zoom, range * zoom, range * zoom);
                 renderer.setCameraLookAt(center, camZoom(), Math.toRadians(rotationPitch), Math.toRadians(rotationYaw));
             }
+            return true;
         }
-        return super.mouseWheelMove(mouseX, mouseY, wheelDelta);
+        return result;
     }
 
     @Override

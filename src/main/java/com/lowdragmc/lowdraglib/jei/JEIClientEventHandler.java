@@ -1,7 +1,7 @@
 package com.lowdragmc.lowdraglib.jei;
 
-import mezz.jei.gui.recipes.RecipeLayout;
-import mezz.jei.gui.recipes.RecipesGui;
+import mezz.jei.common.gui.recipes.RecipesGui;
+import mezz.jei.common.gui.recipes.layout.RecipeLayout;
 import net.minecraftforge.client.event.RecipesUpdatedEvent;
 import net.minecraftforge.client.event.ScreenEvent;
 import net.minecraftforge.eventbus.api.EventPriority;

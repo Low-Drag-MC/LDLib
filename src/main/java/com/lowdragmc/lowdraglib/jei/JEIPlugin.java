@@ -9,8 +9,8 @@ import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.registration.IAdvancedRegistration;
 import mezz.jei.api.registration.IGuiHandlerRegistration;
 import mezz.jei.api.runtime.IJeiRuntime;
-import mezz.jei.gui.recipes.RecipeLayout;
-import mezz.jei.gui.recipes.RecipesGui;
+import mezz.jei.common.gui.recipes.RecipesGui;
+import mezz.jei.common.gui.recipes.layout.RecipeLayout;
 import net.minecraft.resources.ResourceLocation;
 
 import javax.annotation.Nonnull;
