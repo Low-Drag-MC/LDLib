@@ -50,7 +50,7 @@ public abstract class TrailParticle extends LParticle {
         if (age % freq == 0) {
             Vector3 tail = getTail();
             if (shouldAddTail(tail)) {
-                tails.add(getTail());
+                tails.add(tail);
             }
             while (tails.size() > maxTail) {
                 tails.remove(0);
