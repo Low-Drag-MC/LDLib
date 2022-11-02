@@ -25,10 +25,10 @@ public class ShapeUtils {
                 return rotate(AABB, new Vector3(0, 1, 0), 90);
             }
             case UP -> {
-                return rotate(AABB, new Vector3(0, 0, 1), 90);
+                return rotate(AABB, new Vector3(1, 0, 0), 90);
             }
             case DOWN -> {
-                return rotate(AABB, new Vector3(0, 0, 1), -90);
+                return rotate(AABB, new Vector3(1, 0, 0), -90);
             }
         }
         return AABB;
