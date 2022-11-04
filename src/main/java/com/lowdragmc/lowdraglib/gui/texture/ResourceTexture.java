@@ -1,5 +1,6 @@
 package com.lowdragmc.lowdraglib.gui.texture;
 
+import com.lowdragmc.lowdraglib.LDLMod;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -9,6 +10,7 @@ import com.mojang.math.Matrix4f;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -25,7 +27,7 @@ public class ResourceTexture implements IGuiTexture {
 
     public final float imageWidth;
     public final float imageHeight;
-    private int color = -1;
+    protected int color = -1;
 
     public ResourceTexture(ResourceLocation imageLocation, float offsetX, float offsetY, float width, float height) {
         this.imageLocation = imageLocation;
@@ -58,6 +60,15 @@ public class ResourceTexture implements IGuiTexture {
     public ResourceTexture setColor(int color) {
         this.color = color;
         return this;
+    }
+
+    public static ResourceTexture fromSpirit(ResourceLocation texture) {
+        if (LDLMod.isClient()) {
+            var sprite = Minecraft.getInstance().getTextureAtlas(TextureAtlas.LOCATION_BLOCKS).apply(texture);
+            return new ResourceTexture(TextureAtlas.LOCATION_BLOCKS, sprite.getU0(), sprite.getV0(), sprite.getU1() - sprite.getU0(), sprite.getV1() - sprite.getV0());
+        } else {
+            return new ResourceTexture("");
+        }
     }
 
     @OnlyIn(Dist.CLIENT)
