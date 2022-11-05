@@ -54,7 +54,7 @@ public class ProgressWidget extends Widget {
     public void drawInBackground(@Nonnull PoseStack matrixStack, int mouseX, int mouseY, float partialTicks) {
         Position pos = getPosition();
         Size size = getSize();
-        if (progressSupplier == JEIProgress) {
+        if (progressSupplier == JEIProgress || isClientSideWidget) {
             lastProgressValue = progressSupplier.getAsDouble();
             if (dynamicHoverTips != null) {
                 setHoverTooltips(dynamicHoverTips.apply(lastProgressValue));
