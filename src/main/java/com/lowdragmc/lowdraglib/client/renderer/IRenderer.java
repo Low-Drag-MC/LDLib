@@ -59,17 +59,17 @@ public interface IRenderer {
     }
 
     @OnlyIn(Dist.CLIENT)
-    default boolean hasTESR(BlockEntity BlockEntity) {
+    default boolean hasTESR(BlockEntity blockEntity) {
         return false;
     }
 
     @OnlyIn(Dist.CLIENT)
-    default boolean isGlobalRenderer(BlockEntity BlockEntity) {
+    default boolean isGlobalRenderer(BlockEntity blockEntity) {
         return false;
     }
 
     @OnlyIn(Dist.CLIENT)
-    default void render(BlockEntity BlockEntity, float partialTicks, PoseStack stack, MultiBufferSource buffer, int combinedLight, int combinedOverlay) {
+    default void render(BlockEntity blockEntity, float partialTicks, PoseStack stack, MultiBufferSource buffer, int combinedLight, int combinedOverlay) {
 
     }
 
