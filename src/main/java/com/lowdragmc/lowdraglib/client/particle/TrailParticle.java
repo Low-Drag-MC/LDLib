@@ -7,7 +7,6 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.util.Mth;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
@@ -47,6 +46,10 @@ public abstract class TrailParticle extends LParticle {
 
     @Override
     public final void tick() {
+        if (delay > 0) {
+            delay--;
+            return;
+        }
         if (age % freq == 0) {
             Vector3 tail = getTail();
             if (shouldAddTail(tail)) {
@@ -61,11 +64,6 @@ public abstract class TrailParticle extends LParticle {
 
     protected Vector3 getTail() {
         return new Vector3(this.xo, this.yo, this.zo);
-    }
-
-    @Override
-    public void render(@NotNull VertexConsumer pBuffer, Camera pRenderInfo, float pPartialTicks) {
-        renderInternal(pBuffer, pRenderInfo, pPartialTicks);
     }
 
     public void renderInternal(@Nonnull VertexConsumer pBuffer, @Nonnull Camera camera, float partialTicks) {

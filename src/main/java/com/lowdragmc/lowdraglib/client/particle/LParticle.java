@@ -31,6 +31,7 @@ public abstract class LParticle extends Particle {
     public int fadeIn = -1;
     public int fadeOut = -1;
     public boolean moveless;
+    public int delay;
     protected Consumer<LParticle> onUpdate;
     public int lightColor = -1;
     public boolean cull = true;
@@ -72,6 +73,7 @@ public abstract class LParticle extends Particle {
     public void setFullLight() {
         setLight(0xf000f0);
     }
+
     public void setOnUpdate(Consumer<LParticle> onUpdate) {
         this.onUpdate = onUpdate;
     }
@@ -101,16 +103,23 @@ public abstract class LParticle extends Particle {
         }
     }
 
+    public void setDelay(int delay) {
+        this.delay = delay;
+    }
 
     @Override
     public void tick() {
+        if (delay > 0) {
+            delay--;
+            return;
+        }
         this.xo = this.x;
         this.yo = this.y;
         this.zo = this.z;
         this.alphao = this.alpha;
         if (this.age++ >= this.lifetime && lifetime > 0) {
             this.remove();
-        } else if (onUpdate == null){
+        } else if (onUpdate == null) {
             update();
         } else {
             onUpdate.accept(this);
@@ -123,7 +132,7 @@ public abstract class LParticle extends Particle {
     }
 
     protected void update() {
-        if (!moveless){
+        if (!moveless) {
             this.yd -= 0.04D * this.gravity;
             this.move(this.xd, this.yd, this.zd);
             if (this.speedUpWhenYMotionIsBlocked && this.y == this.yo) {
@@ -141,6 +150,12 @@ public abstract class LParticle extends Particle {
     }
 
     public void render(@Nonnull VertexConsumer pBuffer, Camera pRenderInfo, float pPartialTicks) {
+        if (delay <= 0) {
+            renderInternal(pBuffer, pRenderInfo, pPartialTicks);
+        }
+    }
+
+    public void renderInternal(@Nonnull VertexConsumer pBuffer, Camera pRenderInfo, float pPartialTicks) {
         Vec3 vec3 = pRenderInfo.getPosition();
         float f = (float)(Mth.lerp(pPartialTicks, this.xo, this.x) - vec3.x());
         float f1 = (float)(Mth.lerp(pPartialTicks, this.yo, this.y) - vec3.y());

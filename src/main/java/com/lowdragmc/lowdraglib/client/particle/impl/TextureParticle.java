@@ -2,6 +2,7 @@ package com.lowdragmc.lowdraglib.client.particle.impl;
 
 import com.lowdragmc.lowdraglib.LDLMod;
 import com.lowdragmc.lowdraglib.client.particle.LParticle;
+import com.lowdragmc.lowdraglib.client.utils.RenderUtils;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
@@ -55,7 +56,8 @@ public class TextureParticle extends LParticle {
         TextureManager textureManager) {
             RenderSystem.enableBlend();
             RenderSystem.defaultBlendFunc();
-            RenderSystem.depthMask(true);
+            RenderSystem.disableDepthTest();
+            RenderSystem.depthMask(false);
             RenderSystem.setShader(GameRenderer::getParticleShader);
             RenderSystem.setShaderTexture(0, texture);
             RenderSystem.enableCull();
@@ -66,6 +68,8 @@ public class TextureParticle extends LParticle {
         @Override
         public void end(@Nonnull Tesselator tesselator) {
             tesselator.end();
+            RenderSystem.enableDepthTest();
+            RenderSystem.depthMask(true);
         }
     });
 
