@@ -5,6 +5,8 @@ import com.lowdragmc.lowdraglib.utils.DummyWorld;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Quaternion;
 import com.mojang.math.Vector3f;
+import dev.architectury.utils.value.FloatSupplier;
+import it.unimi.dsi.fastutil.floats.FloatConsumer;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -19,6 +21,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 import javax.annotation.Nonnull;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
  * @author KilaBash
@@ -28,15 +31,15 @@ import java.util.function.Consumer;
 @OnlyIn(Dist.CLIENT)
 public abstract class LParticle extends Particle {
     public float quadSize = 1;
-    public int fadeIn = -1;
-    public int fadeOut = -1;
     public boolean moveless;
     public int delay;
-    protected Consumer<LParticle> onUpdate;
     public int lightColor = -1;
     public boolean cull = true;
+    public float randomX, randomY, randomZ, windX, windZ, yaw, pitch, t;
     private Level realLevel;
-    protected float alphao = 1;
+    protected float oA = 1, oR = 1, oG = 1, oB = 1, oQuadSize = 1;
+    protected Consumer<LParticle> onUpdate;
+    protected Function<LParticle, Float> alphaUpdate, redUpdate, greenUpdate, blueUpdate, sizeUpdate, rollUpdate;
 
     protected LParticle(ClientLevel level, double x, double y, double z) {
         super(level, x, y, z);
@@ -74,139 +77,41 @@ public abstract class LParticle extends Particle {
         setLight(0xf000f0);
     }
 
-    public void setOnUpdate(Consumer<LParticle> onUpdate) {
-        this.onUpdate = onUpdate;
-    }
-
-    public boolean isMoveless() {
-        return moveless;
-    }
-
     public void setFadeIn(int fadeIn) {
-        this.fadeIn = fadeIn;
-        this.setAlpha(0, true);
-    }
-
-    public void setFadeOut(int fadeOut) {
-        this.fadeOut = fadeOut;
+        this.alpha = 0;
+        setAlphaUpdate(p -> {
+            if (fadeIn > 0 && p.age <= fadeIn) {
+                return p.age * 1f / fadeIn;
+            }
+            return p.alpha;
+        });
     }
 
     public void setFade(int fade) {
-        setFadeIn(fade);
-        setFadeOut(fade);
-    }
-
-    public void setRoll(float roll, boolean setOrigin) {
-        this.roll = roll;
-        if (setOrigin) {
-            this.oRoll = roll;
-        }
-    }
-
-    public void setDelay(int delay) {
-        this.delay = delay;
-    }
-
-    @Override
-    public void tick() {
-        if (delay > 0) {
-            delay--;
-            return;
-        }
-        this.xo = this.x;
-        this.yo = this.y;
-        this.zo = this.z;
-        this.alphao = this.alpha;
-        if (this.age++ >= this.lifetime && lifetime > 0) {
-            this.remove();
-        } else if (onUpdate == null) {
-            update();
-        } else {
-            onUpdate.accept(this);
-        }
-        if (fadeIn > 0 && this.age <= fadeIn) {
-            this.alpha = this.age * 1f / fadeIn;
-        } else if (fadeOut > 0 && this.lifetime > 0 && (this.lifetime - this.age) <= fadeOut) {
-            this.alpha = (this.lifetime - this.age) * 1f / fadeOut;
-        }
-    }
-
-    protected void update() {
-        if (!moveless) {
-            this.yd -= 0.04D * this.gravity;
-            this.move(this.xd, this.yd, this.zd);
-            if (this.speedUpWhenYMotionIsBlocked && this.y == this.yo) {
-                this.xd *= 1.1D;
-                this.zd *= 1.1D;
+        setAlphaUpdate(p -> {
+            if (fade > 0 && p.age <= fade) {
+                return p.age * 1f / fade;
+            } else if (fade > 0 && p.lifetime > 0 && (p.lifetime - p.age) <= fade) {
+                return (p.lifetime - p.age) * 1f / fade;
             }
-            this.xd *= this.friction;
-            this.yd *= this.friction;
-            this.zd *= this.friction;
-            if (this.onGround) {
-                this.xd *= 0.7F;
-                this.zd *= 0.7F;
+            return p.alpha;
+        });
+    }
+
+    public void setFadeOut(int fadeOut) {
+        setAlphaUpdate(p -> {
+            if (fadeOut > 0 && p.lifetime > 0 && (p.lifetime - p.age) <= fadeOut) {
+                return (p.lifetime - p.age) * 1f / fadeOut;
             }
-        }
-    }
-
-    public void render(@Nonnull VertexConsumer pBuffer, Camera pRenderInfo, float pPartialTicks) {
-        if (delay <= 0) {
-            renderInternal(pBuffer, pRenderInfo, pPartialTicks);
-        }
-    }
-
-    public void renderInternal(@Nonnull VertexConsumer pBuffer, Camera pRenderInfo, float pPartialTicks) {
-        Vec3 vec3 = pRenderInfo.getPosition();
-        float f = (float)(Mth.lerp(pPartialTicks, this.xo, this.x) - vec3.x());
-        float f1 = (float)(Mth.lerp(pPartialTicks, this.yo, this.y) - vec3.y());
-        float f2 = (float)(Mth.lerp(pPartialTicks, this.zo, this.z) - vec3.z());
-        float a = Mth.lerp(pPartialTicks, this.alphao, this.alpha);
-        Quaternion quaternion;
-        if (this.roll == 0.0F) {
-            quaternion = pRenderInfo.rotation();
-        } else {
-            quaternion = new Quaternion(pRenderInfo.rotation());
-            float f3 = Mth.lerp(pPartialTicks, this.oRoll, this.roll);
-            quaternion.mul(Vector3f.ZP.rotation(f3));
-        }
-
-        Vector3f[] avector3f = new Vector3f[]{new Vector3f(-1.0F, -1.0F, 0.0F), new Vector3f(-1.0F, 1.0F, 0.0F), new Vector3f(1.0F, 1.0F, 0.0F), new Vector3f(1.0F, -1.0F, 0.0F)};
-        float f4 = this.getQuadSize(pPartialTicks);
-
-        for(int i = 0; i < 4; ++i) {
-            Vector3f vector3f = avector3f[i];
-            vector3f.transform(quaternion);
-            vector3f.mul(f4);
-            vector3f.add(f, f1, f2);
-        }
-
-        float f7 = this.getU0(pPartialTicks);
-        float f8 = this.getU1(pPartialTicks);
-        float f5 = this.getV0(pPartialTicks);
-        float f6 = this.getV1(pPartialTicks);
-        int j = this.getLightColor(pPartialTicks);
-        pBuffer.vertex(avector3f[0].x(), avector3f[0].y(), avector3f[0].z()).uv(f8, f6).color(this.rCol, this.gCol, this.bCol, a).uv2(j).endVertex();
-        pBuffer.vertex(avector3f[1].x(), avector3f[1].y(), avector3f[1].z()).uv(f8, f5).color(this.rCol, this.gCol, this.bCol, a).uv2(j).endVertex();
-        pBuffer.vertex(avector3f[2].x(), avector3f[2].y(), avector3f[2].z()).uv(f7, f5).color(this.rCol, this.gCol, this.bCol, a).uv2(j).endVertex();
-        pBuffer.vertex(avector3f[3].x(), avector3f[3].y(), avector3f[3].z()).uv(f7, f6).color(this.rCol, this.gCol, this.bCol, a).uv2(j).endVertex();
-    }
-
-    public float getQuadSize(float pPartialTicks) {
-        return this.quadSize;
+            return p.alpha;
+        });
     }
 
     @Nonnull
     public LParticle scale(float pScale) {
         this.quadSize = pScale;
-        super.scale(pScale);
+        super.scale(pScale / 0.2f);
         return this;
-    }
-
-    public void setAlpha(float alpha, boolean setOrigin) {
-        this.alpha = alpha;
-        if (setOrigin) {
-            this.alphao = alpha;
-        }
     }
 
     public void setPos(double pX, double pY, double pZ, boolean setOrigin) {
@@ -227,9 +132,293 @@ public abstract class LParticle extends Particle {
         this.gravity = gravity;
     }
 
+    public void setLight(int light) {
+        this.lightColor = light;
+    }
+
+
+    public void setCull(boolean cull) {
+        this.cull = cull;
+    }
+
+    public void setImmortal() {
+        setLifetime(-1);
+    }
+
+    public void setFriction(float friction) {
+        this.friction = friction;
+    }
+
+    public void setRandomMovementScale(float x, float y, float z) {
+        this.randomX = x;
+        this.randomY = y;
+        this.randomZ = z;
+    }
+
+    public void setWind(float d) {
+        int m = level.getMoonPhase();
+        Vec3 source = new Vec3(0.0, 0.0, 0.0);
+        Vec3 tar = new Vec3(0.1, 0.0, 0.0);
+        float angle = (float)(m * (40 + random.nextInt(10))) / 180.0F * Mth.PI;
+        float x = Mth.cos(angle);
+        float y = Mth.sin(angle);
+        tar = new Vec3(tar.x * x + tar.z * y, tar.y, tar.z * x - tar.x * y);
+        Vec3 result = source.add(tar.x, tar.y, tar.z);
+        this.windX = (float) (result.x * d);
+        this.windZ = (float) (result.z * d);
+    }
+
+    public void setColor(int color) {
+        this.setColor((float) FastColor.ARGB32.red(color) / 255, (float)FastColor.ARGB32.green(color) / 255, (float)FastColor.ARGB32.blue(color) / 255);
+    }
+
+    public void setDelay(int delay) {
+        this.delay = delay;
+    }
+
+    public void setYaw(float yaw) {
+        this.yaw = yaw;
+    }
+
+    public void setPitch(float pitch) {
+        this.pitch = pitch;
+    }
+
+    public void setOnUpdate(Consumer<LParticle> onUpdate) {
+        this.onUpdate = onUpdate;
+    }
+
+    public void setAlphaUpdate(Function<LParticle, Float> alphaUpdate) {
+        this.alphaUpdate = alphaUpdate;
+    }
+
+    public void setRedUpdate(Function<LParticle, Float> redUpdate) {
+        this.redUpdate = redUpdate;
+    }
+
+    public void setGreenUpdate(Function<LParticle, Float> greenUpdate) {
+        this.greenUpdate = greenUpdate;
+    }
+
+    public void setBlueUpdate(Function<LParticle, Float> blueUpdate) {
+        this.blueUpdate = blueUpdate;
+    }
+
+    public void setSizeUpdate(Function<LParticle, Float> sizeUpdate) {
+        this.sizeUpdate = sizeUpdate;
+    }
+
+    public void setRollUpdate(Function<LParticle, Float> rollUpdate) {
+        this.rollUpdate = rollUpdate;
+    }
+
+    public void setAlpha(float... alphaAnima) {
+        setAnima(this::setAlphaUpdate, v -> this.alpha = v, () -> this.alpha, alphaAnima);
+    }
+
+    public void setRed(float... redAnima) {
+        setAnima(this::setRedUpdate, v -> this.rCol = v, () -> this.rCol, redAnima);
+    }
+
+    public void setGreen(float... greenAnima) {
+        setAnima(this::setGreenUpdate, v -> this.gCol = v, () -> this.gCol, greenAnima);
+    }
+
+    public void setBlue(float... blueAnima) {
+        setAnima(this::setBlueUpdate, v -> this.bCol = v, () -> this.bCol, blueAnima);
+    }
+
+    public void setSize(float... sizeAnima) {
+        setAnima(this::setSizeUpdate, this::scale, () -> this.quadSize, sizeAnima);
+    }
+
+    public void setRoll(float... rollAnima) {
+        setAnima(this::setRollUpdate, v -> this.roll = v, () -> this.roll, rollAnima);
+    }
+
+    protected void setAnima(Consumer<Function<LParticle, Float>> update, FloatConsumer setter, FloatSupplier getter, float... anima) {
+        if (anima.length > 0) {
+            setter.accept(anima[0]);
+            if (anima.length == 1) {
+                return;
+            }
+            update.accept(p -> {
+                if (p.lifetime > 0) { // 0 - 2 - 10 - 23   0 - 0.33 0.33 - 0.66 0.66 - 1
+                    float piece = p.t * (anima.length - 1);
+                    int from = (int) Math.min(piece, anima.length - 2);
+                    return anima[from] + (anima[from + 1] - anima[from]) * (piece - from);
+                }
+                return getter.getAsFloat();
+            });
+        }
+    }
+
+    @Override
+    public void tick() {
+        if (delay > 0) {
+            delay--;
+            return;
+        }
+
+        updateOrigin();
+
+        if (this.age++ >= this.lifetime && lifetime > 0) {
+            this.remove();
+        } else if (onUpdate == null) {
+            update();
+        } else {
+            onUpdate.accept(this);
+        }
+
+        if (lifetime > 0) {
+            t = 1.0f * age / this.lifetime;
+        }
+    }
+
+    protected void updateOrigin() {
+        this.xo = this.x;
+        this.yo = this.y;
+        this.zo = this.z;
+        this.oA = this.alpha;
+        this.oR = this.rCol;
+        this.oG = this.gCol;
+        this.oB = this.bCol;
+        this.oQuadSize = this.quadSize;
+        this.oRoll = this.roll;
+    }
+
+    protected void update() {
+        updateChanges();
+    }
+
+    protected void updateChanges() {
+
+        if (alphaUpdate != null) {
+            this.alpha = alphaUpdate.apply(this);
+        }
+        if (redUpdate != null) {
+            this.rCol = redUpdate.apply(this);
+        }
+        if (greenUpdate != null) {
+            this.gCol = greenUpdate.apply(this);
+        }
+        if (blueUpdate != null) {
+            this.bCol = blueUpdate.apply(this);
+        }
+        if (sizeUpdate != null) {
+            scale(sizeUpdate.apply(this));
+        }
+        if (rollUpdate != null) {
+            this.roll = rollUpdate.apply(this);
+        }
+
+        if (!moveless) {
+            this.yd -= 0.04D * this.gravity;
+            this.move(this.xd, this.yd, this.zd);
+            if (this.speedUpWhenYMotionIsBlocked && this.y == this.yo) {
+                this.xd *= 1.1D;
+                this.zd *= 1.1D;
+            }
+            this.xd *= this.friction;
+            this.yd *= this.friction;
+            this.zd *= this.friction;
+            this.xd += this.random.nextGaussian() * (double)this.randomX;
+            this.yd += this.random.nextGaussian() * (double)this.randomY;
+            this.zd += this.random.nextGaussian() * (double)this.randomZ;
+            this.xd *= this.windX;
+            this.zd *= this.windZ;
+            if (this.onGround && this.friction != 1.0) {
+                this.xd *= 0.7F;
+                this.zd *= 0.7F;
+            }
+        }
+    }
+
+    public void render(@Nonnull VertexConsumer pBuffer, Camera pRenderInfo, float pPartialTicks) {
+        if (delay <= 0) {
+            renderInternal(pBuffer, pRenderInfo, pPartialTicks);
+        }
+    }
+
+    public void renderInternal(@Nonnull VertexConsumer buffer, Camera camera, float partialTicks) {
+        Vec3 vec3 = camera.getPosition();
+        float f = (float)(Mth.lerp(partialTicks, this.xo, this.x) - vec3.x());
+        float f1 = (float)(Mth.lerp(partialTicks, this.yo, this.y) - vec3.y());
+        float f2 = (float)(Mth.lerp(partialTicks, this.zo, this.z) - vec3.z());
+
+        float a = getAlpha(partialTicks);
+        float r = getRed(partialTicks);
+        float g = getGreen(partialTicks);
+        float b = getBlue(partialTicks);
+
+        Quaternion quaternion;
+        if (this.roll == 0.0F) {
+            quaternion = camera.rotation();
+        } else {
+            quaternion = new Quaternion(camera.rotation());
+            if (pitch != 0) {
+                quaternion.mul(Vector3f.XP.rotation(pitch));
+            }
+            if (yaw != 0) {
+                quaternion.mul(Vector3f.YP.rotation(yaw));
+            }
+            quaternion.mul(Vector3f.ZP.rotation(getRoll(partialTicks)));
+        }
+
+        Vector3f[] rawVertexes = new Vector3f[]{new Vector3f(-1.0F, -1.0F, 0.0F), new Vector3f(-1.0F, 1.0F, 0.0F), new Vector3f(1.0F, 1.0F, 0.0F), new Vector3f(1.0F, -1.0F, 0.0F)};
+        float f4 = this.getQuadSize(partialTicks);
+
+        for(int i = 0; i < 4; ++i) {
+            Vector3f vertex = rawVertexes[i];
+            vertex.transform(quaternion);
+            vertex.mul(f4);
+            vertex.add(f, f1, f2);
+        }
+
+        float u0 = this.getU0(partialTicks);
+        float u1 = this.getU1(partialTicks);
+        float v0 = this.getV0(partialTicks);
+        float v1 = this.getV1(partialTicks);
+        int light = this.getLightColor(partialTicks);
+
+        buffer.vertex(rawVertexes[0].x(), rawVertexes[0].y(), rawVertexes[0].z()).uv(u1, v1).color(r, g, b, a).uv2(light).endVertex();
+        buffer.vertex(rawVertexes[1].x(), rawVertexes[1].y(), rawVertexes[1].z()).uv(u1, v0).color(r, g, b, a).uv2(light).endVertex();
+        buffer.vertex(rawVertexes[2].x(), rawVertexes[2].y(), rawVertexes[2].z()).uv(u0, v0).color(r, g, b, a).uv2(light).endVertex();
+        buffer.vertex(rawVertexes[3].x(), rawVertexes[3].y(), rawVertexes[3].z()).uv(u0, v1).color(r, g, b, a).uv2(light).endVertex();
+    }
+
+    protected float getAlpha(float partialTicks) {
+        return Mth.lerp(partialTicks, this.oA, this.alpha);
+    }
+
+    protected float getRed(float partialTicks) {
+        return Mth.lerp(partialTicks, this.oR, this.rCol);
+    }
+
+    protected float getGreen(float partialTicks) {
+        return Mth.lerp(partialTicks, this.oG, this.gCol);
+    }
+
+    protected float getBlue(float partialTicks) {
+        return Mth.lerp(partialTicks, this.oB, this.bCol);
+    }
+
+    protected float getQuadSize(float partialTicks) {
+        return Mth.lerp(partialTicks, this.oQuadSize, this.quadSize);
+    }
+
+    protected float getRoll(float partialTicks) {
+        return Mth.lerp(partialTicks, this.oRoll, this.roll);
+    }
+
     public float getGravity() {
         return gravity;
     }
+
+    public float getRoll() {
+        return roll;
+    }
+
 
     @Override
     protected int getLightColor(float pPartialTick) {
@@ -237,13 +426,7 @@ public abstract class LParticle extends Particle {
         if (level == null) return 0xf000f0;
         return super.getLightColor(pPartialTick);
     }
-    public void setLight(int light) {
-        this.lightColor = light;
-    }
 
-    public void setColor(int color) {
-        this.setColor((float) FastColor.ARGB32.red(color) / 255, (float)FastColor.ARGB32.green(color) / 255, (float)FastColor.ARGB32.blue(color) / 255);
-    }
     @Override
     public boolean shouldCull() {
         return cull;
@@ -269,19 +452,8 @@ public abstract class LParticle extends Particle {
         return age;
     }
 
-    public void setCull(boolean cull) {
-        this.cull = cull;
-    }
-
-    public void setImmortal() {
-        setLifetime(-1);
-    }
-
-    public void setFriction(float friction) {
-        this.friction = friction;
-    }
-
     public void addParticle() {
+        updateOrigin();
         if (getLevel() instanceof DummyWorld dummyWorld) {
             ParticleManager particleManager = dummyWorld.getParticleManager();
             if (particleManager != null) {

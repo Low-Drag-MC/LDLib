@@ -66,12 +66,17 @@ public abstract class TrailParticle extends LParticle {
         return new Vector3(this.xo, this.yo, this.zo);
     }
 
-    public void renderInternal(@Nonnull VertexConsumer pBuffer, @Nonnull Camera camera, float partialTicks) {
+    public void renderInternal(@Nonnull VertexConsumer buffer, @Nonnull Camera camera, float partialTicks) {
         Vector3[] verts = new Vector3[tails.size() * 2];
         double x = (Mth.lerp(partialTicks, this.xo, this.x));
         double y = (Mth.lerp(partialTicks, this.yo, this.y));
         double z = (Mth.lerp(partialTicks, this.zo, this.z));
-        float a = Mth.lerp(partialTicks, this.alphao, this.alpha);
+
+        float a = getAlpha(partialTicks);
+        float r = getRed(partialTicks);
+        float g = getGreen(partialTicks);
+        float b = getBlue(partialTicks);
+        
         Vector3 lastTail = new Vector3(x, y, z);
         Vector3 cameraPos = new Vector3(camera.getPosition());
         int size = tails.size() - 1;
@@ -92,13 +97,13 @@ public abstract class TrailParticle extends LParticle {
             float v1 = getV1(i, partialTicks);
             int light = getLightColor(i, partialTicks);
 
-            pBuffer.vertex(currentD.x, currentD.y, currentD.z).uv(u1, v0).color(this.rCol, this.gCol, this.bCol, a).uv2(light).endVertex();
-            pBuffer.vertex(currentU.x, currentU.y, currentU.z).uv(u1, v1).color(this.rCol, this.gCol, this.bCol, a).uv2(light).endVertex();
-            pBuffer.vertex(nextD.x, nextD.y, nextD.z).uv(u0, v0).color(this.rCol, this.gCol, this.bCol, a).uv2(light).endVertex();
+            buffer.vertex(currentD.x, currentD.y, currentD.z).uv(u1, v0).color(r, g, b, a).uv2(light).endVertex();
+            buffer.vertex(currentU.x, currentU.y, currentU.z).uv(u1, v1).color(r, g, b, a).uv2(light).endVertex();
+            buffer.vertex(nextD.x, nextD.y, nextD.z).uv(u0, v0).color(r, g, b, a).uv2(light).endVertex();
 
-            pBuffer.vertex(nextD.x, nextD.y, nextD.z).uv(u0, v0).color(this.rCol, this.gCol, this.bCol, a).uv2(light).endVertex();
-            pBuffer.vertex(currentU.x, currentU.y, currentU.z).uv(u1, v1).color(this.rCol, this.gCol, this.bCol, a).uv2(light).endVertex();
-            pBuffer.vertex(nextU.x, nextU.y, nextU.z).uv(u0, v1).color(this.rCol, this.gCol, this.bCol, a).uv2(light).endVertex();
+            buffer.vertex(nextD.x, nextD.y, nextD.z).uv(u0, v0).color(r, g, b, a).uv2(light).endVertex();
+            buffer.vertex(currentU.x, currentU.y, currentU.z).uv(u1, v1).color(r, g, b, a).uv2(light).endVertex();
+            buffer.vertex(nextU.x, nextU.y, nextU.z).uv(u0, v1).color(r, g, b, a).uv2(light).endVertex();
         }
     }
 
