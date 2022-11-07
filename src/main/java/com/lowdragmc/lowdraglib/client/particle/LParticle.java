@@ -5,7 +5,6 @@ import com.lowdragmc.lowdraglib.utils.DummyWorld;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Quaternion;
 import com.mojang.math.Vector3f;
-import dev.architectury.utils.value.FloatSupplier;
 import it.unimi.dsi.fastutil.floats.FloatConsumer;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
@@ -22,6 +21,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import javax.annotation.Nonnull;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * @author KilaBash
@@ -236,7 +236,7 @@ public abstract class LParticle extends Particle {
         setAnima(this::setRollUpdate, v -> this.roll = v, () -> this.roll, rollAnima);
     }
 
-    protected void setAnima(Consumer<Function<LParticle, Float>> update, FloatConsumer setter, FloatSupplier getter, float... anima) {
+    protected void setAnima(Consumer<Function<LParticle, Float>> update, FloatConsumer setter, Supplier<Float> getter, float... anima) {
         if (anima.length > 0) {
             setter.accept(anima[0]);
             if (anima.length == 1) {
@@ -248,7 +248,7 @@ public abstract class LParticle extends Particle {
                     int from = (int) Math.min(piece, anima.length - 2);
                     return anima[from] + (anima[from + 1] - anima[from]) * (piece - from);
                 }
-                return getter.getAsFloat();
+                return getter.get();
             });
         }
     }
