@@ -94,7 +94,7 @@ public class SearchComponentWidget<T> extends WidgetGroup {
             int size = popUp.getAllWidgetSize();
             int width = getSize().width;
             popUp.setSize(new Size(getSize().width, Math.min(size + 1, capacity) * 15));
-            popUp.waitToAdded(new ButtonWidget(0, size * 15, width,
+            popUp.addWidget(new ButtonWidget(0, size * 15, width,
                     15, new TextTexture(search.resultDisplay(r)).setWidth(width).setType(TextTexture.TextType.ROLL),
                     cd -> {
                         search.selectResult(r);
