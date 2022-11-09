@@ -190,7 +190,7 @@ public class TextFieldWidget extends Widget {
             String lastText = getCurrentString();
             String newText = textValidator.apply(buffer.readUtf());
             newText = newText.substring(0, Math.min(newText.length(), maxStringLength));
-            if (!lastText.equals(newText)) {
+            if (lastText == null || !lastText.equals(newText)) {
                 setCurrentString(newText);
                 if (textResponder != null) {
                     this.textResponder.accept(newText);

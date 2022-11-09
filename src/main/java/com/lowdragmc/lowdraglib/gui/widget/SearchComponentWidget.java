@@ -6,6 +6,8 @@ import com.lowdragmc.lowdraglib.utils.ISearch;
 import com.lowdragmc.lowdraglib.utils.SearchEngine;
 import com.lowdragmc.lowdraglib.utils.Size;
 import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.resources.language.I18n;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.Nullable;
@@ -25,9 +27,15 @@ public class SearchComponentWidget<T> extends WidgetGroup {
     private int capacity = 10;
     protected boolean isShow;
 
-    public  SearchComponentWidget(int x, int y, int width, int height, IWidgetSearch<T> search) {
+    public SearchComponentWidget(int x, int y, int width, int height, IWidgetSearch<T> search) {
+        this(x, y, width, height, search, false);
+    }
+
+    public  SearchComponentWidget(int x, int y, int width, int height, IWidgetSearch<T> search, boolean isServer) {
         super(x, y, width, height);
-        setClientSideWidget();
+        if (!isServer) {
+            setClientSideWidget();
+        }
         this.addWidget(textFieldWidget = new TextFieldWidget(0, 0, width, height, null, null){
             @Override
             public void onFocusChanged(@Nullable Widget lastFocus, Widget focus) {
@@ -50,7 +58,7 @@ public class SearchComponentWidget<T> extends WidgetGroup {
         });
         popUp.setBackground(new ColorRectTexture(0xAA000000));
         popUp.setVisible(false);
-        popUp.setActive(false);
+        popUp.setActive(true);
         this.search = search;
         this.engine = new SearchEngine<>(search, (r) -> {
             int size = popUp.getAllWidgetSize();
@@ -61,13 +69,40 @@ public class SearchComponentWidget<T> extends WidgetGroup {
                         search.selectResult(r);
                         textFieldWidget.setCurrentString(search.resultDisplay(r));
                     }).setHoverBorderTexture(-1, -1));
+            if (isServer) {
+                writeUpdateInfo(-2, buf -> search.serialize(r, buf));
+            }
         });
 
         textFieldWidget.setTextResponder(s -> {
             popUp.clearAllWidgets();
             popUp.setSize(new Size(getSize().width, 0));
             this.engine.searchWord(s);
+            if (isServer) {
+                writeUpdateInfo(-1, buffer -> {});
+            }
         });
+    }
+
+    @Override
+    public void readUpdateInfo(int id, FriendlyByteBuf buffer) {
+        if (id == -1) {
+            popUp.clearAllWidgets();
+            popUp.setSize(new Size(getSize().width, 0));
+        } else if (id == -2) {
+            T r = search.deserialize(buffer);
+            int size = popUp.getAllWidgetSize();
+            int width = getSize().width;
+            popUp.setSize(new Size(getSize().width, Math.min(size + 1, capacity) * 15));
+            popUp.waitToAdded(new ButtonWidget(0, size * 15, width,
+                    15, new TextTexture(search.resultDisplay(r)).setWidth(width).setType(TextTexture.TextType.ROLL),
+                    cd -> {
+                        search.selectResult(r);
+                        textFieldWidget.setCurrentString(search.resultDisplay(r));
+                    }).setHoverBorderTexture(-1, -1));
+        } else {
+            super.readUpdateInfo(id, buffer);
+        }
     }
 
     public SearchComponentWidget<T> setCapacity(int capacity) {
@@ -120,5 +155,19 @@ public class SearchComponentWidget<T> extends WidgetGroup {
         String resultDisplay(T value);
 
         void selectResult(T value);
+
+        /**
+         * just used for server side
+         */
+        default void serialize(T value, FriendlyByteBuf buf) {
+            buf.writeUtf(resultDisplay(value));
+        }
+
+        /**
+         * just used for server side
+         */
+        default T deserialize(FriendlyByteBuf buf) {
+            return (T) buf.readUtf();
+        }
     }
 }

@@ -220,6 +220,16 @@ public class WidgetGroup extends Widget implements IGhostIngredientTarget, IIngr
             it.setParentPosition(Position.ORIGIN);
         });
         this.widgets.clear();
+        if (!waitToRemoved.isEmpty()) {
+            synchronized (waitToRemoved) {
+                waitToRemoved.clear();
+            }
+        }
+        if (!waitToAdded.isEmpty()) {
+            synchronized (waitToAdded) {
+                waitToAdded.clear();
+            }
+        }
         recomputeSize();
         if (uiAccess != null) {
             this.uiAccess.notifyWidgetChange();
