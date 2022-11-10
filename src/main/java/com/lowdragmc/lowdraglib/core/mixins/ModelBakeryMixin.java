@@ -16,6 +16,7 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 @Mixin(ModelBakery.class)
 public abstract class ModelBakeryMixin {
 
+    @SuppressWarnings("mapping")
     @Redirect(method = "getModel",
             at = @At(value = "INVOKE",
                     target = "Lorg/slf4j/Logger;warn(Ljava/lang/String;[Ljava/lang/Object;)V"))

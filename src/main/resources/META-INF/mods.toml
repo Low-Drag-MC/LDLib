@@ -5,7 +5,7 @@ license="The MIT License (MIT)"
 
 [[mods]] #mandatory
 modId="ldlib" #mandatory
-version="${file.jarVersion}" #mandatory
+version="${version}" #mandatory
 displayName="LowDragLib" #mandatory
 #updateJSONURL="https://change.me.example.invalid/updates.json" #optional
 #displayURL="https://change.me.to.your.mods.homepage.example.invalid/" #optional
