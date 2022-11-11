@@ -78,7 +78,6 @@ minecraft {
 
             property 'mixin.env.remapRefMap', 'true'
             property 'mixin.env.refMapRemappingFile', "${projectDir}/build/createSrgToMcp/output.srg"
-            arg "-mixin.config=ldlib.mixins.json"
 
             property 'forge.logging.console.level', 'debug'
 
@@ -138,6 +137,7 @@ mixin {
     mixin.hotSwap = true
     mixin.checks.interfaces=true
     add sourceSets.main, 'ldlib.refmap.json'
+    config 'ldlib.mixins.json'
 }
 
 // Example for how to get properties into the manifest for reading by the runtime..
