@@ -146,6 +146,7 @@ public class IModelRenderer implements IRenderer {
     }
 
     @Override
+    @OnlyIn(Dist.CLIENT)
     public void onTextureSwitchEvent(TextureStitchEvent.Pre event) {
         itemModel = null;
         blockModels.clear();

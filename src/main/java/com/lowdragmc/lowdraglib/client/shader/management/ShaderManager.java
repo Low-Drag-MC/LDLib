@@ -44,6 +44,7 @@ public class ShaderManager {
 		if (TEMP_TARGET == null) {
 			TEMP_TARGET = new TextureTarget(1024, 1024, false, Minecraft.ON_OSX);
 			TEMP_TARGET.setFilterMode(9729);
+			TEMP_TARGET.setClearColor(0, 0, 0, 0);
 		}
 		return TEMP_TARGET;
 	}

@@ -180,6 +180,7 @@ public class BlockStateRenderer implements IRenderer {
     }
 
     @Override
+    @OnlyIn(Dist.CLIENT)
     public void render(BlockEntity tileEntity, float partialTicks, PoseStack stack, MultiBufferSource buffer, int combinedLight, int combinedOverlay) {
         BlockInfo block = getBlockInfo();
         FluidState fluidState = block.getBlockState().getFluidState();
@@ -200,6 +201,7 @@ public class BlockStateRenderer implements IRenderer {
     }
 
     @Override
+    @OnlyIn(Dist.CLIENT)
     public void onTextureSwitchEvent(TextureStitchEvent.Pre event) {
         itemModel = null;
     }
