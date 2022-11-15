@@ -39,7 +39,7 @@ public class ModularUIGuiContainer extends ContainerScreen<ModularUIContainer> {
     }
 
     public void setHoverTooltip(List<ITextComponent> tooltipTexts) {
-        if (this.tooltipTexts != null) return;
+//        if (this.tooltipTexts != null) return;
         this.tooltipTexts = tooltipTexts;
     }
 
