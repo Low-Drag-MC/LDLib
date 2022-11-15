@@ -1,8 +1,8 @@
 package com.lowdragmc.lowdraglib.gui.widget;
 
-import com.lowdragmc.lowdraglib.gui.ingredient.IIngredientSlot;
 import com.lowdragmc.lowdraglib.gui.ingredient.IRecipeIngredientSlot;
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
+import com.lowdragmc.lowdraglib.gui.texture.ProgressTexture;
 import com.lowdragmc.lowdraglib.gui.util.DrawerHelper;
 import com.lowdragmc.lowdraglib.gui.util.TextFormattingUtil;
 import com.lowdragmc.lowdraglib.jei.IngredientIO;
@@ -49,14 +49,24 @@ public class TankWidget extends Widget implements IRecipeIngredientSlot {
     protected int lastTankCapacity;
     protected BiConsumer<TankWidget, List<Component>> onAddedTooltips;
     protected IngredientIO ingredientIO = IngredientIO.RENDER_ONLY;
+    protected ProgressTexture.FillDirection fillDirection = ProgressTexture.FillDirection.ALWAYS_FULL;
 
     public TankWidget(IFluidTank fluidTank, int x, int y, boolean allowClickContainerFilling, boolean allowClickContainerEmptying) {
-        super(new Position(x, y), new Size(18, 18));
+        this(fluidTank, x, y, 18, 18, allowClickContainerFilling, allowClickContainerEmptying);
+    }
+
+    public TankWidget(IFluidTank fluidTank, int x, int y, int width, int height, boolean allowClickContainerFilling, boolean allowClickContainerEmptying) {
+        super(new Position(x, y), new Size(width, height));
         this.fluidTank = fluidTank;
         this.showAmount = true;
         this.allowClickFilling = allowClickContainerFilling;
         this.allowClickEmptying = allowClickContainerEmptying;
         this.drawHoverTips = true;
+    }
+
+    public TankWidget setFillDirection(ProgressTexture.FillDirection fillDirection) {
+        this.fillDirection = fillDirection;
+        return this;
     }
 
     public TankWidget setOnAddedTooltips(BiConsumer<TankWidget, List<Component>> onAddedTooltips) {
@@ -145,7 +155,16 @@ public class TankWidget extends Widget implements IRecipeIngredientSlot {
         if (lastFluidInTank != null) {
             RenderSystem.disableBlend();
             if (!lastFluidInTank.isEmpty()) {
-                DrawerHelper.drawFluidForGui(matrixStack, lastFluidInTank, lastFluidInTank.getAmount(), pos.x + 1, pos.y + 1, size.width - 2, size.height - 2);
+                double progress = lastFluidInTank.getAmount() * 1.0 / Math.max(Math.max(lastFluidInTank.getAmount(), lastTankCapacity), 1);
+                float drawnU = (float) fillDirection.getDrawnU(progress);
+                float drawnV = (float) fillDirection.getDrawnV(progress);
+                float drawnWidth = (float) fillDirection.getDrawnWidth(progress);
+                float drawnHeight = (float) fillDirection.getDrawnHeight(progress);
+                int width = size.width - 2;
+                int height = size.height - 2;
+                int x = pos.x + 1;
+                int y = pos.y + 1;
+                DrawerHelper.drawFluidForGui(matrixStack, lastFluidInTank, lastFluidInTank.getAmount(), (int) (x + drawnU * width), (int) (y + drawnV * height), ((int) (width * drawnWidth)), ((int) (height * drawnHeight)));
             }
 
             if (showAmount && !lastFluidInTank.isEmpty()) {

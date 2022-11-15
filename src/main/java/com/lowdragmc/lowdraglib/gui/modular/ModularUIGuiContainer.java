@@ -45,7 +45,7 @@ public class ModularUIGuiContainer extends AbstractContainerScreen<ModularUICont
     }
 
     public void setHoverTooltip(List<Component> tooltipTexts, ItemStack tooltipStack, @Nullable Font tooltipFont, @Nullable TooltipComponent tooltipComponent) {
-        if (this.tooltipTexts != null) return;
+//        if (this.tooltipTexts != null) return;
         this.tooltipTexts = tooltipTexts;
         this.tooltipStack = tooltipStack;
         this.tooltipFont = tooltipFont;

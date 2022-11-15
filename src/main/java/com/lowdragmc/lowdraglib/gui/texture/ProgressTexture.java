@@ -2,6 +2,8 @@ package com.lowdragmc.lowdraglib.gui.texture;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.util.Mth;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 /**
  * @author youyihj
@@ -28,6 +30,7 @@ public class ProgressTexture implements IGuiTexture {
     }
 
     @Override
+    @OnlyIn(Dist.CLIENT)
     public void draw(PoseStack stack, int mouseX, int mouseY, float x, float y, int width, int height) {
         if (emptyBarArea != null) {
             emptyBarArea.draw(stack, mouseX, mouseY, x, y, width, height);
@@ -38,7 +41,7 @@ public class ProgressTexture implements IGuiTexture {
             float drawnWidth = (float) fillDirection.getDrawnWidth(progress);
             float drawnHeight = (float) fillDirection.getDrawnHeight(progress);
             filledBarArea.drawSubArea(stack, x + drawnU * width, y + drawnV * height, ((int) (width * drawnWidth)), ((int) (height * drawnHeight)),
-                    drawnU, drawnV, (drawnWidth * width) / width, ((drawnHeight * height)) / height);
+                    drawnU, drawnV,((int) (drawnWidth * width)) / (width * 1.0f), ((int) (drawnHeight * height)) / (height * 1.0f));
         }
     }
 
@@ -82,6 +85,18 @@ public class ProgressTexture implements IGuiTexture {
             @Override
             public double getDrawnV(double progress) {
                 return 1.0 - progress;
+            }
+
+            @Override
+            public double getDrawnWidth(double progress) {
+                return 1.0;
+            }
+        },
+
+        ALWAYS_FULL {
+            @Override
+            public double getDrawnHeight(double progress) {
+                return 1.0;
             }
 
             @Override

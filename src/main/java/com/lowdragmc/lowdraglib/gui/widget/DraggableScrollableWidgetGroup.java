@@ -32,6 +32,7 @@ public class DraggableScrollableWidgetGroup extends WidgetGroup {
     private boolean draggedPanel;
     private boolean draggedOnXScrollBar;
     private boolean draggedOnYScrollBar;
+    private double lastDeltaX, lastDeltaY;
 
 
     public DraggableScrollableWidgetGroup(int x, int y, int width, int height) {
@@ -279,6 +280,8 @@ public class DraggableScrollableWidgetGroup extends WidgetGroup {
     @Override
     @OnlyIn(Dist.CLIENT)
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        lastDeltaX = 0;
+        lastDeltaY = 0;
         if (xBarHeight > 0 && isOnXScrollPane(mouseX, mouseY)) {
             this.draggedOnXScrollBar = true;
             setFocus(true);
@@ -361,6 +364,12 @@ public class DraggableScrollableWidgetGroup extends WidgetGroup {
     @Override
     @OnlyIn(Dist.CLIENT)
     public boolean mouseDragged(double mouseX, double mouseY, int button, double deltaX, double deltaY) {
+        double dx = deltaX + lastDeltaX;
+        double dy = deltaY + lastDeltaY;
+        deltaX = (int) dx;
+        deltaY = (int) dy;
+        lastDeltaX = dx- deltaX;
+        lastDeltaY = dy - deltaY;
         if (draggedOnXScrollBar && (getMaxWidth() - getSize().width > 0 || scrollYOffset > getMaxWidth() - getSize().width)) {
             setScrollXOffset((int) Mth.clamp(scrollXOffset + deltaX * getMaxWidth() / getSize().width, 0, getMaxWidth() - getSize().width));
             return true;
