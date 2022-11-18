@@ -219,8 +219,8 @@ public class Vector3 {
     }
 
     public Vector3 zCrossProduct() {
-        double d = this.y;
-        double d1 = -this.x;
+        double d = -this.y;
+        double d1 = this.x;
         this.x = d;
         this.y = d1;
         this.z = 0.0D;

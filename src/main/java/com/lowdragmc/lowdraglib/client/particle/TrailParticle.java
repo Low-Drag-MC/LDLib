@@ -22,6 +22,7 @@ public abstract class TrailParticle extends LParticle {
     public int maxTail;
     public int freq;
     public float width;
+    public boolean removeTail;
 
     protected TrailParticle(ClientLevel level, double x, double y, double z) {
         super(level, x, y, z);
@@ -29,6 +30,7 @@ public abstract class TrailParticle extends LParticle {
         freq = 1;
         width = 0.5f;
         cull = false;
+        removeTail = true;
     }
 
     protected TrailParticle(ClientLevel level, double x, double y, double z, double sX, double sY, double sZ) {
@@ -55,8 +57,10 @@ public abstract class TrailParticle extends LParticle {
             if (shouldAddTail(tail)) {
                 tails.add(tail);
             }
-            while (tails.size() > maxTail) {
-                tails.remove(0);
+            if (removeTail) {
+                while (tails.size() > maxTail) {
+                    tails.remove(0);
+                }
             }
         }
         super.tick();
@@ -82,7 +86,11 @@ public abstract class TrailParticle extends LParticle {
         int size = tails.size() - 1;
         for (int i = size; i >= 0; i--) {
             Vector3 tail = new Vector3(tails.get(i));
-            renderTail(verts, size - i, cameraPos, lastTail, tail, partialTicks);
+            Vector3 nextTail = tail;
+            if (i - 1 > 0) {
+                nextTail = new Vector3(tails.get(i - 1));
+            }
+            renderTail(verts,size - i, cameraPos, lastTail, tail, nextTail, partialTicks);
             lastTail = tail;
         }
         for (int i = 0; i < (verts.length / 2) - 1; i++) {
@@ -107,13 +115,13 @@ public abstract class TrailParticle extends LParticle {
         }
     }
 
-    public void renderTail(Vector3[] verts, int i, Vector3 cameraPos, Vector3 current, Vector3 nextTail, float partialTicks) {
+    public void renderTail(Vector3[] verts, int i, Vector3 cameraPos, Vector3 pre, Vector3 current, Vector3 nextTail, float partialTicks) {
         float size = getWidth(i, partialTicks);
-        Vector3 direction = nextTail.copy().subtract(current);
         Vector3 toTail = current.copy().subtract(cameraPos);
-        Vector3 normal = toTail.copy().crossProduct(direction).normalize();
-        verts[i * 2] = current.copy().add(normal.copy().multiply(size)).subtract(cameraPos);
-        verts[i * 2 + 1] = current.copy().add(normal.copy().multiply(-size)).subtract(cameraPos);
+        Vector3 preNormal = toTail.copy().crossProduct(current.copy().subtract(pre)).normalize();
+        Vector3 nextNormal = toTail.copy().crossProduct(nextTail.copy().subtract(current)).normalize();
+        verts[i * 2] = current.copy().add(preNormal.copy().multiply(size)).subtract(cameraPos);
+        verts[i * 2 + 1] = current.copy().add(nextNormal.copy().multiply(-size)).subtract(cameraPos);
     }
 
     public float getWidth(int tail, float pPartialTicks) {
