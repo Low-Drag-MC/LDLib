@@ -8,7 +8,6 @@ import com.lowdragmc.lowdraglib.client.renderer.IRenderer;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.block.BlockRenderDispatcher;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.block.model.ItemTransforms;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
@@ -33,7 +32,6 @@ import net.minecraftforge.client.model.data.IModelData;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Collections;
-import java.util.EnumMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -47,6 +45,7 @@ public class IModelRenderer implements IRenderer {
     protected static final Set<ResourceLocation> CACHE = new HashSet<>();
 
     public final ResourceLocation modelLocation;
+    public final boolean useCustomBakedModel;
     @OnlyIn(Dist.CLIENT)
     protected BakedModel itemModel;
     @OnlyIn(Dist.CLIENT)
@@ -54,10 +53,16 @@ public class IModelRenderer implements IRenderer {
 
     protected IModelRenderer() {
         modelLocation = null;
+        useCustomBakedModel = false;
     }
 
     public IModelRenderer(ResourceLocation modelLocation) {
+        this(modelLocation, false);
+    }
+
+    public IModelRenderer(ResourceLocation modelLocation, boolean useCustomBakedModel) {
         this.modelLocation = modelLocation;
+        this.useCustomBakedModel = useCustomBakedModel;
         if (LDLMod.isClient()) {
             blockModels = new ConcurrentHashMap<>();
             if (isRaw()) {
@@ -141,7 +146,7 @@ public class IModelRenderer implements IRenderer {
                     ForgeModelBakery.defaultTextureGetter(),
                     ModelFactory.getRotation(facing),
                     modelLocation);
-            return model == null ? null : new CustomBakedModel(model);
+            return model == null ? null : useCustomBakedModel ? new CustomBakedModel(model) : model;
         });
     }
 
