@@ -101,7 +101,7 @@ public class IModelRenderer implements IRenderer {
                            MultiBufferSource buffer, int combinedLight,
                            int combinedOverlay, BakedModel model) {
         IItemRendererProvider.disabled.set(true);
-        model = getItemBakedModel();
+        model = getItemBakedModel(stack);
         if (model != null) {
             Minecraft.getInstance().getItemRenderer().render(stack, transformType, leftHand, matrixStack, buffer, combinedLight, combinedOverlay, model);
         }
@@ -128,6 +128,12 @@ public class IModelRenderer implements IRenderer {
                     modelLocation);
         }
         return itemModel;
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    @Nullable
+    protected BakedModel getItemBakedModel(ItemStack itemStack) {
+        return getItemBakedModel();
     }
 
     @OnlyIn(Dist.CLIENT)
