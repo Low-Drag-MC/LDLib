@@ -467,4 +467,8 @@ public abstract class LParticle extends Particle {
     public void resetAge() {
         this.age = 0;
     }
+
+    public void setAge(int age) {
+        this.age = age;
+    }
 }
