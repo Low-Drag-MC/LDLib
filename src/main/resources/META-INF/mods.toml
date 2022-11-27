@@ -11,9 +11,9 @@ displayName="LowDragLib" #mandatory
 #displayURL="https://change.me.to.your.mods.homepage.example.invalid/" #optional
 logoFile="icon.png" #optional
 credits="" #optional
-authors="KilaBash" #optional
+authors="KilaBash, WarmthDawn" #optional
 # The description text for the mod (multi line!) (#mandatory)
-description='''Low Drag Lib, a library for rendering and gui'''
+description='''Low Drag Lib, a library for rendering, gui, particles, synchronize'''
 
 [[dependencies.ldlib]] #optional
     modId="forge" #mandatory

@@ -19,7 +19,7 @@ import java.util.Queue;
  * @implNote ParticleEngineMixin
  */
 @Mixin(ParticleEngine.class)
-public class ParticleEngineMixin {
+public abstract class ParticleEngineMixin {
 
     @Shadow @Final private Map<ParticleRenderType, Queue<Particle>> particles;
 

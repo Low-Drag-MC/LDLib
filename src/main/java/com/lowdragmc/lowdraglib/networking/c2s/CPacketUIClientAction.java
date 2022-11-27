@@ -4,18 +4,17 @@ import com.lowdragmc.lowdraglib.gui.modular.ModularUIContainer;
 import com.lowdragmc.lowdraglib.networking.IPacket;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import lombok.NoArgsConstructor;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraftforge.network.NetworkEvent;
 
+@NoArgsConstructor
 public class CPacketUIClientAction implements IPacket {
 
     public int windowId;
     public FriendlyByteBuf updateData;
-
-    public CPacketUIClientAction() {
-    }
 
     public CPacketUIClientAction(int windowId, FriendlyByteBuf updateData) {
         this.windowId = windowId;

@@ -10,7 +10,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(BlockEntityRenderDispatcher.class)
-public class TileEntityRendererDispatcherMixin {
+public abstract class BlockEntityRendererDispatcherMixin {
 
     @Inject(method = "getRenderer", at = @At(value = "RETURN"), cancellable = true)
     private <T extends BlockEntity> void injectGetRenderer(T pBlockEntity, CallbackInfoReturnable<BlockEntityRenderer<T>> cir) {

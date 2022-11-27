@@ -11,7 +11,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(LevelRenderer.class)
-public class WorldRendererMixin {
+public abstract class WorldRendererMixin {
 
     @Inject(method = "getLightColor(Lnet/minecraft/world/level/BlockAndTintGetter;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/BlockPos;)I",  at = @At(value = "HEAD"), cancellable = true)
     private static void injectShouldRenderFace(BlockAndTintGetter pLevel,

@@ -1,4 +1,4 @@
-package com.lowdragmc.lowdraglib.core.mixins;
+package com.lowdragmc.lowdraglib.core.mixins.accessor;
 
 import net.minecraft.world.level.dimension.DimensionType;
 import org.spongepowered.asm.mixin.Mixin;

@@ -4,6 +4,7 @@ import com.lowdragmc.lowdraglib.gui.modular.ModularUIGuiContainer;
 import com.lowdragmc.lowdraglib.networking.IPacket;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import lombok.NoArgsConstructor;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.FriendlyByteBuf;
@@ -11,13 +12,11 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.network.NetworkEvent;
 
+@NoArgsConstructor
 public class SPacketUIWidgetUpdate implements IPacket {
 
     public int windowId;
     public FriendlyByteBuf updateData;
-
-    public SPacketUIWidgetUpdate() {
-    }
 
     public SPacketUIWidgetUpdate(int windowId, FriendlyByteBuf updateData) {
         this.windowId = windowId;

@@ -2,7 +2,7 @@ package com.lowdragmc.lowdraglib.utils;
 
 import com.lowdragmc.lowdraglib.LDLMod;
 import com.lowdragmc.lowdraglib.client.scene.ParticleManager;
-import com.lowdragmc.lowdraglib.core.mixins.DimensionTypeAccessor;
+import com.lowdragmc.lowdraglib.core.mixins.accessor.DimensionTypeAccessor;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;

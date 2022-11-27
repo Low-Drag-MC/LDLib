@@ -5,12 +5,12 @@
   "refmap": "ldlib.refmap.json",
   "minVersion": "0.8",
   "client": [
+    "BlockEntityRendererDispatcherMixin",
     "BlockModelShaperMixin",
     "ItemRendererMixin",
     "JeiRecipeLayoutMixin",
     "ModelBakeryMixin",
     "ParticleEngineMixin",
-    "TileEntityRendererDispatcherMixin",
     "WorldRendererMixin",
     "accessor.RecipeLayoutAccessor",
     "accessor.RecipesGuiAccessor",
@@ -18,7 +18,8 @@
     "accessor.RecipeSlotsAccessor"
   ],
   "mixins": [
-    "DimensionTypeAccessor",
-    "accessor.AbstractDisplayViewingScreenAccessor"
+    "BlockEntityMixin",
+    "accessor.AbstractDisplayViewingScreenAccessor",
+    "accessor.DimensionTypeAccessor"
   ]
 }

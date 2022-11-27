@@ -16,7 +16,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
  * @implNote TODO
  */
 @Mixin(BlockModelShaper.class)
-public class BlockModelShaperMixin {
+public abstract class BlockModelShaperMixin {
     @Inject(method = "stateToModelLocation(Lnet/minecraft/resources/ResourceLocation;Lnet/minecraft/world/level/block/state/BlockState;)Lnet/minecraft/client/resources/model/ModelResourceLocation;", at = @At(value = "HEAD"), cancellable = true)
     private static void injectStateToModelLocation(ResourceLocation pLocation, BlockState pState, CallbackInfoReturnable<ModelResourceLocation> cir) {
         if (pState.getBlock() instanceof IBlockRendererProvider) {

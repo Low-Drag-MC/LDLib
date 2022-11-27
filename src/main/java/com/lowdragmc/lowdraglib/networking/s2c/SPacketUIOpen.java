@@ -4,18 +4,17 @@ import com.lowdragmc.lowdraglib.gui.factory.UIFactory;
 import com.lowdragmc.lowdraglib.networking.IPacket;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import lombok.NoArgsConstructor;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.network.NetworkEvent;
 
+@NoArgsConstructor
 public class SPacketUIOpen implements IPacket {
     private int uiFactoryId;
     private FriendlyByteBuf serializedHolder;
     private int windowId;
-
-    public SPacketUIOpen() {
-    }
 
     public SPacketUIOpen(int uiFactoryId, FriendlyByteBuf serializedHolder, int windowId) {
         this.uiFactoryId = uiFactoryId;
