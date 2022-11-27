@@ -1,20 +1,15 @@
 package com.lowdragmc.lowdraglib.gui.modular;
 
-import com.lowdragmc.lowdraglib.gui.ingredient.Target;
 import dev.architectury.event.CompoundEventResult;
 import me.shedaniel.math.Point;
 import me.shedaniel.math.Rectangle;
 import me.shedaniel.rei.api.client.registry.screen.ExclusionZonesProvider;
 import me.shedaniel.rei.api.client.registry.screen.FocusedStackProvider;
+import me.shedaniel.rei.api.common.entry.EntryIngredient;
 import me.shedaniel.rei.api.common.entry.EntryStack;
-import me.shedaniel.rei.api.common.entry.type.VanillaEntryTypes;
-import me.shedaniel.rei.api.common.util.EntryStacks;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 
 import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
 
 /**
  * @author KilaBash
@@ -34,6 +29,8 @@ public class ModularUIReiHandler implements ExclusionZonesProvider<ModularUIGuiC
             var target = containerScreen.modularUI.mainGroup.getIngredientOverMouse(mouse.getX(), mouse.getY());
             if (target instanceof EntryStack<?> entryStack) {
                 return CompoundEventResult.interruptTrue(entryStack);
+            } else if (target instanceof EntryIngredient entryStacks && entryStacks.size() > 0) {
+                return CompoundEventResult.interruptTrue(entryStacks.get(0));
             }
         }
         return CompoundEventResult.pass();

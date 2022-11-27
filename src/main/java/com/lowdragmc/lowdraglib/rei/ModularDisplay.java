@@ -33,13 +33,23 @@ public class ModularDisplay<T extends Widget> implements Display {
         List<Widget> flatVisibleWidgetCollection = getFlatWidgetCollection(widget.get());
         for (Widget w : flatVisibleWidgetCollection) {
             if (w instanceof IRecipeIngredientSlot slot) {
-                var io = slot.getIngredientIo();
+                var io = slot.getIngredientIO();
                 Object ingredient = slot.getJEIIngredient();
                 if (ingredient instanceof EntryStack<?> entryType) {
                     if (io == IngredientIO.INPUT) {
                         inputs.add(EntryIngredient.builder().add(entryType).build());
                     } else if (io == IngredientIO.OUTPUT) {
                         outputs.add(EntryIngredient.builder().add(entryType).build());
+                    }
+                } else if (ingredient instanceof EntryIngredient entryStacks) {
+                    if (io == IngredientIO.INPUT) {
+                        for (EntryStack<?> entryStack : entryStacks) {
+                            inputs.add(EntryIngredient.builder().add(entryStack).build());
+                        }
+                    } else if (io == IngredientIO.OUTPUT) {
+                        for (EntryStack<?> entryStack : entryStacks) {
+                            outputs.add(EntryIngredient.builder().add(entryStack).build());
+                        }
                     }
                 }
             }

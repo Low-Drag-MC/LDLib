@@ -27,7 +27,7 @@ public abstract class ModularUIRecipeCategory<T extends ModularWrapper<?>> imple
         for (int i = 0; i < flatVisibleWidgetCollection.size(); i++) {
             Widget widget = flatVisibleWidgetCollection.get(i);
             if (widget instanceof IRecipeIngredientSlot slot) {
-                IRecipeSlotBuilder slotBuilder = builder.addSlot(mapToRole(slot.getIngredientIo()), i, -1);
+                IRecipeSlotBuilder slotBuilder = builder.addSlot(mapToRole(slot.getIngredientIO()), i, -1);
                 Object ingredient = slot.getJEIIngredient();
                 if (ingredient != null) {
                     slotBuilder.addIngredientsUnsafe(List.of(ingredient));

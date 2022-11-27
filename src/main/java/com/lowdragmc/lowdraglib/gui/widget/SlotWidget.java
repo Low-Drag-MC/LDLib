@@ -267,7 +267,7 @@ public class SlotWidget extends Widget implements IRecipeIngredientSlot {
     }
 
     @Override
-    public IngredientIO getIngredientIo() {
+    public IngredientIO getIngredientIO() {
         return ingredientIO;
     }
 

@@ -55,7 +55,11 @@ public class ModularWrapperWidget extends Widget {
 
     @Override
     public boolean keyPressed(int pKeyCode, int pScanCode, int pModifiers) {
-        return modular.keyPressed(pKeyCode, pScanCode, pModifiers);
+        modular.focused = false;
+        if (modular.modularUI.mainGroup.keyPressed(pKeyCode, pScanCode, pModifiers)) {
+            return false;
+        }
+        return super.keyPressed(pKeyCode, pScanCode, pModifiers);
     }
 
     @Override

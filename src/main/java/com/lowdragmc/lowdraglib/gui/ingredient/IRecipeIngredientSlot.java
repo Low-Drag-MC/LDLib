@@ -23,7 +23,7 @@ public interface IRecipeIngredientSlot extends IIngredientSlot{
     @Nullable
     Object getJEIIngredient();
 
-    default IngredientIO getIngredientIo(){
+    default IngredientIO getIngredientIO(){
         return IngredientIO.RENDER_ONLY;
     }
 

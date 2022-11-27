@@ -131,7 +131,7 @@ public class TankWidget extends Widget implements IRecipeIngredientSlot {
     }
 
     @Override
-    public IngredientIO getIngredientIo() {
+    public IngredientIO getIngredientIO() {
         return ingredientIO;
     }
 
