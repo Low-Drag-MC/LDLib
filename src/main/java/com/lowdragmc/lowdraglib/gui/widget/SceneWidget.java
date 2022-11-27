@@ -1,5 +1,6 @@
 package com.lowdragmc.lowdraglib.gui.widget;
 
+import com.lowdragmc.lowdraglib.LDLMod;
 import com.lowdragmc.lowdraglib.client.scene.ISceneRenderHook;
 import com.lowdragmc.lowdraglib.client.scene.ImmediateWorldSceneRenderer;
 import com.lowdragmc.lowdraglib.client.scene.ParticleManager;
@@ -16,6 +17,7 @@ import com.lowdragmc.lowdraglib.utils.interpolate.Interpolator;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Vector3f;
+import me.shedaniel.rei.api.common.util.EntryStacks;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -330,6 +332,9 @@ public class SceneWidget extends WidgetGroup {
     public Object getIngredientOverMouse(double mouseX, double mouseY) {
         Object result = super.getIngredientOverMouse(mouseX, mouseY);
         if (result == null && hoverItem != null && !hoverItem.isEmpty()) {
+            if (LDLMod.isReiLoaded()) {
+                return EntryStacks.of(hoverItem);
+            }
             return hoverItem;
         }
         return result;

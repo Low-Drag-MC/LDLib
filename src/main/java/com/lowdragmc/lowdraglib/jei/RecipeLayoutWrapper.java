@@ -139,7 +139,7 @@ public class RecipeLayoutWrapper<R extends ModularWrapper<?>> extends RecipeLayo
             // defensive push/pop to protect against recipe categories changing the last pose
             poseStack.pushPose();
             {
-                wrapper.draw(poseStack, recipeMouseX, recipeMouseY);
+                wrapper.draw(poseStack, recipeMouseX, recipeMouseY, Minecraft.getInstance().getDeltaFrameTime());
                 //drawExtras and drawInfo often render text which messes with the color, this clears it
                 RenderSystem.setShaderColor(1, 1, 1, 1);
             }

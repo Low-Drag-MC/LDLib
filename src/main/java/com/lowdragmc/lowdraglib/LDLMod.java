@@ -41,8 +41,19 @@ public class LDLMod {
     }
 
     public static boolean isJeiLoaded() {
+        if (isModLoaded(MODID_JEI)) return true;
         try {
             Class.forName("mezz.jei.core.config.GiveMode");
+        } catch (ClassNotFoundException e) {
+            return false;
+        }
+        return true;
+    }
+
+    public static boolean isReiLoaded() {
+        if (isModLoaded(MODID_REI)) return true;
+        try {
+            Class.forName("me.shedaniel.rei.api.common.entry.EntryStack");
         } catch (ClassNotFoundException e) {
             return false;
         }

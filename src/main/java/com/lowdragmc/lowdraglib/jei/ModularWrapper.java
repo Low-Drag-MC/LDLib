@@ -58,10 +58,13 @@ public class ModularWrapper<T extends Widget> extends ModularUIGuiContainer {
 //        this.menu.slots.clear();
     }
 
+    /**
+     * For REI to use
+     */
     public void setRecipeWidget(int left, int top) {
         modularUI.initWidgets();
-        this.left = left;
-        this.top = top;
+        this.left = 0;
+        this.top = 0;
         this.width = minecraft.getWindow().getGuiScaledWidth();
         this.height = minecraft.getWindow().getGuiScaledHeight();
         modularUI.updateScreenSize(this.width, this.height);
@@ -69,13 +72,13 @@ public class ModularWrapper<T extends Widget> extends ModularUIGuiContainer {
         modularUI.mainGroup.setParentPosition(displayOffset);
     }
 
-    public void draw(PoseStack matrixStack, int mouseX, int mouseY) {
+    public void draw(PoseStack matrixStack, int mouseX, int mouseY, float partialTicks) {
         if (minecraft.player.tickCount != lastTick) {
             updateScreen();
             lastTick = minecraft.player.tickCount;
         }
         matrixStack.translate(-left, -top, 0);
-        render(matrixStack, mouseX + left, mouseY + top, minecraft.getDeltaFrameTime());
+        render(matrixStack, mouseX + left, mouseY + top, partialTicks);
         matrixStack.translate(left, top, 0);
     }
 
@@ -103,46 +106,6 @@ public class ModularWrapper<T extends Widget> extends ModularUIGuiContainer {
 
         RenderSystem.depthMask(true);
         RenderSystem.enableDepthTest();
-    }
-
-    @Override
-    public void superMouseClicked(double mouseX, double mouseY, int mouseButton) {
-        super.superMouseClicked(mouseX, mouseY, mouseButton);
-    }
-
-    @Override
-    public void superMouseDragged(double pMouseX, double pMouseY, int pButton, double pDragX, double pDragY) {
-        super.superMouseDragged(pMouseX, pMouseY, pButton, pDragX, pDragY);
-    }
-
-    @Override
-    public void superMouseReleased(double mouseX, double mouseY, int state) {
-        super.superMouseReleased(mouseX, mouseY, state);
-    }
-
-    @Override
-    public boolean superKeyPressed(int keyCode, int scanCode, int modifiers) {
-        return super.superKeyPressed(keyCode, scanCode, modifiers);
-    }
-
-    @Override
-    public boolean superMouseScrolled(double mouseX, double mouseY, double wheelDelta) {
-        return super.superMouseScrolled(mouseX, mouseY, wheelDelta);
-    }
-
-    @Override
-    public boolean superKeyReleased(int keyCode, int scanCode, int modifiers) {
-        return super.superKeyReleased(keyCode, scanCode, modifiers);
-    }
-
-    @Override
-    public boolean superCharTyped(char codePoint, int modifiers) {
-        return super.superCharTyped(codePoint, modifiers);
-    }
-
-    @Override
-    public void superMouseMoved(double mouseX, double mouseY) {
-        super.superMouseMoved(mouseX, mouseY);
     }
 
 }

@@ -1,5 +1,6 @@
 package com.lowdragmc.lowdraglib.gui.widget;
 
+import com.lowdragmc.lowdraglib.LDLMod;
 import com.lowdragmc.lowdraglib.gui.ingredient.IRecipeIngredientSlot;
 import com.lowdragmc.lowdraglib.gui.modular.ModularUIGuiContainer;
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
@@ -10,6 +11,7 @@ import com.lowdragmc.lowdraglib.utils.Size;
 import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
+import me.shedaniel.rei.api.common.util.EntryStacks;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.Container;
@@ -258,6 +260,9 @@ public class SlotWidget extends Widget implements IRecipeIngredientSlot {
 
     @Override
     public Object getJEIIngredient() {
+        if (LDLMod.isReiLoaded()) {
+            return EntryStacks.of(getRealStack(getHandle().getItem()));
+        }
         return getRealStack(getHandle().getItem());
     }
 

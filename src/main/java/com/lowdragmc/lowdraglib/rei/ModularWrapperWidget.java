@@ -1,50 +1,70 @@
 package com.lowdragmc.lowdraglib.rei;
 
 import com.lowdragmc.lowdraglib.jei.ModularWrapper;
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
-import me.shedaniel.math.Rectangle;
-import me.shedaniel.rei.api.client.gui.widgets.WidgetWithBounds;
+import me.shedaniel.rei.api.client.gui.widgets.Widget;
 import net.minecraft.client.gui.components.events.GuiEventListener;
-import org.jetbrains.annotations.NotNull;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 import java.util.Collections;
 import java.util.List;
 
-public class ModularWrapperWidget extends WidgetWithBounds {
+/**
+ * @author KilaBash
+ * @date 2022/11/27
+ * @implNote ModularWrapperWidget
+ */
+@OnlyIn(Dist.CLIENT)
+public class ModularWrapperWidget extends Widget {
+    final ModularWrapper<?> modular;
 
-    private final ModularWrapper<?> modularWrapper;
-    private Rectangle bounds;
-    private int left;
-    private int top;
-
-    public ModularWrapperWidget(ModularWrapper<?> modularWrapper, Rectangle bounds) {
-        this.modularWrapper = modularWrapper;
-        this.bounds = bounds;
-        left = bounds.x;
-        top = bounds.y;
+    public ModularWrapperWidget(ModularWrapper<?> modular) {
+        this.modular = modular;
     }
 
     @Override
-    public Rectangle getBounds() {
-        return bounds;
+    public void render(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
+        modular.draw(pPoseStack, pMouseX, pMouseY, pPartialTick);
     }
 
     @Override
-    public void render(@NotNull PoseStack poseStack, int mouseX, int mouseY, float partialTick) {
-        modularWrapper.setRecipeWidget(left + 4, top + 4);
-        poseStack.pushPose();
-        {
-            poseStack.translate(left + 4, top + 4, 0);
-            modularWrapper.draw(poseStack, mouseX - left - 4, mouseY - top - 4);
-        }
-        poseStack.popPose();
-        RenderSystem.enableDepthTest();
-        RenderSystem.enableBlend();
-    }
-
-    @Override
-    public @NotNull List<? extends GuiEventListener> children() {
+    public List<? extends GuiEventListener> children() {
         return Collections.emptyList();
+    }
+
+    @Override
+    public boolean mouseClicked(double pMouseX, double pMouseY, int pButton) {
+        return modular.mouseClicked(pMouseX, pMouseY, pButton);
+    }
+
+    @Override
+    public boolean mouseReleased(double pMouseX, double pMouseY, int pButton) {
+        return modular.mouseReleased(pMouseX, pMouseY, pButton);
+    }
+
+    @Override
+    public boolean mouseDragged(double pMouseX, double pMouseY, int pButton, double pDragX, double pDragY) {
+        return modular.mouseDragged(pMouseX, pMouseY, pButton, pDragX, pDragY);
+    }
+
+    @Override
+    public boolean mouseScrolled(double pMouseX, double pMouseY, double pDelta) {
+        return modular.mouseScrolled(pMouseX, pMouseY, pDelta);
+    }
+
+    @Override
+    public boolean keyPressed(int pKeyCode, int pScanCode, int pModifiers) {
+        return modular.keyPressed(pKeyCode, pScanCode, pModifiers);
+    }
+
+    @Override
+    public boolean keyReleased(int pKeyCode, int pScanCode, int pModifiers) {
+        return modular.keyReleased(pKeyCode, pScanCode, pModifiers);
+    }
+
+    @Override
+    public boolean charTyped(char pCodePoint, int pModifiers) {
+        return modular.charTyped(pCodePoint, pModifiers);
     }
 }

@@ -275,8 +275,7 @@ public class WidgetGroup extends Widget implements IGhostIngredientTarget, IIngr
             return null;
         }
         for (Widget widget : widgets) {
-            if (widget.isVisible() && widget instanceof IIngredientSlot) {
-                IIngredientSlot ingredientSlot = (IIngredientSlot) widget;
+            if (widget.isVisible() && widget instanceof IIngredientSlot ingredientSlot) {
                 Object result = ingredientSlot.getIngredientOverMouse(mouseX, mouseY);
                 if (result != null) return result;
             }

@@ -1,5 +1,6 @@
 package com.lowdragmc.lowdraglib.gui.widget;
 
+import com.lowdragmc.lowdraglib.LDLMod;
 import com.lowdragmc.lowdraglib.gui.ingredient.IRecipeIngredientSlot;
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.texture.ProgressTexture;
@@ -11,6 +12,9 @@ import com.lowdragmc.lowdraglib.utils.Position;
 import com.lowdragmc.lowdraglib.utils.Size;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
+import dev.architectury.hooks.fluid.FluidStackHooks;
+import dev.architectury.hooks.fluid.forge.FluidStackHooksForge;
+import me.shedaniel.rei.api.common.util.EntryStacks;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.nbt.CompoundTag;
@@ -120,6 +124,9 @@ public class TankWidget extends Widget implements IRecipeIngredientSlot {
 
     @Override
     public Object getJEIIngredient() {
+        if (LDLMod.isReiLoaded()) {
+            return lastFluidInTank.isEmpty() ? null : EntryStacks.of(FluidStackHooksForge.fromForge(lastFluidInTank));
+        }
         return lastFluidInTank.isEmpty() ? null : lastFluidInTank;
     }
 

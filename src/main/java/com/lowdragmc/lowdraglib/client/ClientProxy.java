@@ -6,7 +6,6 @@ import com.lowdragmc.lowdraglib.client.model.LDLRendererModel;
 import com.lowdragmc.lowdraglib.client.renderer.IRenderer;
 import com.lowdragmc.lowdraglib.client.shader.Shaders;
 import com.lowdragmc.lowdraglib.jei.JEIClientEventHandler;
-import com.lowdragmc.lowdraglib.rei.REIClientEventHandler;
 import com.lowdragmc.lowdraglib.test.TestBlock;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.texture.TextureAtlas;
@@ -37,9 +36,6 @@ public class ClientProxy extends CommonProxy {
         super();
         if (LDLMod.isJeiLoaded()) {
             MinecraftForge.EVENT_BUS.register(JEIClientEventHandler.class);
-        }
-        if (LDLMod.isModLoaded(LDLMod.MODID_REI)) {
-            MinecraftForge.EVENT_BUS.register(REIClientEventHandler.class);
         }
     }
 
