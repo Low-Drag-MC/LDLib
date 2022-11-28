@@ -1,8 +1,10 @@
 package com.lowdragmc.lowdraglib.gui.widget;
 
 import com.google.common.collect.Lists;
+import com.lowdragmc.lowdraglib.LDLMod;
 import com.lowdragmc.lowdraglib.gui.ingredient.IGhostIngredientTarget;
 import com.lowdragmc.lowdraglib.gui.ingredient.Target;
+import dev.architectury.hooks.fluid.forge.FluidStackHooksForge;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
@@ -42,6 +44,9 @@ public class PhantomFluidWidget extends TankWidget implements IGhostIngredientTa
     @Override
     @OnlyIn(Dist.CLIENT)
     public List<Target> getPhantomTargets(Object ingredient) {
+        if (LDLMod.isReiLoaded() && ingredient instanceof dev.architectury.fluid.FluidStack fluidStack) {
+            ingredient = FluidStackHooksForge.toForge(fluidStack);
+        }
         if (!(ingredient instanceof FluidStack) && drainFrom(ingredient) == null) {
             return Collections.emptyList();
         }
@@ -57,6 +62,9 @@ public class PhantomFluidWidget extends TankWidget implements IGhostIngredientTa
             @Override
             public void accept(@Nonnull Object ingredient) {
                 FluidStack ingredientStack;
+                if (LDLMod.isReiLoaded() && ingredient instanceof dev.architectury.fluid.FluidStack fluidStack) {
+                    ingredient = FluidStackHooksForge.toForge(fluidStack);
+                }
                 if (ingredient instanceof FluidStack)
                     ingredientStack = (FluidStack) ingredient;
                 else

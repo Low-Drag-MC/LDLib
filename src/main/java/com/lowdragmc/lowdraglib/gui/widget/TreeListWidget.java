@@ -117,7 +117,7 @@ public class TreeListWidget<K, T> extends Widget {
             DrawerHelper.drawGradientRect(matrixStack, x, y, width, height, 0x8f000000, 0x8f000000);
         }
 
-        RenderUtils.useScissor(x, y, width, height, ()->{
+        RenderUtils.useScissor(matrixStack, x, y, width, height, ()->{
             Font fr = Minecraft.getInstance().font;
             int minToRender = scrollOffset / ITEM_HEIGHT;
             int maxToRender = Math.min(list.size(), height / ITEM_HEIGHT + 2 + minToRender);

@@ -1,10 +1,7 @@
 package com.lowdragmc.lowdraglib.gui.widget;
 
 import com.lowdragmc.lowdraglib.LDLMod;
-import com.lowdragmc.lowdraglib.client.scene.ISceneRenderHook;
-import com.lowdragmc.lowdraglib.client.scene.ImmediateWorldSceneRenderer;
-import com.lowdragmc.lowdraglib.client.scene.ParticleManager;
-import com.lowdragmc.lowdraglib.client.scene.WorldSceneRenderer;
+import com.lowdragmc.lowdraglib.client.scene.*;
 import com.lowdragmc.lowdraglib.client.utils.RenderUtils;
 import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
 import com.lowdragmc.lowdraglib.gui.texture.TextTexture;
@@ -67,6 +64,13 @@ public class SceneWidget extends WidgetGroup {
     protected boolean useOrtho = false;
     protected boolean autoReleased;
     protected BiConsumer<SceneWidget, List<Component>> onAddedTooltips;
+
+    public SceneWidget(int x, int y, int width, int height, Level world, boolean useFBO) {
+        super(x, y, width, height);
+        if (isRemote()) {
+            createScene(world, useFBO);
+        }
+    }
 
     public SceneWidget(int x, int y, int width, int height, Level world) {
         super(x, y, width, height);
@@ -153,6 +157,11 @@ public class SceneWidget extends WidgetGroup {
 
     @OnlyIn(Dist.CLIENT)
     public final void createScene(Level world) {
+        createScene(world, false);
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    public final void createScene(Level world, boolean useFBOSceneRenderer) {
         if (world == null) return;
         core = new HashSet<>();
         dummyWorld = new TrackedDummyWorld(world);
@@ -160,7 +169,11 @@ public class SceneWidget extends WidgetGroup {
         if (renderer != null) {
             renderer.deleteCacheBuffer();
         }
-        renderer = new ImmediateWorldSceneRenderer(dummyWorld);
+        if (useFBOSceneRenderer) {
+            renderer = new FBOWorldSceneRenderer(dummyWorld,1080, 1080);
+        } else {
+            renderer = new ImmediateWorldSceneRenderer(dummyWorld);
+        }
         center = new Vector3f();
         renderer.useOrtho(useOrtho);
         renderer.setOnLookingAt(ray -> {});
@@ -442,7 +455,7 @@ public class SceneWidget extends WidgetGroup {
             interpolator.update(gui.getTickCount() + partialTicks);
         }
         if (renderer != null) {
-            renderer.render(x, y, width, height, mouseX, mouseY);
+            renderer.render(matrixStack, x, y, width, height, mouseX, mouseY);
             if (renderer.isCompiling()) {
                 double progress = renderer.getCompileProgress();
                 if (progress > 0) {

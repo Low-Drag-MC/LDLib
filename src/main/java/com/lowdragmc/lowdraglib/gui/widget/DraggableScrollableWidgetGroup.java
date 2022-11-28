@@ -246,7 +246,7 @@ public class DraggableScrollableWidgetGroup extends WidgetGroup {
         int width = getSize().width;
         int height = getSize().height;
         if (useScissor) {
-            RenderUtils.useScissor(x, y, width - yBarWidth, height - xBarHeight, ()->{
+            RenderUtils.useScissor(matrixStack, x, y, width - yBarWidth, height - xBarHeight, ()->{
                 if(!hookDrawInBackground(matrixStack, mouseX, mouseY, partialTicks)) {
                     super.drawInBackground(matrixStack, mouseX, mouseY, partialTicks);
                 }

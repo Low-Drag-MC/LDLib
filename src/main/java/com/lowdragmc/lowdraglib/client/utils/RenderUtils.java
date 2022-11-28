@@ -9,6 +9,7 @@ import com.mojang.blaze3d.vertex.Tesselator;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import com.mojang.math.Matrix4f;
 import com.mojang.math.Vector3f;
+import com.mojang.math.Vector4f;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.core.BlockPos;
@@ -25,7 +26,28 @@ public class RenderUtils {
 
     private static final Stack<int[]> scissorFrameStack = new Stack<>();
 
+    @Deprecated
     public static void useScissor(int x, int y, int width, int height, Runnable codeBlock) {
+        pushScissorFrame(x, y, width, height);
+        try {
+            codeBlock.run();
+        } finally {
+            popScissorFrame();
+        }
+    }
+
+    public static void useScissor(PoseStack poseStack, int x, int y, int width, int height, Runnable codeBlock) {
+        var pose = poseStack.last().pose();
+        Vector4f pos = new Vector4f(x, y, 0, 1.0F);
+        pos.transform(pose);
+        Vector4f size = new Vector4f(x + width, y + height, 0, 1.0F);
+        size.transform(pose);
+
+        x = (int) pos.x();
+        y = (int) pos.y();
+        width = (int) (size.x() - x);
+        height = (int) (size.y() - y);
+
         pushScissorFrame(x, y, width, height);
         try {
             codeBlock.run();
@@ -98,6 +120,44 @@ public class RenderUtils {
         double s = window.getGuiScale();
         int translatedY = window.getGuiScaledHeight() - y - h;
         GL11.glScissor((int)(x * s), (int)(translatedY * s), (int)(w * s), (int)(h * s));
+    }
+
+    /***
+     * used to render pixels in stencil mask. (e.g. Restrict rendering results to be displayed only in Monitor Screens)
+     * if you want to do the similar things in Gui(2D) not World(3D), plz consider using the {@link #useScissor(int, int, int, int, Runnable)}
+     * that you don't need to draw mask to build a rect mask easily.
+     * @param mask draw mask
+     * @param renderInMask rendering in the mask
+     * @param shouldRenderMask should mask be rendered too
+     */
+    public static void useStencil(Runnable mask, Runnable renderInMask, boolean shouldRenderMask) {
+        GL11.glStencilMask(0xFF);
+        GL11.glClearStencil(0);
+        GL11.glClear(GL11.GL_STENCIL_BUFFER_BIT);
+        GL11.glEnable(GL11.GL_STENCIL_TEST);
+
+        GL11.glStencilFunc(GL11.GL_ALWAYS, 1, 0xFF);
+        GL11.glStencilOp(GL11.GL_KEEP, GL11.GL_KEEP, GL11.GL_REPLACE);
+
+        if (!shouldRenderMask) {
+            GL11.glColorMask(false, false, false, false);
+            GL11.glDepthMask(false);
+        }
+
+        mask.run();
+
+        if (!shouldRenderMask) {
+            GL11.glColorMask(true, true, true, true);
+            GL11.glDepthMask(true);
+        }
+
+        GL11.glStencilMask(0x00);
+        GL11.glStencilFunc(GL11.GL_EQUAL, 1, 0xFF);
+        GL11.glStencilOp(GL11.GL_KEEP, GL11.GL_KEEP, GL11.GL_KEEP);
+
+        renderInMask.run();
+
+        GL11.glDisable(GL11.GL_STENCIL_TEST);
     }
 
     public static void renderBlockOverLay(PoseStack matrixStack, BlockPos pos, float r, float g, float b, float scale) {

@@ -5,10 +5,7 @@ import com.mojang.blaze3d.pipeline.MainTarget;
 import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.BufferBuilder;
-import com.mojang.blaze3d.vertex.DefaultVertexFormat;
-import com.mojang.blaze3d.vertex.Tesselator;
-import com.mojang.blaze3d.vertex.VertexFormat;
+import com.mojang.blaze3d.vertex.*;
 import com.mojang.math.Vector3f;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GameRenderer;
@@ -83,37 +80,39 @@ public class FBOWorldSceneRenderer extends WorldSceneRenderer {
         return winPos;
     }
 
-    public void render(float x, float y, float width, float height, float mouseX, float mouseY) {
+    public void render(PoseStack poseStack, float x, float y, float width, float height, float mouseX, float mouseY) {
         // bind to FBO
         int lastID = bindFBO();
-        super.render(0, 0, this.resolutionWidth, this.resolutionHeight, (int) (this.resolutionWidth * (mouseX - x) / width), (int) (this.resolutionHeight * (1 - (mouseY - y) / height)));
+        super.render(new PoseStack(), 0, 0, this.resolutionWidth, this.resolutionHeight, (int) (this.resolutionWidth * (mouseX - x) / width), (int) (this.resolutionHeight * (1 - (mouseY - y) / height)));
         // unbind FBO
         unbindFBO(lastID);
 
         // bind FBO as texture
-        RenderSystem.enableTexture();
+//        RenderSystem.enableTexture();
 //        RenderSystem.disableLighting();
-        lastID = GL11.glGetInteger(GL11.GL_TEXTURE_2D);
-        fbo.bindRead();
-        RenderSystem.setShaderColor(1,1,1,1);
+//        lastID = GL11.glGetInteger(GL11.GL_TEXTURE_2D);
+//        fbo.bindRead();
+//        RenderSystem.setShaderColor(1,1,1,1);
 
         // render rect with FBO texture
         Tesselator tessellator = Tesselator.getInstance();
         BufferBuilder bufferbuilder = tessellator.getBuilder();
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
+        RenderSystem.setShaderTexture(0, fbo.getColorTextureId());
         bufferbuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
 
-        bufferbuilder.vertex(x + width, y + height, 0).uv(1, 0).endVertex();
-        bufferbuilder.vertex(x + width, y, 0).uv(1, 1).endVertex();
-        bufferbuilder.vertex(x, y, 0).uv(0, 1).endVertex();
-        bufferbuilder.vertex(x, y + height, 0).uv(0, 0).endVertex();
+        var pose = poseStack.last().pose();
+        bufferbuilder.vertex(pose, x + width, y + height, 0).uv(1, 0).endVertex();
+        bufferbuilder.vertex(pose, x + width, y, 0).uv(1, 1).endVertex();
+        bufferbuilder.vertex(pose, x, y, 0).uv(0, 1).endVertex();
+        bufferbuilder.vertex(pose, x, y + height, 0).uv(0, 0).endVertex();
         tessellator.end();
 
-        RenderSystem.bindTexture(lastID);
+//        RenderSystem.bindTexture(lastID);
     }
 
-    public void render(float x, float y, float width, float height, int mouseX, int mouseY) {
-        render(x, y, width, height, (float) mouseX, (float) mouseY);
+    public void render(PoseStack poseStack, float x, float y, float width, float height, int mouseX, int mouseY) {
+        render(poseStack, x, y, width, height, (float) mouseX, (float) mouseY);
     }
 
     private int bindFBO(){

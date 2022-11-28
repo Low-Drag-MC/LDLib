@@ -18,6 +18,7 @@ import com.mojang.blaze3d.vertex.VertexBuffer;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import com.mojang.math.Matrix4f;
 import com.mojang.math.Vector3f;
+import com.mojang.math.Vector4f;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.*;
@@ -42,6 +43,7 @@ import net.minecraftforge.client.MinecraftForgeClient;
 import net.minecraftforge.client.model.data.IModelData;
 import org.lwjgl.opengl.GL11;
 
+import javax.annotation.Nonnull;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
@@ -217,8 +219,17 @@ public abstract class WorldSceneRenderer {
         return lastTraceResult;
     }
 
-    public void render(float x, float y, float width, float height, int mouseX, int mouseY) {
+    public void render(PoseStack poseStack, float x, float y, float width, float height, int mouseX, int mouseY) {
         // setupCamera
+        var pose = poseStack.last().pose();
+        Vector4f pos = new Vector4f(x, y, 0, 1.0F);
+        pos.transform(pose);
+        Vector4f size = new Vector4f(x + width, y + height, 0, 1.0F);
+        size.transform(pose);
+        x = pos.x();
+        y = pos.y();
+        width = size.x() - x;
+        height = size.y() - y;
         PositionedRect positionedRect = getPositionedRect((int)x, (int)y, (int)width, (int)height);
         PositionedRect mouse = getPositionedRect(mouseX, mouseY, 0, 0);
         mouseX = mouse.position.x;

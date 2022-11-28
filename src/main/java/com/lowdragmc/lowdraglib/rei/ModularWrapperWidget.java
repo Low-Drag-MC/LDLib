@@ -44,6 +44,11 @@ public class ModularWrapperWidget extends Widget {
     }
 
     @Override
+    public void mouseMoved(double pMouseX, double pMouseY) {
+        modular.mouseMoved(pMouseX, pMouseY);
+    }
+
+    @Override
     public boolean mouseDragged(double pMouseX, double pMouseY, int pButton, double pDragX, double pDragY) {
         return modular.mouseDragged(pMouseX, pMouseY, pButton, pDragX, pDragY);
     }
