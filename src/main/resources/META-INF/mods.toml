@@ -29,3 +29,15 @@ description='''Low Drag Lib, a library for rendering, gui, particles, synchroniz
     versionRange="[1.18.2,1.19)"
     ordering="NONE"
     side="BOTH"
+[[dependencies.ldlib]]
+    modId="jei"
+    mandatory=false
+    versionRange="[10.1.4.263,)"
+    ordering="NONE"
+    side="CLIENT"
+[[dependencies.ldlib]]
+    modId="roughlyenoughitems"
+    mandatory=false
+    versionRange="[8.3.549,)"
+    ordering="NONE"
+    side="CLIENT"

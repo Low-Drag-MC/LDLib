@@ -167,12 +167,10 @@ public class DraggableScrollableWidgetGroup extends WidgetGroup {
             }
             scrollXOffset -= offsetX;
         }
-        if (offsetX != 0 || offsetY != 0) {
-            for (Widget widget : widgets) {
-                Position newPos = widget.addSelfPosition(offsetX, offsetY);
-                widget.setVisible(newPos.x < getSize().width - yBarWidth && newPos.x + widget.getSize().width > 0);
-                widget.setVisible(newPos.y < getSize().height - xBarHeight && newPos.y + widget.getSize().height > 0);
-            }
+        for (Widget widget : widgets) {
+            Position newPos = widget.addSelfPosition(offsetX, offsetY);
+            widget.setVisible(newPos.x < getSize().width - yBarWidth && newPos.x + widget.getSize().width > 0);
+            widget.setVisible(newPos.y < getSize().height - xBarHeight && newPos.y + widget.getSize().height > 0);
         }
     }
 
