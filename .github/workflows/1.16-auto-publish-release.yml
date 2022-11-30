@@ -1,9 +1,9 @@
-name: 1.18 Auto Build Release Publish
+name: 1.16 Auto Build Release Publish
 
 on:
   push:
     branches:
-      - '1.18'
+      - 'main'
     paths:
       - 'gradle.properties'
 
@@ -16,7 +16,7 @@ jobs:
     steps:
     - uses: actions/setup-java@v3
       with:
-        java-version: '17'
+        java-version: '8'
         distribution: 'adopt'
 
     - name: Validate Gradle wrapper
@@ -44,5 +44,5 @@ jobs:
         file_path: ${{ steps.var.outputs.file_path }}
         changelog: See recent commits [here](https://github.com/Low-Drag-MC/LDLib/commits/${{ github.sha }}). This is only marked as a beta release so CurseForge shows it on the front page.
         changelog_type: markdown
-        game_versions: "Minecraft 1.18:1.18.2,Java 17,Forge"
+        game_versions: "Minecraft 1.16:1.16.5,Java 8,Forge"
         release_type: beta
