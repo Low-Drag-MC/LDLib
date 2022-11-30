@@ -55,8 +55,8 @@ public class Vector3 {
         return new Vector3(tag.getDouble("x"), tag.getDouble("y"), tag.getDouble("z"));
     }
 
-    public Vec3d vec3() {
-        return new Vec3d(this.x, this.y, this.z);
+    public Vector3d vec3() {
+        return new Vector3d(this.x, this.y, this.z);
     }
 
     public BlockPos pos() {
