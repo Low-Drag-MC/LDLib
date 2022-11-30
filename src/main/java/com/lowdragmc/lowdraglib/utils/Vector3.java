@@ -1,6 +1,5 @@
 package com.lowdragmc.lowdraglib.utils;
 
-import com.sun.javafx.geom.Vec3d;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.vector.Vector3d;
