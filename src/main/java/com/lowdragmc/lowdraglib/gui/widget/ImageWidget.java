@@ -1,6 +1,9 @@
 package com.lowdragmc.lowdraglib.gui.widget;
 
 
+import com.lowdragmc.lowdraglib.gui.editor.annotation.Configurable;
+import com.lowdragmc.lowdraglib.gui.editor.annotation.NumberColor;
+import com.lowdragmc.lowdraglib.gui.editor.annotation.NumberRange;
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.util.DrawerHelper;
 import com.lowdragmc.lowdraglib.utils.Position;
@@ -13,7 +16,11 @@ import javax.annotation.Nonnull;
 
 public class ImageWidget extends Widget {
 
+    @Configurable(name = "ldlib.gui.editor.name.border")
+    @NumberRange(range = {-100, 100})
     private int border;
+    @Configurable(name = "ldlib.gui.editor.name.border_color")
+    @NumberColor
     private int borderColor;
 
     public ImageWidget(int xPosition, int yPosition, int width, int height) {

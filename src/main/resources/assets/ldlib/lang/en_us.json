@@ -1,4 +1,5 @@
 {
+  "ldlib.author": "Hello kilaBash!",
   "ldlib.gui.tips.confirm": "Confirm",
   "ldlib.gui.tips.cancel": "Cancel",
   "ldlib.fluid.empty": "Empty",
@@ -17,5 +18,25 @@
   "ldlib.gui.text_field.number.2": "smaller than %d",
   "ldlib.gui.text_field.number.3": "any number",
   "ldlib.gui.text_field.number.wheel": "§ascroll wheel adjusts number§r (%s)",
-  "ldlib.gui.text_field.resourcelocation": "allow [0-9][a-z][_-]"
+  "ldlib.gui.text_field.resourcelocation": "allow [0-9][a-z][_-]",
+
+  "ldlib.gui.editor.configurator": "Configurator",
+  "ldlib.gui.editor.group.focused_widget": "Focused Widget",
+  "ldlib.gui.editor.group.basic_info": "Basic Info",
+  "ldlib.gui.editor.group.position": "position",
+  "ldlib.gui.editor.group.size": "size",
+  "ldlib.gui.editor.group.resources": "Resources:",
+  "ldlib.gui.editor.group.textures": "textures",
+  "ldlib.gui.editor.group.colors": "colors",
+  "ldlib.gui.editor.group.entries": "entries",
+  "ldlib.gui.editor.name.hover_tips": "hover tips",
+  "ldlib.gui.editor.name.background": "background",
+  "ldlib.gui.editor.name.hover_texture": "hover texture",
+  "ldlib.gui.editor.name.border": "border",
+  "ldlib.gui.editor.name.border_color": "border color",
+
+  "ldlib.gui.editor.tips.id": "Widget id, it doesn't have to be unique，and can be empty.",
+  "ldlib.gui.editor.tips.hover_tips": "Hover tips. Each item identifies a new row.",
+  "ldlib.gui.editor.tips.add_item": "add a new item",
+  "ldlib.gui.editor.tips.remove_item": "remove item"
 }

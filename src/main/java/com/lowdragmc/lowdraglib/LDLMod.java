@@ -1,8 +1,14 @@
 package com.lowdragmc.lowdraglib;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.lowdragmc.lowdraglib.client.ClientProxy;
+import com.lowdragmc.lowdraglib.json.*;
 import net.minecraft.client.Minecraft;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.common.Mod;
@@ -20,6 +26,13 @@ public class LDLMod {
     public static final String MODID_RUBIDIUM = "rubidium";
     public static final String MODID_REI = "roughlyenoughitems";
     public static final Random random = new Random();
+    public static final Gson GSON = new GsonBuilder()
+            .registerTypeAdapterFactory(IGuiTextureTypeAdapter.INSTANCE)
+            .registerTypeAdapter(ItemStack.class, ItemStackTypeAdapter.INSTANCE)
+            .registerTypeAdapter(FluidStack.class, FluidStackTypeAdapter.INSTANCE)
+            .registerTypeAdapter(ResourceLocation.class, new ResourceLocation.Serializer())
+            .create();
+
 
     public LDLMod() {
         DistExecutor.unsafeRunForDist(() -> ClientProxy::new, () -> CommonProxy::new);

@@ -305,7 +305,7 @@ public class WidgetGroup extends Widget implements IGhostIngredientTarget, IIngr
         handleSyncWidget();
     }
 
-    private void handleSyncWidget() {
+    protected void handleSyncWidget() {
         if (!waitToRemoved.isEmpty()) {
             synchronized (waitToRemoved) {
                 waitToRemoved.forEach(this::removeWidget);

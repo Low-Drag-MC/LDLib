@@ -57,6 +57,10 @@ public class ResourceTexture implements IGuiTexture {
                 this.imageHeight * (float)height);
     }
 
+    public ResourceTexture copy() {
+        return getSubTexture(0, 0, 1, 1);
+    }
+
     public ResourceTexture setColor(int color) {
         this.color = color;
         return this;

@@ -41,7 +41,7 @@ public class ButtonWidget extends Widget {
     }
     
     public ButtonWidget setHoverBorderTexture(int border, int color) {
-        super.setHoverTexture(new GuiTextureGroup(backgroundTexture, new ColorBorderTexture(border, color)));
+        super.setHoverTexture(new ColorBorderTexture(border, color));
         return this;
     }
 

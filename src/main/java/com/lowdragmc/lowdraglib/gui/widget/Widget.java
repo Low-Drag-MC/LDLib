@@ -3,6 +3,9 @@ package com.lowdragmc.lowdraglib.gui.widget;
 import com.google.common.base.Preconditions;
 import com.lowdragmc.lowdraglib.LDLMod;
 import com.lowdragmc.lowdraglib.gui.animation.Animation;
+import com.lowdragmc.lowdraglib.gui.editor.annotation.Configurable;
+import com.lowdragmc.lowdraglib.gui.editor.configurator.ConfiguratorGroup;
+import com.lowdragmc.lowdraglib.gui.editor.runtime.ConfiguratorParser;
 import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
 import com.lowdragmc.lowdraglib.gui.modular.ModularUIGuiContainer;
 import com.lowdragmc.lowdraglib.gui.modular.WidgetUIAccess;
@@ -26,10 +29,7 @@ import org.lwjgl.glfw.GLFW;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -38,10 +38,13 @@ import java.util.stream.Collectors;
  * It can draw, perform actions, react to key press and mouse
  * It's information is also synced to client
  */
+@Configurable(name = "ldlib.gui.editor.group.basic_info")
 public class Widget {
 
     protected ModularUI gui;
     protected WidgetUIAccess uiAccess;
+    @Configurable(tips = "ldlib.gui.editor.tips.id")
+    protected String id = "";
     private Position parentPosition = Position.ORIGIN;
     private Position selfPosition;
     private Position position;
@@ -50,8 +53,11 @@ public class Widget {
     private boolean isActive;
     private boolean isFocus;
     protected boolean isClientSideWidget;
+    @Configurable(name = "ldlib.gui.editor.name.hover_tips", tips = "ldlib.gui.editor.tips.hover_tips")
     protected List<Component> tooltipTexts;
+    @Configurable(name = "ldlib.gui.editor.name.background")
     protected IGuiTexture backgroundTexture;
+    @Configurable(name = "ldlib.gui.editor.name.hover_texture")
     protected IGuiTexture hoverTexture;
     protected WidgetGroup parent;
     protected Animation animation;
@@ -280,14 +286,15 @@ public class Widget {
      */
     @OnlyIn(Dist.CLIENT)
     public void drawInBackground(@Nonnull PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
+        if (backgroundTexture != null) {
+            Position pos = getPosition();
+            Size size = getSize();
+            backgroundTexture.draw(poseStack, mouseX, mouseY, pos.x, pos.y, size.width, size.height);
+        }
         if (hoverTexture != null && isMouseOverElement(mouseX, mouseY)) {
             Position pos = getPosition();
             Size size = getSize();
             hoverTexture.draw(poseStack, mouseX, mouseY, pos.x, pos.y, size.width, size.height);
-        } else if (backgroundTexture != null) {
-            Position pos = getPosition();
-            Size size = getSize();
-            backgroundTexture.draw(poseStack, mouseX, mouseY, pos.x, pos.y, size.width, size.height);
         }
     }
 
@@ -351,7 +358,7 @@ public class Widget {
      */
     @OnlyIn(Dist.CLIENT)
     public final void setFocus(boolean focus) {
-        if (isFocus != focus && gui != null) {
+        if (gui != null) {
             ModularUIGuiContainer guiContainer = gui.getModularUIGui();
             Widget lastFocus = guiContainer.lastFocus;
             if (!focus) {
@@ -457,5 +464,10 @@ public class Widget {
             list.add(toRectangleBox());
         }
         return list;
+    }
+
+    // *********** configurator ************//
+    public void buildConfigurator(ConfiguratorGroup father) {
+        ConfiguratorParser.createConfigurators(father, new HashMap<>(), getClass(), this);
     }
 }

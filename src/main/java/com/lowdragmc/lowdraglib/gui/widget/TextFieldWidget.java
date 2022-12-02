@@ -71,11 +71,11 @@ public class TextFieldWidget extends Widget {
         return this;
     }
 
-    public TextFieldWidget setCurrentString(String currentString) {
-        this.currentString = currentString;
+    public TextFieldWidget setCurrentString(Object currentString) {
+        this.currentString = currentString.toString();
         if (isRemote()) {
             if (!this.textField.getValue().equals(currentString)) {
-                this.textField.setValue(currentString);
+                this.textField.setValue(currentString.toString());
             }
         }
         return this;
@@ -133,7 +133,7 @@ public class TextFieldWidget extends Widget {
 
     @Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-        return this.textField.keyPressed(keyCode, scanCode, modifiers);
+        return keyCode != 256 && (this.textField.keyPressed(keyCode, scanCode, modifiers) || isFocus());
     }
 
     @Override
@@ -334,6 +334,7 @@ public class TextFieldWidget extends Widget {
                 onTextChanged(numberInstance.format(Float.parseFloat(getCurrentString()) + (wheelDelta > 0 ? 1 : -1) * wheelDur));
             } catch (Exception ignored) {
             }
+            setFocus(true);
             return true;
         }
         return false;
