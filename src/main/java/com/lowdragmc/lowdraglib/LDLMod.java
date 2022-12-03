@@ -54,7 +54,7 @@ public class LDLMod {
     }
 
     public static boolean isJeiLoaded() {
-        if (isModLoaded(MODID_JEI)) return true;
+        if (!isReiLoaded() && isModLoaded(MODID_JEI)) return true;
         try {
             Class.forName("mezz.jei.core.config.GiveMode");
         } catch (ClassNotFoundException e) {

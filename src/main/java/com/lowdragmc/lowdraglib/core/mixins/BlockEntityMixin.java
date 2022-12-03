@@ -33,6 +33,8 @@ public abstract class BlockEntityMixin implements IForgeBlockEntity {
     public void handleUpdateTag(CompoundTag tag) {
         if (this instanceof IAutoSyncBlockEntity autoSyncBlockEntity) {
             new SPacketManagedPayload(tag).processPacket(autoSyncBlockEntity);
+        } else {
+            IForgeBlockEntity.super.handleUpdateTag(tag);
         }
     }
 
