@@ -8,6 +8,7 @@ import com.lowdragmc.lowdraglib.gui.modular.ModularUIGuiContainer;
 import com.lowdragmc.lowdraglib.gui.modular.WidgetUIAccess;
 import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
+import com.lowdragmc.lowdraglib.gui.util.DrawerHelper;
 import com.lowdragmc.lowdraglib.utils.Position;
 import com.lowdragmc.lowdraglib.utils.Size;
 import com.mojang.blaze3d.platform.InputConstants;
@@ -451,11 +452,17 @@ public class Widget {
     public List<Rect2i> getGuiExtraAreas(Rect2i guiRect, List<Rect2i> list) {
         Rect2i rect2i = toRectangleBox();
         if (rect2i.getX() < guiRect.getX()
-                || rect2i.getX() + rect2i.getWidth() >  guiRect.getX() + guiRect.getWidth()
+                || rect2i.getX() + rect2i.getWidth() > guiRect.getX() + guiRect.getWidth()
                 || rect2i.getY() < guiRect.getY()
-                || rect2i.getY() + rect2i.getHeight() >  guiRect.getY() + guiRect.getHeight()){
+                || rect2i.getY() + rect2i.getHeight() > guiRect.getY() + guiRect.getHeight()) {
             list.add(toRectangleBox());
         }
         return list;
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    public void drawRectSolid(PoseStack poseStack, int color) {
+        DrawerHelper.drawSolidRect(poseStack,
+                getPosition().x, getPosition().y, getSize().getWidth(), getSize().getHeight(), color);
     }
 }

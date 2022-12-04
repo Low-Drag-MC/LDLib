@@ -1,5 +1,6 @@
 package com.lowdragmc.lowdraglib.gui.util;
 
+import com.lowdragmc.lowdraglib.utils.Rect;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.BufferBuilder;
@@ -191,6 +192,11 @@ public class DrawerHelper {
     public static void drawSolidRect(PoseStack poseStack, int x, int y, int width, int height, int color) {
         Gui.fill(poseStack, x, y, x + width, y + height, color);
         RenderSystem.enableBlend();
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    public static void drawSolidRect(PoseStack poseStack, Rect rect, int color) {
+        drawSolidRect(poseStack, rect.left, rect.up, rect.right, rect.down, color);
     }
 
     @OnlyIn(Dist.CLIENT)
