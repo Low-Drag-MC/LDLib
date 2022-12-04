@@ -1,14 +1,19 @@
-package com.lowdragmc.lowdraglib.gui.editor;
+package com.lowdragmc.lowdraglib.gui.editor.ui;
 
+import com.lowdragmc.lowdraglib.gui.editor.ColorPattern;
 import com.lowdragmc.lowdraglib.gui.editor.configurator.Configurator;
+import com.lowdragmc.lowdraglib.gui.editor.configurator.ConfiguratorGroup;
+import com.lowdragmc.lowdraglib.gui.editor.configurator.IConfigurable;
 import com.lowdragmc.lowdraglib.gui.texture.TextTexture;
 import com.lowdragmc.lowdraglib.gui.widget.DraggableScrollableWidgetGroup;
 import com.lowdragmc.lowdraglib.gui.widget.ImageWidget;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 import com.lowdragmc.lowdraglib.utils.Position;
+import lombok.Getter;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * @author KilaBash
@@ -16,7 +21,9 @@ import java.util.List;
  * @implNote ConfigPanel
  */
 public class ConfigPanel extends WidgetGroup {
-    private Editor editor;
+    @Getter
+    private IConfigurable focus;
+    private final Editor editor;
     private DraggableScrollableWidgetGroup configuratorGroup;
     private final List<Configurator> configurators = new ArrayList<>();
 
@@ -35,13 +42,18 @@ public class ConfigPanel extends WidgetGroup {
     }
 
     public void clearAllConfigurators() {
+        this.focus = null;
         configuratorGroup.clearAllWidgets();
         configurators.clear();
     }
 
-    public void initConfigurator(Configurator... configurators) {
+    public void openConfigurator(IConfigurable configurable) {
+        if (Objects.equals(configurable, this.focus)) return;
         clearAllConfigurators();
-        for (Configurator configurator : configurators) {
+        this.focus = configurable;
+        ConfiguratorGroup group = new ConfiguratorGroup("", false);
+        configurable.buildConfigurator(group);
+        for (Configurator configurator : group.getConfigurators()) {
             configurator.setConfigPanel(this);
             configurator.init(200);
             this.configurators.add(configurator);

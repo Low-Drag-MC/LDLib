@@ -1,8 +1,11 @@
 package com.lowdragmc.lowdraglib;
 
+import com.lowdragmc.lowdraglib.gui.editor.annotation.AnnotationDetector;
+import com.lowdragmc.lowdraglib.gui.editor.runtime.ConfiguratorAccessors;
 import com.lowdragmc.lowdraglib.gui.factory.BlockEntityUIFactory;
 import com.lowdragmc.lowdraglib.gui.factory.HeldItemUIFactory;
 import com.lowdragmc.lowdraglib.gui.factory.UIFactory;
+import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.networking.LDLNetworking;
 import com.lowdragmc.lowdraglib.syncdata.TypedPayloadRegistries;
 import com.lowdragmc.lowdraglib.test.TestBlock;
@@ -28,6 +31,7 @@ public class CommonProxy {
         LDLNetworking.init();
         UIFactory.register(BlockEntityUIFactory.INSTANCE);
         UIFactory.register(HeldItemUIFactory.INSTANCE);
+        AnnotationDetector.init();
     }
 
     @SubscribeEvent

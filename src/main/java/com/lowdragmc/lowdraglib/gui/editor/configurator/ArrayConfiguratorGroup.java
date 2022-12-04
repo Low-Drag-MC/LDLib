@@ -1,6 +1,6 @@
 package com.lowdragmc.lowdraglib.gui.editor.configurator;
 
-import com.lowdragmc.lowdraglib.gui.editor.ConfigPanel;
+import com.lowdragmc.lowdraglib.gui.editor.ui.ConfigPanel;
 import com.lowdragmc.lowdraglib.gui.texture.ColorBorderTexture;
 import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
 import com.lowdragmc.lowdraglib.gui.texture.TextTexture;

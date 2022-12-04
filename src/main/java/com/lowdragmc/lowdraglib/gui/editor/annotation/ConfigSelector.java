@@ -6,7 +6,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.METHOD})
-public @interface ConfigSetter {
-    String field();
+@Target({ElementType.FIELD})
+public @interface ConfigSelector {
+    String[] candidate() default {};
+    int max() default 5;
 }

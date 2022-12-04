@@ -1,6 +1,6 @@
 package com.lowdragmc.lowdraglib.gui.editor.configurator;
 
-import com.lowdragmc.lowdraglib.gui.editor.ConfigPanel;
+import com.lowdragmc.lowdraglib.gui.editor.ui.ConfigPanel;
 import com.lowdragmc.lowdraglib.gui.texture.*;
 import com.lowdragmc.lowdraglib.gui.widget.ImageWidget;
 import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
@@ -42,7 +42,7 @@ public class Configurator extends WidgetGroup {
         configPanel.computeLayout();
     }
 
-    public void setTips(String[] tips) {
+    public void setTips(String... tips) {
         this.tips = tips;
         rightWidth = tips.length > 0 ? 13 : 0;
     }

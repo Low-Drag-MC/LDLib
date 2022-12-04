@@ -376,7 +376,7 @@ public class WidgetGroup extends Widget implements IGhostIngredientTarget, IIngr
                 return true;
             }
         }
-        return false;
+        return super.mouseClicked(mouseX, mouseY, button);
     }
 
     @Override
@@ -388,7 +388,7 @@ public class WidgetGroup extends Widget implements IGhostIngredientTarget, IIngr
                 return true;
             }
         }
-        return false;
+        return super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
     }
 
     @Override
@@ -400,7 +400,7 @@ public class WidgetGroup extends Widget implements IGhostIngredientTarget, IIngr
                 return true;
             }
         }
-        return false;
+        return super.mouseReleased(mouseX, mouseY, button);
     }
 
     @OnlyIn(Dist.CLIENT)

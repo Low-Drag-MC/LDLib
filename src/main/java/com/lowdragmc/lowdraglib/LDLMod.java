@@ -13,9 +13,11 @@ import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.loading.FMLEnvironment;
+import net.minecraftforge.fml.loading.FMLPaths;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.io.File;
 import java.util.Random;
 
 @Mod(LDLMod.MODID)
@@ -32,9 +34,14 @@ public class LDLMod {
             .registerTypeAdapter(FluidStack.class, FluidStackTypeAdapter.INSTANCE)
             .registerTypeAdapter(ResourceLocation.class, new ResourceLocation.Serializer())
             .create();
+    public static File location;
 
 
     public LDLMod() {
+        location = new File(FMLPaths.GAMEDIR.get().toFile(), "ldlib");
+        if (location.mkdir()) {
+            LOGGER.info("create ldlib config folder");
+        }
         DistExecutor.unsafeRunForDist(() -> ClientProxy::new, () -> CommonProxy::new);
     }
 

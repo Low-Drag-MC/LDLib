@@ -1,5 +1,9 @@
 package com.lowdragmc.lowdraglib.gui.texture;
 
+import com.lowdragmc.lowdraglib.gui.editor.annotation.ConfigSetter;
+import com.lowdragmc.lowdraglib.gui.editor.annotation.Configurable;
+import com.lowdragmc.lowdraglib.gui.editor.annotation.NumberColor;
+import com.lowdragmc.lowdraglib.gui.editor.annotation.RegisterUI;
 import com.lowdragmc.lowdraglib.gui.util.DrawerHelper;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -18,16 +22,39 @@ import java.util.List;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+@RegisterUI(name = "ldlib.gui.editor.register.text_texture")
 public class TextTexture implements IGuiTexture{
+
+    @Configurable
     public String text;
+
+    @Configurable
+    @NumberColor
     public int color;
+
+    @Configurable
+    @NumberColor
     public int backgroundColor;
+
+    @Configurable(tips = "ldlib.gui.editor.tips.image_text_width")
     public int width;
+    @Configurable
     public boolean dropShadow;
+
+    @Configurable(tips = "ldlib.gui.editor.tips.image_text_type")
     public TextType type;
+
     public Supplier<String> supplier;
     @OnlyIn(Dist.CLIENT)
     private List<String> texts;
+
+    private long lastTick;
+
+    public TextTexture() {
+        this("ldlib.author", -1);
+        setWidth(50);
+        setType(TextType.HIDE);
+    }
 
     public TextTexture(String text, int color) {
         this.color = color;
@@ -50,11 +77,17 @@ public class TextTexture implements IGuiTexture{
 
     @Override
     public void updateTick() {
+        if (Minecraft.getInstance().level != null) {
+            long tick = Minecraft.getInstance().level.getGameTime();
+            if (tick == lastTick) return;
+            lastTick = tick;
+        }
         if (supplier != null) {
             updateText(supplier.get());
         }
     }
 
+    @ConfigSetter(field = "text")
     public void updateText(String text) {
         if (FMLEnvironment.dist == Dist.CLIENT) {
             this.text = I18n.get(text);
@@ -135,9 +168,9 @@ public class TextTexture implements IGuiTexture{
             } else {
                 fontRenderer.draw(stack, resultText, _x, _y, color);
             }
-        } else if (type == TextType.ROLL) {
+        } else if (type == TextType.ROLL || type == TextType.ROLL_ALWAYS) {
             int i = 0;
-            if (mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + height) {
+            if (type == TextType.ROLL_ALWAYS || (mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + height)) {
                 i = (int) (Math.abs(System.currentTimeMillis() / 1000) % texts.size());
             }
             String resultText = texts.get(i);
@@ -181,6 +214,7 @@ public class TextTexture implements IGuiTexture{
         NORMAL,
         HIDE,
         ROLL,
+        ROLL_ALWAYS,
         LEFT,
         RIGHT
     }

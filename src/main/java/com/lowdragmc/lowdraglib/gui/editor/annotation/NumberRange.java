@@ -9,4 +9,5 @@ import java.lang.annotation.Target;
 @Target({ElementType.FIELD})
 public @interface NumberRange {
     double[] range();
+    double wheel() default 0;
 }

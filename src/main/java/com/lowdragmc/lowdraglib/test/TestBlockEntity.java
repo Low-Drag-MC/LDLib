@@ -1,7 +1,7 @@
 package com.lowdragmc.lowdraglib.test;
 
 import com.lowdragmc.lowdraglib.CommonProxy;
-import com.lowdragmc.lowdraglib.gui.editor.Editor;
+import com.lowdragmc.lowdraglib.gui.editor.ui.Editor;
 import com.lowdragmc.lowdraglib.gui.factory.BlockEntityUIFactory;
 import com.lowdragmc.lowdraglib.gui.modular.IUIHolder;
 import com.lowdragmc.lowdraglib.gui.modular.ModularUI;

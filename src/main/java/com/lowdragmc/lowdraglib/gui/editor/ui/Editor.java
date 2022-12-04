@@ -1,4 +1,4 @@
-package com.lowdragmc.lowdraglib.gui.editor;
+package com.lowdragmc.lowdraglib.gui.editor.ui;
 
 import com.lowdragmc.lowdraglib.gui.texture.ResourceBorderTexture;
 import com.lowdragmc.lowdraglib.gui.widget.ImageWidget;
@@ -14,11 +14,15 @@ import net.minecraftforge.api.distmarker.OnlyIn;
  * @implNote MainPage
  */
 public class Editor extends WidgetGroup {
+    @OnlyIn(Dist.CLIENT)
+    public static Editor INSTANCE;
+
     @Getter
     protected WidgetGroup mainPanel;
 
     @Getter
     protected ConfigPanel configPanel;
+
     @Getter
     protected ResourcePanel resourcePanel;
 
@@ -30,6 +34,10 @@ public class Editor extends WidgetGroup {
     @Override
     public void initWidget() {
         super.initWidget();
+        if (isRemote()) {
+            INSTANCE = this;
+            getGui().registerCloseListener(() -> INSTANCE = null);
+        }
     }
 
     @Override

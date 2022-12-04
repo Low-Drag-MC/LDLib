@@ -1,11 +1,20 @@
 package com.lowdragmc.lowdraglib.gui.texture;
 
+import com.lowdragmc.lowdraglib.gui.editor.annotation.Configurable;
+import com.lowdragmc.lowdraglib.gui.editor.annotation.RegisterUI;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
+@RegisterUI(name = "ldlib.gui.editor.register.group_texture")
 public class GuiTextureGroup implements IGuiTexture{
+
+    @Configurable
     public IGuiTexture[] textures;
+
+    public GuiTextureGroup() {
+        this(ResourceBorderTexture.BORDERED_BACKGROUND, new ColorBorderTexture(2, -1));
+    }
 
     public GuiTextureGroup(IGuiTexture... textures) {
         this.textures = textures;
@@ -33,6 +42,7 @@ public class GuiTextureGroup implements IGuiTexture{
     }
 
     @Override
+    @OnlyIn(Dist.CLIENT)
     public void updateTick() {
         for (IGuiTexture texture : textures) {
             texture.updateTick();

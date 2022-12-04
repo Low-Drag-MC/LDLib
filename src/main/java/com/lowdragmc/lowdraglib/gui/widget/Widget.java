@@ -4,8 +4,7 @@ import com.google.common.base.Preconditions;
 import com.lowdragmc.lowdraglib.LDLMod;
 import com.lowdragmc.lowdraglib.gui.animation.Animation;
 import com.lowdragmc.lowdraglib.gui.editor.annotation.Configurable;
-import com.lowdragmc.lowdraglib.gui.editor.configurator.ConfiguratorGroup;
-import com.lowdragmc.lowdraglib.gui.editor.runtime.ConfiguratorParser;
+import com.lowdragmc.lowdraglib.gui.editor.configurator.IConfigurable;
 import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
 import com.lowdragmc.lowdraglib.gui.modular.ModularUIGuiContainer;
 import com.lowdragmc.lowdraglib.gui.modular.WidgetUIAccess;
@@ -31,6 +30,9 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
@@ -38,8 +40,9 @@ import java.util.stream.Collectors;
  * It can draw, perform actions, react to key press and mouse
  * It's information is also synced to client
  */
+@SuppressWarnings("UnusedReturnValue")
 @Configurable(name = "ldlib.gui.editor.group.basic_info")
-public class Widget {
+public class Widget implements IConfigurable {
 
     protected ModularUI gui;
     protected WidgetUIAccess uiAccess;
@@ -62,6 +65,14 @@ public class Widget {
     protected WidgetGroup parent;
     protected Animation animation;
     private boolean initialized;
+    private boolean tryToDrag = false;
+    private Supplier<Object> draggingProvider;
+    private Function<Object, IGuiTexture> draggingRenderer;
+    private Predicate<Object> draggingAccept = o -> false;
+    private Consumer<Object> draggingIn;
+    private Consumer<Object> draggingOut;
+    private Consumer<Object> draggingSuccess;
+    private Object draggingElement;
 
     public Widget(Position selfPosition, Size size) {
         Preconditions.checkNotNull(selfPosition, "selfPosition");
@@ -115,6 +126,21 @@ public class Widget {
 
     public Widget setHoverTexture(IGuiTexture... hoverTexture) {
         this.hoverTexture = hoverTexture.length > 1 ? new GuiTextureGroup(hoverTexture) : hoverTexture[0];
+        return this;
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T> Widget setDraggingProvider(Supplier<T> draggingProvider, Function<T, IGuiTexture> draggingRenderer) {
+        this.draggingProvider = (Supplier<Object>) draggingProvider;
+        this.draggingRenderer = (Function<Object, IGuiTexture>) draggingRenderer;
+        return this;
+    }
+
+    public Widget setDraggingConsumer(Predicate<Object> draggingAccept, Consumer<Object> draggingIn, Consumer<Object> draggingOut, Consumer<Object> draggingSuccess) {
+        this.draggingAccept = draggingAccept;
+        this.draggingIn = draggingIn;
+        this.draggingOut = draggingOut;
+        this.draggingSuccess = draggingSuccess;
         return this;
     }
 
@@ -312,6 +338,12 @@ public class Widget {
      */
     @OnlyIn(Dist.CLIENT)
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        draggingElement = null;
+        tryToDrag = false;
+        if (draggingProvider != null && isMouseOverElement(mouseX, mouseY)) {
+            tryToDrag = true;
+            return false;
+        }
         return false;
     }
 
@@ -320,6 +352,22 @@ public class Widget {
      */
     @OnlyIn(Dist.CLIENT)
     public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
+        if (!isMouseOverElement(mouseX, mouseY) && tryToDrag && draggingProvider != null && draggingRenderer != null) {
+            var element = draggingProvider.get();
+            getGui().getModularUIGui().setDraggingElement(element, draggingRenderer.apply(element));
+        }
+        if (isMouseOverElement(mouseX, mouseY) && draggingAccept.test(getGui().getModularUIGui().getDraggingElement())) {
+            var element = getGui().getModularUIGui().getDraggingElement();
+            if (draggingElement != element && draggingIn != null) {
+                draggingElement = element;
+                draggingIn.accept(element);
+            }
+            return true;
+        }
+        if (draggingElement != null && draggingOut != null) {
+            draggingOut.accept(draggingElement);
+            draggingElement = null;
+        }
         return false;
     }
 
@@ -332,6 +380,16 @@ public class Widget {
      */
     @OnlyIn(Dist.CLIENT)
     public boolean mouseReleased(double mouseX, double mouseY, int button) {
+        tryToDrag = false;
+        if (isMouseOverElement(mouseX, mouseY) && draggingAccept.test(getGui().getModularUIGui().getDraggingElement())) {
+            var element = getGui().getModularUIGui().getDraggingElement();
+            if (draggingElement == element && draggingSuccess != null) {
+                draggingSuccess.accept(element);
+                draggingElement = null;
+                return true;
+            }
+        }
+        draggingElement = null;
         return false;
     }
 
@@ -466,8 +524,4 @@ public class Widget {
         return list;
     }
 
-    // *********** configurator ************//
-    public void buildConfigurator(ConfiguratorGroup father) {
-        ConfiguratorParser.createConfigurators(father, new HashMap<>(), getClass(), this);
-    }
 }

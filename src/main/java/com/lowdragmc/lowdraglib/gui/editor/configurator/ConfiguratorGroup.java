@@ -1,7 +1,7 @@
 package com.lowdragmc.lowdraglib.gui.editor.configurator;
 
 import com.lowdragmc.lowdraglib.gui.editor.ColorPattern;
-import com.lowdragmc.lowdraglib.gui.editor.ConfigPanel;
+import com.lowdragmc.lowdraglib.gui.editor.ui.ConfigPanel;
 import com.lowdragmc.lowdraglib.gui.editor.Icons;
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.util.ClickData;
@@ -10,6 +10,7 @@ import com.lowdragmc.lowdraglib.gui.widget.ButtonWidget;
 import com.lowdragmc.lowdraglib.utils.Position;
 import com.lowdragmc.lowdraglib.utils.Size;
 import com.mojang.blaze3d.vertex.PoseStack;
+import lombok.Getter;
 import lombok.Setter;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -27,6 +28,7 @@ public class ConfiguratorGroup extends Configurator {
     @Setter
     protected boolean canCollapse = true;
     protected boolean isCollapse;
+    @Getter
     protected List<Configurator> configurators = new ArrayList<>();
 
     public ConfiguratorGroup(String name) {
@@ -36,7 +38,6 @@ public class ConfiguratorGroup extends Configurator {
     public ConfiguratorGroup(String name, boolean isCollapse) {
         super(name);
         this.isCollapse = isCollapse;
-        this.addWidget(new ButtonWidget(0, 0, leftWidth + 9, 15, IGuiTexture.EMPTY, this::clickName));
     }
 
     @Override
@@ -89,6 +90,7 @@ public class ConfiguratorGroup extends Configurator {
     @Override
     public void init(int width) {
         super.init(width);
+        this.addWidget(new ButtonWidget(0, 0, leftWidth + 9, 15, IGuiTexture.EMPTY, this::clickName));
         for (Configurator configurator : configurators) {
             configurator.init(Math.max(0, width - 5));
         }

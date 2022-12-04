@@ -8,5 +8,6 @@ public @interface Configurable {
     String name() default "";
     String[] tips() default {};
     boolean collapse() default true;
+    boolean canCollapse() default true;
     boolean forceUpdate() default true;
 }

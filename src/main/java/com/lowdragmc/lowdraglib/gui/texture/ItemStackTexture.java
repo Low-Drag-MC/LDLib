@@ -2,6 +2,7 @@ package com.lowdragmc.lowdraglib.gui.texture;
 
 import com.lowdragmc.lowdraglib.gui.util.DrawerHelper;
 import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.Minecraft;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
@@ -12,6 +13,7 @@ public class ItemStackTexture implements IGuiTexture{
     private int index = 0;
     private int ticks = 0;
     private int color = -1;
+    private long lastTick;
 
     public ItemStackTexture(ItemStack... itemStacks) {
         this.itemStack = itemStacks;
@@ -31,7 +33,13 @@ public class ItemStackTexture implements IGuiTexture{
     }
 
     @Override
+    @OnlyIn(Dist.CLIENT)
     public void updateTick() {
+        if (Minecraft.getInstance().level != null) {
+            long tick = Minecraft.getInstance().level.getGameTime();
+            if (tick == lastTick) return;
+            lastTick = tick;
+        }
         if(itemStack.length > 1 && ++ticks % 20 == 0)
             if(++index == itemStack.length)
                 index = 0;

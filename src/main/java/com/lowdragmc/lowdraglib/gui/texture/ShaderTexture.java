@@ -6,6 +6,10 @@ import com.lowdragmc.lowdraglib.client.shader.management.Shader;
 import com.lowdragmc.lowdraglib.client.shader.management.ShaderManager;
 import com.lowdragmc.lowdraglib.client.shader.management.ShaderProgram;
 import com.lowdragmc.lowdraglib.client.shader.uniform.UniformCache;
+import com.lowdragmc.lowdraglib.gui.editor.annotation.ConfigSetter;
+import com.lowdragmc.lowdraglib.gui.editor.annotation.Configurable;
+import com.lowdragmc.lowdraglib.gui.editor.annotation.NumberRange;
+import com.lowdragmc.lowdraglib.gui.editor.annotation.RegisterUI;
 import com.lowdragmc.lowdraglib.gui.util.DrawerHelper;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.BufferBuilder;
@@ -23,18 +27,41 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 import java.util.function.Consumer;
 
+@RegisterUI(name = "ldlib.gui.editor.register.shader_texture")
 public class ShaderTexture implements IGuiTexture {
+
+    @Configurable
     public ResourceLocation location;
+
     @OnlyIn(Dist.CLIENT)
     private ShaderProgram program;
+
     @OnlyIn(Dist.CLIENT)
     private Shader shader;
+
+    @Configurable
+    @NumberRange(range = {1, 3})
     private float resolution = 2;
+
     private Consumer<UniformCache> uniformCache;
+
     private final boolean isRaw;
 
     private ShaderTexture(boolean isRaw) {
         this.isRaw = isRaw;
+    }
+
+    public ShaderTexture() {
+        this(false);
+        this.location = new ResourceLocation("ldlib:fbm");
+        if (LDLMod.isRemote() && ShaderManager.allowedShader()) {
+            Shader shader = Shaders.load(Shader.ShaderType.FRAGMENT, location);
+            if (shader == null) return;
+            this.program = new ShaderProgram();
+            this.shader = shader;
+            program.attach(Shaders.GUI_IMAGE_V);
+            program.attach(shader);
+        }
     }
 
     public void dispose() {
@@ -46,6 +73,19 @@ public class ShaderTexture implements IGuiTexture {
         }
         shader = null;
         program = null;
+    }
+
+    @ConfigSetter(field = "location")
+    public void updateShader(ResourceLocation location) {
+        if (LDLMod.isRemote() && ShaderManager.allowedShader()) {
+            dispose();
+            Shader shader = Shaders.load(Shader.ShaderType.FRAGMENT, location);
+            if (shader == null) return;
+            this.program = new ShaderProgram();
+            this.shader = shader;
+            program.attach(Shaders.GUI_IMAGE_V);
+            program.attach(shader);
+        }
     }
 
     public void updateRawShader(String rawShader) {

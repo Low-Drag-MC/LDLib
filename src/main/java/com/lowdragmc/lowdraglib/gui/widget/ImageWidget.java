@@ -14,6 +14,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 import javax.annotation.Nonnull;
 
+@Configurable(name = "ldlib.gui.editor.group.image_widget", collapse = false)
 public class ImageWidget extends Widget {
 
     @Configurable(name = "ldlib.gui.editor.name.border")
@@ -21,7 +22,7 @@ public class ImageWidget extends Widget {
     private int border;
     @Configurable(name = "ldlib.gui.editor.name.border_color")
     @NumberColor
-    private int borderColor;
+    private int borderColor = -1;
 
     public ImageWidget(int xPosition, int yPosition, int width, int height) {
         super(xPosition, yPosition, width, height);

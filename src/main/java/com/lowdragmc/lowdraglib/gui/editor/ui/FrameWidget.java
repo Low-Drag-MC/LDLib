@@ -1,5 +1,6 @@
-package com.lowdragmc.lowdraglib.gui.editor;
+package com.lowdragmc.lowdraglib.gui.editor.ui;
 
+import com.lowdragmc.lowdraglib.gui.editor.Icons;
 import com.lowdragmc.lowdraglib.gui.editor.configurator.ConfiguratorGroup;
 import com.lowdragmc.lowdraglib.gui.editor.configurator.NumberConfigurator;
 import com.lowdragmc.lowdraglib.gui.texture.ColorBorderTexture;
@@ -88,12 +89,9 @@ public class FrameWidget extends WidgetGroup {
             return true;
         }
         if (isMouseOverElement(mouseX, mouseY)) {
-            if (focus != this && button == 0) {
+            if ((focus != this || editor.configPanel.getFocus() != this) && button == 0) { // open configurator
                 focus = this;
-                ConfiguratorGroup common = new ConfiguratorGroup("ldlib.gui.editor.group.focused_widget", false);
-                common.setCanCollapse(false);
-                this.buildConfigurator(common);
-                editor.configPanel.initConfigurator(common);
+                editor.configPanel.openConfigurator(this);
             }
             if (isCtrlDown() && focus == this && button == 0) { // start dragging
                 dragPosition = true;
@@ -132,6 +130,10 @@ public class FrameWidget extends WidgetGroup {
 
     @Override
     public void buildConfigurator(ConfiguratorGroup father) {
+        ConfiguratorGroup common = new ConfiguratorGroup("ldlib.gui.editor.group.focused_widget", false);
+        common.setCanCollapse(false);
+        father.addConfigurators(common);
+
         // position
         ConfiguratorGroup position = new ConfiguratorGroup("ldlib.gui.editor.group.position");
         position.addConfigurators(new NumberConfigurator("x",
@@ -158,7 +160,7 @@ public class FrameWidget extends WidgetGroup {
                 10,
                 true).setRange(0, Integer.MAX_VALUE));
 
-        father.addConfigurators(position, size);
-        getInner().buildConfigurator(father);
+        common.addConfigurators(position, size);
+        getInner().buildConfigurator(common);
     }
 }
