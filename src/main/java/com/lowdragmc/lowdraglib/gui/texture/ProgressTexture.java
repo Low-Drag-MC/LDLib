@@ -10,8 +10,8 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 /**
  * @author youyihj
  */
-@RegisterUI(name = "ldlib.gui.editor.register.progress_texture")
-public class ProgressTexture implements IGuiTexture {
+@RegisterUI(name = "progress_texture")
+public class ProgressTexture extends TransformTexture {
     @Configurable
     protected IGuiTexture emptyBarArea;
     @Configurable
@@ -54,7 +54,7 @@ public class ProgressTexture implements IGuiTexture {
 
     @Override
     @OnlyIn(Dist.CLIENT)
-    public void draw(PoseStack stack, int mouseX, int mouseY, float x, float y, int width, int height) {
+    protected void drawInternal(PoseStack stack, int mouseX, int mouseY, float x, float y, int width, int height) {
         if (emptyBarArea != null) {
             emptyBarArea.draw(stack, mouseX, mouseY, x, y, width, height);
         }

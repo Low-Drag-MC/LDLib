@@ -27,10 +27,10 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 import java.util.function.Consumer;
 
-@RegisterUI(name = "ldlib.gui.editor.register.shader_texture")
-public class ShaderTexture implements IGuiTexture {
+@RegisterUI(name = "shader_texture")
+public class ShaderTexture extends TransformTexture {
 
-    @Configurable
+    @Configurable(name = "ldlib.gui.editor.name.resource", tips = "ldlib.gui.editor.tips.shader_location")
     public ResourceLocation location;
 
     @OnlyIn(Dist.CLIENT)
@@ -39,7 +39,7 @@ public class ShaderTexture implements IGuiTexture {
     @OnlyIn(Dist.CLIENT)
     private Shader shader;
 
-    @Configurable
+    @Configurable(tips = "ldlib.gui.editor.tips.shader_resolution")
     @NumberRange(range = {1, 3})
     private float resolution = 2;
 
@@ -167,7 +167,7 @@ public class ShaderTexture implements IGuiTexture {
 
     @Override
     @OnlyIn(Dist.CLIENT)
-    public void draw(PoseStack stack, int mouseX, int mouseY, float x, float y, int width, int height) {
+    protected void drawInternal(PoseStack stack, int mouseX, int mouseY, float x, float y, int width, int height) {
         if (program != null) {
             try {
                 program.use(cache->{

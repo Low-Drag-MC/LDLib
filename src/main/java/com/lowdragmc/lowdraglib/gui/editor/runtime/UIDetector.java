@@ -1,9 +1,12 @@
-package com.lowdragmc.lowdraglib.gui.editor.annotation;
+package com.lowdragmc.lowdraglib.gui.editor.runtime;
 
 import com.lowdragmc.lowdraglib.LDLMod;
 import com.lowdragmc.lowdraglib.gui.editor.accessors.IConfiguratorAccessor;
+import com.lowdragmc.lowdraglib.gui.editor.annotation.ConfigAccessor;
+import com.lowdragmc.lowdraglib.gui.editor.annotation.RegisterUI;
 import com.lowdragmc.lowdraglib.gui.editor.data.resource.Resource;
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
+import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import com.lowdragmc.lowdraglib.utils.ReflectionUtils;
 
 import java.lang.annotation.Annotation;
@@ -19,13 +22,14 @@ import java.util.function.Supplier;
  * @implNote AnnotationDetector
  */
 @SuppressWarnings("unchecked")
-public class AnnotationDetector {
+public class UIDetector {
 
     public record Wrapper<A extends Annotation, T>(A annotation, Class<? extends T> clazz, Supplier<T> creator) { }
 
-    public static final List<IConfiguratorAccessor<?>> CONFIGURATOR_ACCESSORS = scanClasses(ConfigAccessor.class, IConfiguratorAccessor.class, c -> true, AnnotationDetector::createNoArgsInstance);
-    public static final List<Wrapper<RegisterUI, IGuiTexture>> REGISTER_TEXTURES = scanClasses(RegisterUI.class, IGuiTexture.class, AnnotationDetector::checkNoArgsConstructor, AnnotationDetector::toUINoArgsBuilder);
-    public static final List<Wrapper<RegisterUI, Resource>> REGISTER_RESOURCES = scanClasses(RegisterUI.class, Resource.class, AnnotationDetector::checkNoArgsConstructor, AnnotationDetector::toUINoArgsBuilder);
+    public static final List<IConfiguratorAccessor<?>> CONFIGURATOR_ACCESSORS = scanClasses(ConfigAccessor.class, IConfiguratorAccessor.class, c -> true, UIDetector::createNoArgsInstance);
+    public static final List<Wrapper<RegisterUI, IGuiTexture>> REGISTER_TEXTURES = scanClasses(RegisterUI.class, IGuiTexture.class, UIDetector::checkNoArgsConstructor, UIDetector::toUINoArgsBuilder);
+    public static final List<Wrapper<RegisterUI, Resource>> REGISTER_RESOURCES = scanClasses(RegisterUI.class, Resource.class, UIDetector::checkNoArgsConstructor, UIDetector::toUINoArgsBuilder);
+    public static final List<Wrapper<RegisterUI, Widget>> REGISTER_WIDGETS = scanClasses(RegisterUI.class, Widget.class, UIDetector::checkNoArgsConstructor, UIDetector::toUINoArgsBuilder);
 
     public static void init() {
 

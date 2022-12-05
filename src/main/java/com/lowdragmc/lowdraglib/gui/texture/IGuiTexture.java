@@ -15,6 +15,18 @@ public interface IGuiTexture extends IConfigurable {
         return this;
     }
 
+    default IGuiTexture rotate(float degree) {
+        return this;
+    }
+
+    default IGuiTexture scale(float scale) {
+        return this;
+    }
+
+    default IGuiTexture transform(int xOffset, int yOffset) {
+        return this;
+    }
+
     @OnlyIn(Dist.CLIENT)
     void draw(PoseStack stack, int mouseX, int mouseY, float x, float y, int width, int height);
 

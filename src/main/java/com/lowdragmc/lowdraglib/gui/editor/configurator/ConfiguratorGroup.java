@@ -41,10 +41,10 @@ public class ConfiguratorGroup extends Configurator {
     }
 
     @Override
-    public void setConfigPanel(ConfigPanel configPanel) {
-        super.setConfigPanel(configPanel);
+    public void setConfigPanel(ConfigPanel configPanel, ConfigPanel.Tab tab) {
+        super.setConfigPanel(configPanel, tab);
         for (Configurator configurator : configurators) {
-            configurator.setConfigPanel(configPanel);
+            configurator.setConfigPanel(configPanel, tab);
         }
     }
 
@@ -60,7 +60,7 @@ public class ConfiguratorGroup extends Configurator {
 
     public void addConfigurators(Configurator... configurators) {
         for (Configurator configurator : configurators) {
-            configurator.setConfigPanel(configPanel);
+            configurator.setConfigPanel(configPanel, tab);
             configurator.setActive(!isCollapse);
             configurator.setVisible(!isCollapse);
             this.configurators.add(configurator);

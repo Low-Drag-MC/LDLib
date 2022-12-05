@@ -17,6 +17,7 @@ public class BooleanConfigurator extends ValueConfigurator<Boolean>{
 
     public BooleanConfigurator(String name, Supplier<Boolean> supplier, Consumer<Boolean> onUpdate, @Nonnull Boolean defaultValue, boolean forceUpdate) {
         super(name, supplier, onUpdate, defaultValue, forceUpdate);
+        if (value == null) value = defaultValue;
     }
 
     @Override
@@ -34,6 +35,7 @@ public class BooleanConfigurator extends ValueConfigurator<Boolean>{
             value = pressed;
             updateValue();
         }));
+        switchWidget.setPressed(value);
         switchWidget.setTexture(Icons.borderText(" "), Icons.borderText("■"));
     }
 }

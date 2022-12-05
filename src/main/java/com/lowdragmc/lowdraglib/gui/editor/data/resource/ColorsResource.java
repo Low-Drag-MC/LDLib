@@ -36,7 +36,8 @@ public class ColorsResource extends Resource<Integer> {
     public ResourceContainer<Integer, ImageWidget> createContainer(ResourcePanel panel) {
         ResourceContainer<Integer, ImageWidget> container = new ResourceContainer<>(this, panel);
         container.setWidgetSupplier(t -> new ImageWidget(0, 0, 30, 30, new ColorRectTexture(t)))
-                .setDraggingRenderer(ColorRectTexture::new);
+                .setDraggingRenderer(ColorRectTexture::new)
+                .setOnAdd(key -> -1);
         return container;
     }
 }

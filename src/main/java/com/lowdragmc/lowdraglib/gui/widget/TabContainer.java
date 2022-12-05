@@ -57,4 +57,12 @@ public class TabContainer extends WidgetGroup {
         tabWidget.setVisible(focus == tabWidget);
         tabWidget.setActive(focus == tabWidget);
     }
+
+    @Override
+    public void clearAllWidgets() {
+        tabs.clear();
+        buttonGroup.clearAllWidgets();
+        containerGroup.clearAllWidgets();
+        focus = null;
+    }
 }

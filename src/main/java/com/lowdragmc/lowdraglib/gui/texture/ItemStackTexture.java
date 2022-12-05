@@ -8,7 +8,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
-public class ItemStackTexture implements IGuiTexture{
+public class ItemStackTexture extends TransformTexture{
     public final ItemStack[] itemStack;
     private int index = 0;
     private int ticks = 0;
@@ -47,7 +47,7 @@ public class ItemStackTexture implements IGuiTexture{
 
     @OnlyIn(Dist.CLIENT)
     @Override
-    public void draw(PoseStack mStack, int mouseX, int mouseY, float x, float y, int width, int height) {
+    protected void drawInternal(PoseStack mStack, int mouseX, int mouseY, float x, float y, int width, int height) {
         if (itemStack.length == 0) return;
         mStack.pushPose();
         mStack.scale(width / 16f, height / 16f, (width + height) / 32f);

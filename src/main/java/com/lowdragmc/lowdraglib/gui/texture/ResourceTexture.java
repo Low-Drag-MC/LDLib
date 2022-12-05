@@ -1,7 +1,6 @@
 package com.lowdragmc.lowdraglib.gui.texture;
 
 import com.lowdragmc.lowdraglib.LDLMod;
-import com.lowdragmc.lowdraglib.client.utils.RenderUtils;
 import com.lowdragmc.lowdraglib.gui.editor.ColorPattern;
 import com.lowdragmc.lowdraglib.gui.editor.ui.Editor;
 import com.lowdragmc.lowdraglib.gui.editor.annotation.Configurable;
@@ -32,26 +31,26 @@ import java.io.File;
 
 import static com.mojang.blaze3d.vertex.DefaultVertexFormat.POSITION_TEX_COLOR;
 
-@RegisterUI(name = "ldlib.gui.editor.register.resource_texture")
+@RegisterUI(name = "resource_texture")
 @NoArgsConstructor
-public class ResourceTexture implements IGuiTexture {
+public class ResourceTexture extends TransformTexture {
 
     @Configurable(name = "ldlib.gui.editor.name.resource")
     public ResourceLocation imageLocation = new ResourceLocation("ldlib:textures/gui/icon.png");
 
     @Configurable
-    @NumberRange(range = {Float.MIN_VALUE, Float.MAX_VALUE}, wheel = 0.02)
+    @NumberRange(range = {-Float.MAX_VALUE, Float.MAX_VALUE}, wheel = 0.02)
     public float offsetX = 0;
 
     @Configurable
-    @NumberRange(range = {Float.MIN_VALUE, Float.MAX_VALUE}, wheel = 0.02)
+    @NumberRange(range = {-Float.MAX_VALUE, Float.MAX_VALUE}, wheel = 0.02)
     public float offsetY = 0;
 
     @Configurable
-    @NumberRange(range = {Float.MIN_VALUE, Float.MAX_VALUE}, wheel = 0.02)
+    @NumberRange(range = {-Float.MAX_VALUE, Float.MAX_VALUE}, wheel = 0.02)
     public float imageWidth = 1;
     @Configurable
-    @NumberRange(range = {Float.MIN_VALUE, Float.MAX_VALUE}, wheel = 0.02)
+    @NumberRange(range = {-Float.MAX_VALUE, Float.MAX_VALUE}, wheel = 0.02)
     public float imageHeight = 1;
 
     @Configurable
@@ -105,12 +104,12 @@ public class ResourceTexture implements IGuiTexture {
     }
 
     @OnlyIn(Dist.CLIENT)
-    public void draw(PoseStack stack, int mouseX, int mouseY, float x, float y, int width, int height) {
+    protected void drawInternal(PoseStack stack, int mouseX, int mouseY, float x, float y, int width, int height) {
         drawSubArea(stack, x, y, width, height, 0, 0, 1, 1);
     }
     
     @OnlyIn(Dist.CLIENT)
-    public void drawSubArea(PoseStack stack, float x, float y, int width, int height, float drawnU, float drawnV, float drawnWidth, float drawnHeight) {
+    protected void drawSubAreaInternal(PoseStack stack, float x, float y, int width, int height, float drawnU, float drawnV, float drawnWidth, float drawnHeight) {
         //sub area is just different width and height
         float imageU = this.offsetX + (this.imageWidth * drawnU);
         float imageV = this.offsetY + (this.imageHeight * drawnV);
@@ -131,7 +130,7 @@ public class ResourceTexture implements IGuiTexture {
 
     @Override
     public void createPreview(ConfiguratorGroup father) {
-        IGuiTexture.super.createPreview(father);
+        super.createPreview(father);
         WidgetGroup widgetGroup = new WidgetGroup(0, 0, 100, 100);
         ImageWidget imageWidget;
         widgetGroup.addWidget(imageWidget = new ImageWidget(0, 0, 100, 100, new GuiTextureGroup(new ResourceTexture(imageLocation.toString()), this::drawGuides)).setBorder(2, ColorPattern.T_WHITE.color));
@@ -161,9 +160,8 @@ public class ResourceTexture implements IGuiTexture {
 
     @OnlyIn(Dist.CLIENT)
     protected void drawGuides(PoseStack stack, int mouseX, int mouseY, float x, float y, int width, int height) {
-        RenderUtils.useScissor(stack, (int) x, (int) y, width, height, () ->
-                new ColorBorderTexture(-1, 0xffff0000).draw(stack, 0, 0,
-                        x + width * offsetX, y + height * offsetY,
-                        (int) (width * imageWidth), (int) (height * imageHeight)));
+        new ColorBorderTexture(-1, 0xffff0000).draw(stack, 0, 0,
+                x + width * offsetX, y + height * offsetY,
+                (int) (width * imageWidth), (int) (height * imageHeight));
     }
 }

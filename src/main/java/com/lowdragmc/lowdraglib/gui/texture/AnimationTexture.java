@@ -1,7 +1,6 @@
 package com.lowdragmc.lowdraglib.gui.texture;
 
 import com.lowdragmc.lowdraglib.LDLMod;
-import com.lowdragmc.lowdraglib.client.utils.RenderUtils;
 import com.lowdragmc.lowdraglib.gui.editor.ColorPattern;
 import com.lowdragmc.lowdraglib.gui.editor.annotation.Configurable;
 import com.lowdragmc.lowdraglib.gui.editor.annotation.NumberColor;
@@ -35,31 +34,31 @@ import static com.mojang.blaze3d.vertex.DefaultVertexFormat.POSITION_TEX_COLOR;
  * @date 2022/9/14
  * @implNote AnimationTexture
  */
-@RegisterUI(name = "ldlib.gui.editor.register.animation_texture")
-public class AnimationTexture implements IGuiTexture {
+@RegisterUI(name = "animation_texture")
+public class AnimationTexture extends TransformTexture {
 
     @Configurable(name = "ldlib.gui.editor.name.resource")
     public ResourceLocation imageLocation;
 
-    @Configurable
+    @Configurable(tips = "ldlib.gui.editor.tips.cell_size")
     @NumberRange(range = {1, Integer.MAX_VALUE})
     protected int cellSize;
 
-    @Configurable
+    @Configurable(tips = "ldlib.gui.editor.tips.cell_from")
     @NumberRange(range = {0, Integer.MAX_VALUE})
     protected int from;
 
-    @Configurable
+    @Configurable(tips = "ldlib.gui.editor.tips.cell_to")
     @NumberRange(range = {0, Integer.MAX_VALUE})
     protected int to;
+
+    @Configurable(tips = "ldlib.gui.editor.tips.cell_animation")
+    @NumberRange(range = {0, Integer.MAX_VALUE})
+    protected int animation;
 
     @Configurable
     @NumberColor
     protected int color = -1;
-
-    @Configurable
-    @NumberRange(range = {0, Integer.MAX_VALUE})
-    protected int animation;
 
     protected int currentFrame;
 
@@ -129,7 +128,7 @@ public class AnimationTexture implements IGuiTexture {
 
     @Override
     @OnlyIn(Dist.CLIENT)
-    public void draw(PoseStack stack, int mouseX, int mouseY, float x, float y, int width, int height) {
+    protected void drawInternal(PoseStack stack, int mouseX, int mouseY, float x, float y, int width, int height) {
         float cell = 1f / this.cellSize;
         int X = currentFrame % cellSize;
         int Y = currentFrame / cellSize;
@@ -152,7 +151,7 @@ public class AnimationTexture implements IGuiTexture {
 
     @Override
     public void createPreview(ConfiguratorGroup father) {
-        IGuiTexture.super.createPreview(father);
+        super.createPreview(father);
         WidgetGroup widgetGroup = new WidgetGroup(0, 0, 100, 100);
         ImageWidget imageWidget;
         widgetGroup.addWidget(imageWidget = new ImageWidget(0, 0, 100, 100, new GuiTextureGroup(new ResourceTexture(imageLocation.toString()), this::drawGuides)).setBorder(2, ColorPattern.T_WHITE.color));
@@ -182,28 +181,25 @@ public class AnimationTexture implements IGuiTexture {
 
     @OnlyIn(Dist.CLIENT)
     protected void drawGuides(PoseStack stack, int mouseX, int mouseY, float x, float y, int width, int height) {
+        float cell = 1f / this.cellSize;
+        int X = from % cellSize;
+        int Y = from / cellSize;
 
-        RenderUtils.useScissor(stack, (int) x, (int) y, width, height, () -> {
-            float cell = 1f / this.cellSize;
-            int X = from % cellSize;
-            int Y = from / cellSize;
+        float imageU = X * cell;
+        float imageV = Y * cell;
 
-            float imageU = X * cell;
-            float imageV = Y * cell;
+        new ColorBorderTexture(-1, 0xff00ff00).draw(stack, 0, 0,
+                x + width * imageU, y + height * imageV,
+                (int) (width * (cell)), (int) (height * (cell)));
 
-            new ColorBorderTexture(-1, 0xff00ff00).draw(stack, 0, 0,
-                    x + width * imageU, y + height * imageV,
-                    (int) (width * (cell)), (int) (height * (cell)));
+        X = to % cellSize;
+        Y = to / cellSize;
 
-            X = to % cellSize;
-            Y = to / cellSize;
+        imageU = X * cell;
+        imageV = Y * cell;
 
-            imageU = X * cell;
-            imageV = Y * cell;
-
-            new ColorBorderTexture(-1, 0xffff0000).draw(stack, 0, 0,
-                    x + width * imageU, y + height * imageV,
-                    (int) (width * (cell)), (int) (height * (cell)));
-        });
+        new ColorBorderTexture(-1, 0xffff0000).draw(stack, 0, 0,
+                x + width * imageU, y + height * imageV,
+                (int) (width * (cell)), (int) (height * (cell)));
     }
 }

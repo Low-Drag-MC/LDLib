@@ -2,9 +2,11 @@ package com.lowdragmc.lowdraglib.gui.editor.data.resource;
 
 import com.lowdragmc.lowdraglib.gui.editor.annotation.RegisterUI;
 import com.lowdragmc.lowdraglib.gui.editor.ui.ResourcePanel;
+import com.lowdragmc.lowdraglib.gui.editor.ui.resource.EntriesResourceContainer;
 import com.lowdragmc.lowdraglib.gui.editor.ui.resource.ResourceContainer;
 import com.lowdragmc.lowdraglib.gui.texture.TextTexture;
 import com.lowdragmc.lowdraglib.gui.widget.ImageWidget;
+import com.lowdragmc.lowdraglib.utils.LocalizationUtils;
 
 import static com.lowdragmc.lowdraglib.gui.editor.data.resource.EntriesResource.RESOURCE_NAME;
 
@@ -30,10 +32,17 @@ public class EntriesResource extends Resource<String> {
     }
 
     @Override
-    public ResourceContainer<String, ImageWidget> createContainer(ResourcePanel panel) {
-        ResourceContainer<String, ImageWidget> container = new ResourceContainer<>(this, panel);
-        container.setWidgetSupplier(t -> new ImageWidget(0, 0, 65, 65, new TextTexture(t).setType(TextTexture.TextType.ROLL).setWidth(50)))
-                .setDraggingRenderer(TextTexture::new);
-        return container;
+    public void onLoad() {
+        LocalizationUtils.setResource(this);
+    }
+
+    @Override
+    public void unLoad() {
+        LocalizationUtils.clearResource();
+    }
+
+    @Override
+    public ResourceContainer<String, ?> createContainer(ResourcePanel panel) {
+        return new EntriesResourceContainer(this, panel);
     }
 }

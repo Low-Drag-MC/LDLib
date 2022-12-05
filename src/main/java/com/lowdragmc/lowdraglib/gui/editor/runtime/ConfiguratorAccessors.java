@@ -3,7 +3,6 @@ package com.lowdragmc.lowdraglib.gui.editor.runtime;
 import com.lowdragmc.lowdraglib.gui.editor.accessors.ArrayConfiguratorAccessor;
 import com.lowdragmc.lowdraglib.gui.editor.accessors.CollectionConfiguratorAccessor;
 import com.lowdragmc.lowdraglib.gui.editor.accessors.IConfiguratorAccessor;
-import com.lowdragmc.lowdraglib.gui.editor.annotation.AnnotationDetector;
 import com.lowdragmc.lowdraglib.utils.ReflectionUtils;
 
 import java.lang.reflect.GenericArrayType;
@@ -55,7 +54,7 @@ public class ConfiguratorAccessors {
 
     public static IConfiguratorAccessor<?> findByClass(Class<?> clazz) {
         return ACCESSOR_MAP.computeIfAbsent(clazz, c -> {
-            for (IConfiguratorAccessor<?> accessor : AnnotationDetector.CONFIGURATOR_ACCESSORS) {
+            for (IConfiguratorAccessor<?> accessor : UIDetector.CONFIGURATOR_ACCESSORS) {
                 if (accessor.test(c)) {
                     return accessor;
                 }

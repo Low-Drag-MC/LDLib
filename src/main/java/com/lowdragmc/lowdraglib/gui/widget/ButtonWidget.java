@@ -1,8 +1,7 @@
 package com.lowdragmc.lowdraglib.gui.widget;
 
-import com.lowdragmc.lowdraglib.gui.texture.ColorBorderTexture;
-import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
-import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
+import com.lowdragmc.lowdraglib.gui.editor.annotation.RegisterUI;
+import com.lowdragmc.lowdraglib.gui.texture.*;
 import com.lowdragmc.lowdraglib.gui.util.ClickData;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.api.distmarker.Dist;
@@ -10,9 +9,15 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 import java.util.function.Consumer;
 
+@RegisterUI(name = "button")
 public class ButtonWidget extends Widget {
 
     protected Consumer<ClickData> onPressCallback;
+
+    public ButtonWidget() {
+        this(0, 0, 40, 20, new GuiTextureGroup(ResourceBorderTexture.BUTTON_COMMON, new TextTexture("Button")), null);
+        setHoverBorderTexture(1, -1);
+    }
 
     public ButtonWidget(int xPosition, int yPosition, int width, int height, IGuiTexture buttonTexture, Consumer<ClickData> onPressed) {
         super(xPosition, yPosition, width, height);
@@ -31,15 +36,15 @@ public class ButtonWidget extends Widget {
     }
 
     public ButtonWidget setButtonTexture(IGuiTexture... buttonTexture) {
-        super.setBackground(new GuiTextureGroup(buttonTexture));
+        super.setBackground(buttonTexture);
         return this;
     }
 
     public ButtonWidget setHoverTexture(IGuiTexture... hoverTexture) {
-        super.setHoverTexture(new GuiTextureGroup(hoverTexture));
+        super.setHoverTexture(hoverTexture);
         return this;
     }
-    
+
     public ButtonWidget setHoverBorderTexture(int border, int color) {
         super.setHoverTexture(new ColorBorderTexture(border, color));
         return this;

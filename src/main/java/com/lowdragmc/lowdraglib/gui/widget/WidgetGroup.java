@@ -1,10 +1,12 @@
 package com.lowdragmc.lowdraglib.gui.widget;
 
 import com.lowdragmc.lowdraglib.gui.animation.Animation;
+import com.lowdragmc.lowdraglib.gui.editor.annotation.RegisterUI;
 import com.lowdragmc.lowdraglib.gui.ingredient.IGhostIngredientTarget;
 import com.lowdragmc.lowdraglib.gui.ingredient.IIngredientSlot;
 import com.lowdragmc.lowdraglib.gui.ingredient.Target;
 import com.lowdragmc.lowdraglib.gui.modular.WidgetUIAccess;
+import com.lowdragmc.lowdraglib.gui.texture.ResourceBorderTexture;
 import com.lowdragmc.lowdraglib.utils.Position;
 import com.lowdragmc.lowdraglib.utils.Size;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -19,6 +21,7 @@ import javax.annotation.Nonnull;
 import java.util.*;
 import java.util.function.Consumer;
 
+@RegisterUI(name = "group", group = "advanced")
 public class WidgetGroup extends Widget implements IGhostIngredientTarget, IIngredientSlot {
 
     public final List<Widget> widgets = new ArrayList<>();
@@ -26,6 +29,12 @@ public class WidgetGroup extends Widget implements IGhostIngredientTarget, IIngr
     private final boolean isDynamicSized;
     protected final List<Widget> waitToRemoved;
     protected final List<Widget> waitToAdded;
+
+    public WidgetGroup() {
+        this(0, 0,50, 50);
+        setBackground(ResourceBorderTexture.BORDERED_BACKGROUND);
+    }
+
     public WidgetGroup(int x, int y, int width, int height) {
         super(x, y, width, height);
         this.isDynamicSized = false;
@@ -404,13 +413,14 @@ public class WidgetGroup extends Widget implements IGhostIngredientTarget, IIngr
     }
 
     @OnlyIn(Dist.CLIENT)
-    public void mouseMoved(double mouseX, double mouseY) {
+    public boolean mouseMoved(double mouseX, double mouseY) {
         for (int i = widgets.size() - 1; i >= 0; i--) {
             Widget widget = widgets.get(i);
-            if(widget.isVisible() && widget.isActive()) {
-                widget.mouseMoved(mouseX, mouseY);
+            if(widget.isVisible() && widget.isActive() && widget.mouseMoved(mouseX, mouseY)) {
+                return true;
             }
         }
+        return false;
     }
 
     @Override

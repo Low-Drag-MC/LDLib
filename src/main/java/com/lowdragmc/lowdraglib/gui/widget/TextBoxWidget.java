@@ -1,5 +1,10 @@
 package com.lowdragmc.lowdraglib.gui.widget;
 
+import com.lowdragmc.lowdraglib.gui.editor.annotation.ConfigSetter;
+import com.lowdragmc.lowdraglib.gui.editor.annotation.Configurable;
+import com.lowdragmc.lowdraglib.gui.editor.annotation.NumberColor;
+import com.lowdragmc.lowdraglib.gui.editor.annotation.RegisterUI;
+import com.lowdragmc.lowdraglib.utils.LocalizationUtils;
 import com.lowdragmc.lowdraglib.utils.Position;
 import com.lowdragmc.lowdraglib.utils.Size;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -14,36 +19,59 @@ import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
 
+@Configurable(name = "ldlib.gui.editor.register.widget.text_box", collapse = false)
+@RegisterUI(name = "text_box")
 public class TextBoxWidget extends Widget {
 
     // config
-    public List<String> content;
+    @Configurable
+    public final List<String> content = new ArrayList<>();
+
+    @Configurable
     public int space = 1;
+
+    @Configurable
     public int fontSize = 9;
+
+    @Configurable
+    @NumberColor
     public int fontColor = 0xff000000;
+
+    @Configurable
     public boolean isShadow = false;
+
+    @Configurable
     public boolean isCenter = false;
 
     private transient List<String> textLines;
 
+    public TextBoxWidget() {
+        this(0, 0, 60, List.of("ldlib.author", "Lorem ipsum"));
+        setFontColor(-1);
+    }
+
     public TextBoxWidget(int x, int y, int width, List<String> content) {
         super(x, y, width, 0);
-        this.content = content;
+        this.content.addAll(content);
         this.calculate();
     }
 
+    @ConfigSetter(field = "content")
     public TextBoxWidget setContent(List<String> content) {
-        this.content = content;
+        this.content.clear();
+        this.content.addAll(content);
         this.calculate();
         return this;
     }
 
+    @ConfigSetter(field = "space")
     public TextBoxWidget setSpace(int space) {
         this.space = space;
         this.calculate();
         return this;
     }
 
+    @ConfigSetter(field = "fontSize")
     public TextBoxWidget setFontSize(int fontSize) {
         this.fontSize = fontSize;
         this.calculate();
@@ -52,19 +80,16 @@ public class TextBoxWidget extends Widget {
 
     public TextBoxWidget setFontColor(int fontColor) {
         this.fontColor = fontColor;
-        this.calculate();
         return this;
     }
 
     public TextBoxWidget setShadow(boolean shadow) {
         isShadow = shadow;
-        this.calculate();
         return this;
     }
 
     public TextBoxWidget setCenter(boolean center) {
         isCenter = center;
-        this.calculate();
         return this;
     }
 
@@ -75,12 +100,10 @@ public class TextBoxWidget extends Widget {
             this.space = Math.max(space, 0);
             this.fontSize = Math.max(fontSize, 1);
             int wrapWidth = getSize().width * font.lineHeight / fontSize;
-            if (content != null) {
-                for (String textLine : content) {
-                    this.textLines.addAll(font.getSplitter()
-                            .splitLines(textLine, wrapWidth, Style.EMPTY)
-                            .stream().map(FormattedText::getString).toList());
-                }
+            for (String textLine : content) {
+                this.textLines.addAll(font.getSplitter()
+                        .splitLines(LocalizationUtils.format(textLine), wrapWidth, Style.EMPTY)
+                        .stream().map(FormattedText::getString).toList());
             }
             this.setSize(new Size(this.getSize().width, this.textLines.size() * (fontSize + space)));
         }

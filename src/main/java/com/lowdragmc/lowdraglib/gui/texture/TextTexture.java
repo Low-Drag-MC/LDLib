@@ -1,15 +1,12 @@
 package com.lowdragmc.lowdraglib.gui.texture;
 
-import com.lowdragmc.lowdraglib.gui.editor.annotation.ConfigSetter;
-import com.lowdragmc.lowdraglib.gui.editor.annotation.Configurable;
-import com.lowdragmc.lowdraglib.gui.editor.annotation.NumberColor;
-import com.lowdragmc.lowdraglib.gui.editor.annotation.RegisterUI;
+import com.lowdragmc.lowdraglib.gui.editor.annotation.*;
 import com.lowdragmc.lowdraglib.gui.util.DrawerHelper;
+import com.lowdragmc.lowdraglib.utils.LocalizationUtils;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.chat.FormattedText;
 import net.minecraft.network.chat.Style;
 import net.minecraftforge.api.distmarker.Dist;
@@ -22,8 +19,8 @@ import java.util.List;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-@RegisterUI(name = "ldlib.gui.editor.register.text_texture")
-public class TextTexture implements IGuiTexture{
+@RegisterUI(name = "text_texture")
+public class TextTexture extends TransformTexture{
 
     @Configurable
     public String text;
@@ -37,6 +34,7 @@ public class TextTexture implements IGuiTexture{
     public int backgroundColor;
 
     @Configurable(tips = "ldlib.gui.editor.tips.image_text_width")
+    @NumberRange(range = {1, Integer.MAX_VALUE})
     public int width;
     @Configurable
     public boolean dropShadow;
@@ -51,16 +49,15 @@ public class TextTexture implements IGuiTexture{
     private long lastTick;
 
     public TextTexture() {
-        this("ldlib.author", -1);
+        this("A", -1);
         setWidth(50);
-        setType(TextType.HIDE);
     }
 
     public TextTexture(String text, int color) {
         this.color = color;
         this.type = TextType.NORMAL;
         if (FMLEnvironment.dist == Dist.CLIENT) {
-            this.text = I18n.get(text);
+            this.text = LocalizationUtils.format(text);
             texts = Collections.singletonList(this.text);
         }
     }
@@ -90,7 +87,7 @@ public class TextTexture implements IGuiTexture{
     @ConfigSetter(field = "text")
     public void updateText(String text) {
         if (FMLEnvironment.dist == Dist.CLIENT) {
-            this.text = I18n.get(text);
+            this.text = LocalizationUtils.format(text);
             texts = Collections.singletonList(this.text);
             setWidth(this.width);
         }
@@ -137,7 +134,7 @@ public class TextTexture implements IGuiTexture{
 
     @OnlyIn(Dist.CLIENT)
     @Override
-    public void draw(PoseStack stack, int mouseX, int mouseY, float x, float y, int width, int height) {
+    protected void drawInternal(PoseStack stack, int mouseX, int mouseY, float x, float y, int width, int height) {
         if (backgroundColor != 0) {
             DrawerHelper.drawSolidRect(stack, (int) x, (int) y, width, height, backgroundColor);
         }

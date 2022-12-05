@@ -10,8 +10,8 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 import java.awt.Color;
 
-@RegisterUI(name = "ldlib.gui.editor.register.color_rect_texture")
-public class ColorRectTexture implements IGuiTexture{
+@RegisterUI(name = "color_rect_texture")
+public class ColorRectTexture extends TransformTexture{
 
     @Configurable
     @NumberColor
@@ -40,7 +40,7 @@ public class ColorRectTexture implements IGuiTexture{
 
     @OnlyIn(Dist.CLIENT)
     @Override
-    public void draw(PoseStack stack, int mouseX, int mouseY, float x, float y, int width, int height) {
+    protected void drawInternal(PoseStack stack, int mouseX, int mouseY, float x, float y, int width, int height) {
         DrawerHelper.drawSolidRect(stack, (int) x, (int) y, width, height, color);
     }
 }

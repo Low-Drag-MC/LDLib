@@ -4,6 +4,8 @@ import com.lowdragmc.lowdraglib.gui.editor.Icons;
 import com.lowdragmc.lowdraglib.gui.editor.configurator.ConfiguratorGroup;
 import com.lowdragmc.lowdraglib.gui.editor.configurator.NumberConfigurator;
 import com.lowdragmc.lowdraglib.gui.texture.ColorBorderTexture;
+import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
+import com.lowdragmc.lowdraglib.gui.texture.WidgetDraggingTexture;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 import com.lowdragmc.lowdraglib.utils.Position;
@@ -17,17 +19,17 @@ import org.jetbrains.annotations.NotNull;
 /**
  * @author KilaBash
  * @date 2022/12/1
- * @implNote FrameWidget
+ * @implNote UIWrapper
  */
-public class FrameWidget extends WidgetGroup {
-    private static FrameWidget focus;
+public class UIWrapper extends WidgetGroup {
+    @Getter
     private final Editor editor;
     @Getter
     private final Widget inner;
     private double lastDeltaX, lastDeltaY;
     private boolean dragPosition, dragSize;
 
-    public FrameWidget(Editor editor, Widget inner) {
+    public UIWrapper(Editor editor, Widget inner) {
         super(30, 30, inner.getSize().width, inner.getSize().height);
         setClientSideWidget();
         this.editor = editor;
@@ -35,9 +37,8 @@ public class FrameWidget extends WidgetGroup {
         this.addWidget(inner);
     }
 
-    @Override
-    public void setSelfPosition(Position selfPosition) {
-        super.setSelfPosition(selfPosition);
+    public boolean isWidgetGroup() {
+        return inner instanceof WidgetGroup;
     }
 
     @Override
@@ -46,19 +47,48 @@ public class FrameWidget extends WidgetGroup {
         getInner().setSize(size);
     }
 
+    public boolean isFocusUI() {
+        return editor.getFocusUI() == this;
+    }
+
+    public boolean isHover() {
+        return editor.getLastHover() == this;
+    }
+
+    public boolean checkAcceptable(UIWrapper uiWrapper) {
+        if (getInner() instanceof WidgetGroup && uiWrapper != this) {
+            // make sure accepted ui not my parent.
+            var parent = this.getParent();
+            while (parent != null) {
+                if (parent == uiWrapper) return false;
+                parent = parent.getParent();
+            }
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    @OnlyIn(Dist.CLIENT)
+    public void updateScreen() {
+        super.updateScreen();
+        if (!inner.getSize().equals(getSize())) {
+            setSize(inner.getSize());
+        }
+    }
+
     @Override
     @OnlyIn(Dist.CLIENT)
     public void drawInBackground(@NotNull PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
-        super.drawInBackground(poseStack, mouseX, mouseY, partialTicks);
         Position pos = getPosition();
         Size size = getSize();
         // render border
-        if (focus == this) {
+        if (isFocusUI()) {
             new ColorBorderTexture(1, 0xffff0000).draw(poseStack, mouseX, mouseY, pos.x, pos.y, size.width, size.height);
             int color = 0;
-            if (isCtrlDown() && dragPosition) {
+            if (isAltDown() && dragPosition) {
                 color = -1;
-            } else if (isShiftDown() && dragSize) {
+            } else if (isAltDown() && dragSize) {
                 color = 0xff55aa55;
             }
             if (color != 0) {
@@ -71,11 +101,32 @@ public class FrameWidget extends WidgetGroup {
                 Icons.DOWN.copy().setColor(color).draw(poseStack, mouseX, mouseY, middleX, pos.y + size.height + 10, 16, 16);
                 Icons.RIGHT.copy().setColor(color).draw(poseStack, mouseX, mouseY, pos.x + size.width + 10, middleY, 16, 16);
             }
-        } else {
-            if (isMouseOverElement(mouseX, mouseY)) {
-                new ColorBorderTexture(1, 0xff0000ff).draw(poseStack, mouseX, mouseY, pos.x, pos.y, size.width, size.height);
+        }
+
+        if (isMouseOverElement(mouseX, mouseY)) {
+            editor.setHover(this);
+            if (editor.getLastHover() == this) {
+                if (!isFocusUI()) {
+                    new ColorBorderTexture(1, 0x4f0000ff).draw(poseStack, mouseX, mouseY, pos.x, pos.y, size.width, size.height);
+                }
+                var dragging = getGui().getModularUIGui().getDraggingElement();
+                boolean drawDragging = false;
+                if (dragging instanceof UIWrapper uiWrapper && checkAcceptable(uiWrapper)) { // can accept
+                    drawDragging = true;
+                }else if (dragging instanceof IGuiTexture) {
+                    drawDragging = true;
+                } else if (dragging instanceof String) {
+                    drawDragging = true;
+                }
+                if (drawDragging) {
+                    if (editor.setLastDraggingHover(this)) {
+                        new ColorBorderTexture(1, 0xff55aa55).draw(poseStack, mouseX, mouseY, pos.x, pos.y, size.width, size.height);
+                    }
+                }
             }
         }
+
+        super.drawInBackground(poseStack, mouseX, mouseY, partialTicks);
     }
 
     @Override
@@ -85,21 +136,26 @@ public class FrameWidget extends WidgetGroup {
         lastDeltaY = 0;
         dragPosition = false;
         dragSize = false;
-        if (super.mouseClicked(mouseX, mouseY, button)) {
-            return true;
-        }
         if (isMouseOverElement(mouseX, mouseY)) {
-            if ((focus != this || editor.configPanel.getFocus() != this) && button == 0) { // open configurator
-                focus = this;
-                editor.configPanel.openConfigurator(this);
-            }
-            if (isCtrlDown() && focus == this && button == 0) { // start dragging
-                dragPosition = true;
-            } else if (isShiftDown() && focus == this && button == 0) {
-                dragSize = true;
+            editor.setFocusUI(this);
+            if (isFocusUI()) {
+                if (button == 0) {
+                    editor.configPanel.openConfigurator(ConfigPanel.Tab.WIDGET, this);
+                }
+                if (isAltDown()) { // start dragging pos and size
+                    if (button == 0) {
+                        dragPosition = true;
+                    } else if (button == 1) {
+                        dragSize = true;
+                    }
+                    return true;
+                }
+                if (isShiftDown()) { // dragging itself
+                    getGui().getModularUIGui().setDraggingElement(this, new WidgetDraggingTexture(this));
+                }
             }
         }
-        return false;
+        return super.mouseClicked(mouseX, mouseY, button);
     }
 
     @Override
@@ -111,11 +167,13 @@ public class FrameWidget extends WidgetGroup {
         deltaY = (int) dy;
         lastDeltaX = dx - deltaX;
         lastDeltaY = dy - deltaY;
-        if (focus == this && isCtrlDown() && dragPosition) {
-            addSelfPosition((int) deltaX, (int) deltaY);
+        if (isFocusUI() && isAltDown()) {
+            if (dragPosition) {
+                addSelfPosition((int) deltaX, (int) deltaY);
+            } else if (dragSize) {
+                setSize(new Size(getSize().width + (int) deltaX, getSize().getHeight() + (int) deltaY));
+            }
             return true;
-        } else if (focus == this && isShiftDown() && dragSize) {
-            setSize(new Size(getSize().width + (int) deltaX, getSize().getHeight() + (int) deltaY));
         }
         return super.mouseDragged(mouseX, mouseY, button, deltaX, deltaY);
     }
@@ -125,7 +183,35 @@ public class FrameWidget extends WidgetGroup {
     public boolean mouseReleased(double mouseX, double mouseY, int button) {
         dragPosition = false;
         dragSize = false;
-        return super.mouseReleased(mouseX, mouseY, button);
+        if (super.mouseReleased(mouseX, mouseY, button)) {
+            return true;
+        }
+        if (isMouseOverElement(mouseX, mouseY)) {
+            if (editor.getLastHover() == this) {
+                var dragging = getGui().getModularUIGui().getDraggingElement();
+
+                if (dragging instanceof UIWrapper uiWrapper && checkAcceptable(uiWrapper)) {
+                    var parent = uiWrapper.getParent(); // remove from original parent
+                    if (parent != null) {
+                        parent.removeWidget(uiWrapper);
+                    }
+
+                    // accept it with correct position
+                    Position position = new Position((int) mouseX, (int) mouseY).subtract(getPosition());
+                    uiWrapper.setSelfPosition(new Position(position.x - uiWrapper.getSize().width / 2, position.y - uiWrapper.getSize().height / 2));
+                    ((WidgetGroup) inner).addWidget(uiWrapper);
+
+                    return true;
+                } else if (dragging instanceof IGuiTexture guiTexture) {
+                    inner.setBackground(guiTexture);
+                    return true;
+                } else if (dragging instanceof String string) {
+                    inner.setHoverTooltips(string);
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     @Override

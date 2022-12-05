@@ -12,6 +12,10 @@ public class Icons {
     public static ResourceTexture UP = new ResourceTexture("ldlib:textures/gui/up.png");
     public static ResourceTexture DOWN = new ResourceTexture("ldlib:textures/gui/down.png");
     public static ResourceTexture RIGHT = new ResourceTexture("ldlib:textures/gui/right.png");
+    public static ResourceTexture RESOURCE_TAB = new ResourceTexture("ldlib:textures/gui/resource_tab.png");
+    public static ResourceTexture WIDGET_TAB = new ResourceTexture("ldlib:textures/gui/widget_tab.png");
+    public static ResourceTexture BASIC_WIDGET_TAB = new ResourceTexture("ldlib:textures/gui/basic_widget_tab.png");
+    public static ResourceTexture ADVANCED_WIDGET_TAB = new ResourceTexture("ldlib:textures/gui/advanced_widget_tab.png");
 
     public static IGuiTexture borderText(int border, String text, int color) {
         return new GuiTextureGroup(new ColorBorderTexture(border, color), new TextTexture(text, color));

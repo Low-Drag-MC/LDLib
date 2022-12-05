@@ -11,7 +11,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
  * @date 2022/12/3
  * @implNote WidgetDraggingTexture
  */
-public class WidgetDraggingTexture implements IGuiTexture{
+public class WidgetDraggingTexture extends TransformTexture{
     private final Widget widget;
     private final int centerX;
     private final int centerY;
@@ -24,7 +24,7 @@ public class WidgetDraggingTexture implements IGuiTexture{
 
     @Override
     @OnlyIn(Dist.CLIENT)
-    public void draw(PoseStack stack, int mouseX, int mouseY, float x, float y, int width, int height) {
+    protected void drawInternal(PoseStack stack, int mouseX, int mouseY, float x, float y, int width, int height) {
         int xOffset = mouseX - this.centerX;
         int yOffset = mouseY - this.centerY;
         float particleTick = Minecraft.getInstance().getFrameTime();

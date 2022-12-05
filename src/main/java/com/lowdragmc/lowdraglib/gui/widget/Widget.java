@@ -64,15 +64,15 @@ public class Widget implements IConfigurable {
     protected IGuiTexture hoverTexture;
     protected WidgetGroup parent;
     protected Animation animation;
-    private boolean initialized;
-    private boolean tryToDrag = false;
-    private Supplier<Object> draggingProvider;
-    private Function<Object, IGuiTexture> draggingRenderer;
-    private Predicate<Object> draggingAccept = o -> false;
-    private Consumer<Object> draggingIn;
-    private Consumer<Object> draggingOut;
-    private Consumer<Object> draggingSuccess;
-    private Object draggingElement;
+    protected boolean initialized;
+    protected boolean tryToDrag = false;
+    protected Supplier<Object> draggingProvider;
+    protected Function<Object, IGuiTexture> draggingRenderer;
+    protected Predicate<Object> draggingAccept = o -> false;
+    protected Consumer<Object> draggingIn;
+    protected Consumer<Object> draggingOut;
+    protected Consumer<Object> draggingSuccess;
+    protected Object draggingElement;
 
     public Widget(Position selfPosition, Size size) {
         Preconditions.checkNotNull(selfPosition, "selfPosition");
@@ -372,7 +372,8 @@ public class Widget implements IConfigurable {
     }
 
     @OnlyIn(Dist.CLIENT)
-    public void mouseMoved(double mouseX, double mouseY) {
+    public boolean mouseMoved(double mouseX, double mouseY) {
+        return false;
     }
 
     /**
@@ -492,6 +493,12 @@ public class Widget implements IConfigurable {
     protected static boolean isCtrlDown() {
         long id = Minecraft.getInstance().getWindow().getWindow();
         return InputConstants.isKeyDown(id, GLFW.GLFW_KEY_LEFT_CONTROL) || InputConstants.isKeyDown(id, GLFW.GLFW_KEY_RIGHT_CONTROL);
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    protected static boolean isAltDown() {
+        long id = Minecraft.getInstance().getWindow().getWindow();
+        return InputConstants.isKeyDown(id, GLFW.GLFW_KEY_LEFT_ALT) || InputConstants.isKeyDown(id, GLFW.GLFW_KEY_RIGHT_ALT);
     }
 
     public boolean isRemote() {

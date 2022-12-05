@@ -1,23 +1,29 @@
 package com.lowdragmc.lowdraglib.gui.editor.ui.resource;
 
 import com.lowdragmc.lowdraglib.gui.editor.ColorPattern;
-import com.lowdragmc.lowdraglib.gui.editor.Icons;
 import com.lowdragmc.lowdraglib.gui.editor.data.resource.Resource;
+import com.lowdragmc.lowdraglib.gui.editor.ui.Editor;
 import com.lowdragmc.lowdraglib.gui.editor.ui.ResourcePanel;
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.texture.TextTexture;
-import com.lowdragmc.lowdraglib.gui.util.ClickData;
+import com.lowdragmc.lowdraglib.gui.util.TreeBuilder;
 import com.lowdragmc.lowdraglib.gui.widget.*;
+import com.lowdragmc.lowdraglib.utils.LocalizationUtils;
 import com.lowdragmc.lowdraglib.utils.Position;
 import com.lowdragmc.lowdraglib.utils.Size;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
+import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 /**
  * @author KilaBash
@@ -27,21 +33,31 @@ import java.util.function.Function;
 @Accessors(chain = true)
 public class ResourceContainer<T, C extends Widget> extends WidgetGroup {
     @Getter
-    private final ResourcePanel panel;
-    private final Resource<T> resource;
+    protected final ResourcePanel panel;
     @Getter
-    private final Map<String, C> widgets;
-    private DraggableScrollableWidgetGroup container;
+    protected final Resource<T> resource;
+    @Getter
+    protected final Map<String, C> widgets;
+    protected DraggableScrollableWidgetGroup container;
     @Setter @Getter
-    private Function<T, C> widgetSupplier;
+    protected Function<T, C> widgetSupplier;
     @Setter
-    private Function<String, T> onAdd;
+    protected Function<String, T> onAdd;
     @Setter
-    private Consumer<String> onRemove;
+    protected Predicate<String> onRemove;
     @Setter
-    private Consumer<String> onEdit;
+    protected Consumer<String> onEdit;
     @Setter
-    private Function<T, IGuiTexture> draggingRenderer;
+    protected Function<String, T> draggingMapping;
+    @Setter
+    protected Function<T, IGuiTexture> draggingRenderer;
+    @Setter
+    protected Supplier<String> nameSupplier;
+    @Setter
+    protected Predicate<String> renamePredicate;
+
+    @Getter @Nullable
+    protected String selected;
 
     public ResourceContainer(Resource<T> resource, ResourcePanel panel) {
         super(3, 0, panel.getSize().width - 6, panel.getSize().height - 14);
@@ -54,8 +70,6 @@ public class ResourceContainer<T, C extends Widget> extends WidgetGroup {
     @Override
     public void initWidget() {
         Size size = getSize();
-        addWidget(new ButtonWidget(size.width - 17, 4, 9, 9, Icons.borderText("+"), this::addNewResource).setHoverTooltips("ldlib.gui.editor.tips.add_item"));
-        addWidget(new ButtonWidget(size.width - 17, 4 + 15, 9, 9, Icons.borderText("-"), this::removeSelectedResource).setHoverTooltips("ldlib.gui.editor.tips.remove_item"));
         container = new DraggableScrollableWidgetGroup(1, 2, size.width - 2, size.height - 2);
         container.setYScrollBarWidth(4).setYBarStyle(null, ColorPattern.T_WHITE.rectTexture());
         addWidget(container);
@@ -64,6 +78,7 @@ public class ResourceContainer<T, C extends Widget> extends WidgetGroup {
     }
 
     public void reBuild() {
+        selected = null;
         container.clearAllWidgets();
         int width = getSize().getWidth();
         int x = 1;
@@ -72,22 +87,12 @@ public class ResourceContainer<T, C extends Widget> extends WidgetGroup {
             var widget = widgetSupplier.apply(entry.getValue());
             widgets.put(entry.getKey(), widget);
             Size size = widget.getSize();
-            ButtonWidget config;
             SelectableWidgetGroup selectableWidgetGroup = new SelectableWidgetGroup(0, 0, size.width, size.height + 14);
-            selectableWidgetGroup.setDraggingProvider(entry::getValue, draggingRenderer);
+            selectableWidgetGroup.setDraggingProvider(draggingMapping == null ? entry::getValue : () -> draggingMapping.apply(entry.getKey()), draggingRenderer);
             selectableWidgetGroup.addWidget(widget);
             selectableWidgetGroup.addWidget(new ImageWidget(0, size.height + 3, size.width, 10, new TextTexture(entry.getKey()).setWidth(size.width).setType(TextTexture.TextType.ROLL)));
-            selectableWidgetGroup.addWidget(config = new ButtonWidget(size.width - 10, 1, 9, 9, Icons.borderText("S"), cd -> onEdit.accept(entry.getKey())));
-            config.setVisible(false);
-            config.setActive(false);
-            selectableWidgetGroup.setOnSelected(s -> {
-                config.setVisible(true);
-                config.setActive(true);
-            });
-            selectableWidgetGroup.setOnUnSelected(s -> {
-                config.setVisible(false);
-                config.setActive(false);
-            });
+            selectableWidgetGroup.setOnSelected(s -> selected = entry.getKey());
+            selectableWidgetGroup.setOnUnSelected(s -> selected = null);
             selectableWidgetGroup.setSelectedTexture(ColorPattern.T_GRAY.rectTexture());
             size = selectableWidgetGroup.getSize();
 
@@ -107,12 +112,78 @@ public class ResourceContainer<T, C extends Widget> extends WidgetGroup {
         }
     }
 
-    private void addNewResource(ClickData clickData) {
-
+    @Override
+    @OnlyIn(Dist.CLIENT)
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        var result = super.mouseClicked(mouseX, mouseY, button);
+        if (button == 1 && isMouseOverElement(mouseX, mouseY)) {
+            panel.getEditor().openMenu(mouseX, mouseY, getMenu());
+            return true;
+        }
+        return result;
     }
 
-    private void removeSelectedResource(ClickData clickData) {
+    protected TreeBuilder.Menu getMenu() {
+        return TreeBuilder.Menu.start()
+                .leaf("ldlib.gui.editor.menu.edit", this::editResource)
+                .leaf("ldlib.gui.editor.menu.add_resource", this::addNewResource)
+                .leaf("ldlib.gui.editor.menu.remove_resource", this::removeSelectedResource)
+                .leaf("ldlib.gui.editor.menu.rename", this::renameResource);
+    }
 
+    protected void renameResource() {
+        if (selected != null) {
+            DialogWidget.showStringEditorDialog(Editor.INSTANCE, LocalizationUtils.format("ldlib.gui.editor.tips.rename") + " " + LocalizationUtils.format(resource.name()), selected, s -> {
+                if (resource.hasResource(s)) {
+                    return false;
+                }
+                if (renamePredicate != null) {
+                    return renamePredicate.test(s);
+                }
+                return true;
+            }, s -> {
+                if (s == null) return;
+                var stored =  resource.removeResource(selected);
+                resource.addResource(s, stored);
+                reBuild();
+            });
+        }
+    }
+
+    protected void editResource() {
+        if (onEdit != null && selected != null) {
+            onEdit.accept(selected);
+        }
+    }
+
+    protected String genNewFileName() {
+        String randomName = "new ";
+        if (nameSupplier != null) {
+            randomName = nameSupplier.get();
+        } else {
+            int i = 0;
+            while (resource.hasResource(randomName + i)) {
+                i++;
+            }
+            randomName += i;
+        }
+        return randomName;
+    }
+
+    protected void addNewResource() {
+        if (onAdd != null) {
+            String randomName = genNewFileName();
+            resource.addResource(randomName, onAdd.apply(randomName));
+            reBuild();
+        }
+    }
+
+    protected void removeSelectedResource() {
+        if (selected == null) return;
+        if (onRemove == null || onRemove.test(selected)) {
+            resource.removeResource(selected);
+            reBuild();
+        }
     }
 
 }

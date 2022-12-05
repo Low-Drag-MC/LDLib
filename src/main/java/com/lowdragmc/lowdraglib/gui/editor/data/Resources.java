@@ -1,6 +1,6 @@
 package com.lowdragmc.lowdraglib.gui.editor.data;
 
-import com.lowdragmc.lowdraglib.gui.editor.annotation.AnnotationDetector;
+import com.lowdragmc.lowdraglib.gui.editor.runtime.UIDetector;
 import com.lowdragmc.lowdraglib.gui.editor.data.resource.Resource;
 
 import java.util.HashMap;
@@ -16,12 +16,20 @@ public class Resources {
 
     public static Resources defaultResource() { // default
         Resources resources = new Resources();
-        for (var wrapper : AnnotationDetector.REGISTER_RESOURCES) {
+        for (var wrapper : UIDetector.REGISTER_RESOURCES) {
             var resource =  wrapper.creator().get();
             resource.buildDefault();
             resources.resources.put(resource.name(), resource);
         }
         return resources;
+    }
+
+    public void load() {
+        resources.values().forEach(Resource::onLoad);
+    }
+
+    public void dispose() {
+        resources.values().forEach(Resource::unLoad);
     }
 
 }

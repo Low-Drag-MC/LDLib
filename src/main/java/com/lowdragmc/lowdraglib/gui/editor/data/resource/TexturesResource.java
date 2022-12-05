@@ -1,12 +1,10 @@
 package com.lowdragmc.lowdraglib.gui.editor.data.resource;
 
-import com.lowdragmc.lowdraglib.gui.editor.annotation.AnnotationDetector;
 import com.lowdragmc.lowdraglib.gui.editor.annotation.RegisterUI;
-import com.lowdragmc.lowdraglib.gui.editor.configurator.ConfiguratorGroup;
-import com.lowdragmc.lowdraglib.gui.editor.configurator.IConfigurable;
-import com.lowdragmc.lowdraglib.gui.editor.configurator.SelectorConfigurator;
+import com.lowdragmc.lowdraglib.gui.editor.runtime.UIDetector;
 import com.lowdragmc.lowdraglib.gui.editor.ui.ResourcePanel;
 import com.lowdragmc.lowdraglib.gui.editor.ui.resource.ResourceContainer;
+import com.lowdragmc.lowdraglib.gui.editor.ui.resource.TexturesResourceContainer;
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.texture.ResourceBorderTexture;
 import com.lowdragmc.lowdraglib.gui.widget.ImageWidget;
@@ -27,8 +25,8 @@ public class TexturesResource extends Resource<IGuiTexture> {
     public void buildDefault() {
         data.put("empty", IGuiTexture.EMPTY);
         data.put("border background", ResourceBorderTexture.BORDERED_BACKGROUND);
-        for (var wrapper : AnnotationDetector.REGISTER_TEXTURES) {
-            data.put(wrapper.annotation().name(), wrapper.creator().get());
+        for (var wrapper : UIDetector.REGISTER_TEXTURES) {
+            data.put("ldlib.gui.editor.register.texture." + wrapper.annotation().name(), wrapper.creator().get());
         }
     }
 
@@ -39,46 +37,6 @@ public class TexturesResource extends Resource<IGuiTexture> {
 
     @Override
     public ResourceContainer<IGuiTexture, ImageWidget> createContainer(ResourcePanel panel) {
-        ResourceContainer<IGuiTexture, ImageWidget> container = new ResourceContainer<>(this, panel);
-        container.setWidgetSupplier(t -> new ImageWidget(0, 0, 30, 30, t))
-                .setDraggingRenderer(o -> o)
-                .setOnEdit(key -> openTextureConfigurator(key, container, getResource(key)));
-        return container;
-    }
-
-    private void openTextureConfigurator(String key, ResourceContainer<IGuiTexture, ImageWidget> container, IGuiTexture current) {
-        if (key.equals("empty")) return;
-        container.getPanel().getEditor().getConfigPanel().openConfigurator(new IConfigurable() {
-            @Override
-            public void buildConfigurator(ConfiguratorGroup father) {
-                AnnotationDetector.Wrapper<RegisterUI, IGuiTexture> defaultWrapper = null;
-                for (var wrapper : AnnotationDetector.REGISTER_TEXTURES) {
-                    if (wrapper.clazz() == current.getClass()) {
-                        defaultWrapper = wrapper;
-                    }
-                }
-
-                AnnotationDetector.Wrapper<RegisterUI, IGuiTexture> finalDefaultWrapper = defaultWrapper;
-                SelectorConfigurator<AnnotationDetector.Wrapper<RegisterUI, IGuiTexture>> selectorConfigurator = new SelectorConfigurator<>(
-                        "ldlib.gui.editor.name.texture_type",
-                        () -> finalDefaultWrapper,
-                        wrapper -> {
-                            if (wrapper != finalDefaultWrapper) {
-                                var newTexture = wrapper.creator().get();
-                                addResource(key, newTexture);
-                                container.getWidgets().get(key).setImage(newTexture);
-                                openTextureConfigurator(key, container, newTexture);
-                            }
-                        },
-                        finalDefaultWrapper,
-                        false,
-                        AnnotationDetector.REGISTER_TEXTURES,
-                        w -> w.annotation().name()
-                        );
-                father.addConfigurators(selectorConfigurator);
-                current.buildConfigurator(father);
-            }
-
-        });
+        return new TexturesResourceContainer(this, panel);
     }
 }
