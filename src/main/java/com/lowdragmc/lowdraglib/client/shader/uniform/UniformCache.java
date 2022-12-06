@@ -1,9 +1,12 @@
 package com.lowdragmc.lowdraglib.client.shader.uniform;
 
+import com.lowdragmc.lowdraglib.LDLMod;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import net.minecraft.util.FastColor;
+import net.minecraftforge.fml.loading.FMLLoader;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.lwjgl.opengl.GL20;
 
@@ -14,7 +17,7 @@ import java.util.function.Predicate;
 
 public class UniformCache {
 
-	private final Int2ObjectMap<UniformEntry> entryCache = new Int2ObjectOpenHashMap<>();
+	private final Int2ObjectMap<UniformEntry<?>> entryCache = new Int2ObjectOpenHashMap<>();
 	private final Object2IntMap<String> locationCache = new Object2IntOpenHashMap<>();
 	private final int programId;
 
@@ -41,6 +44,14 @@ public class UniformCache {
 
 	public void glUniform4F(String location, float v0, float v1, float v2, float v3) {
 		glUniformF(location, (loc) -> GL20.glUniform4f(loc, v0, v1, v2, v3), v0, v1, v2, v3);
+	}
+
+	public void fillRGBAColor(String location, int color) {
+		this.glUniform4F(location,
+				FastColor.ARGB32.red(color) / 255f,
+				FastColor.ARGB32.green(color) / 255f,
+				FastColor.ARGB32.blue(color) / 255f,
+				FastColor.ARGB32.alpha(color) / 255f);
 	}
 
 	private void glUniformF(String location, IntConsumer callback, float... values) {
@@ -94,8 +105,17 @@ public class UniformCache {
 		return uniformLocation;
 	}
 
-	private <T> void glUniform(String location, Predicate<UniformEntry> isType, Function<T, UniformEntry<T>> createUniform, IntConsumer applyCallback, T value) {
+	@SuppressWarnings({"rawtypes", "unchecked"})
+	private <T> void glUniform(String location, Predicate<UniformEntry<?>> isType, Function<T, UniformEntry<T>> createUniform, IntConsumer applyCallback, T value) {
 		int loc = getUniformLocation(location);
+		if (FMLLoader.isProduction()) {
+			LDLMod.LOGGER.error("can't find uniform with name {}", location);
+			var shaders = new int[2];
+			GL20.glGetAttachedShaders(programId, null, shaders);
+			LDLMod.LOGGER.error("attached shader source {}", GL20.glGetShaderSource(shaders[0]));
+			LDLMod.LOGGER.error("attached shader source {}", GL20.glGetShaderSource(shaders[1]));
+			throw new IllegalArgumentException("can't find uniform");
+		}
 		boolean update = true;
 		if (entryCache.containsKey(loc)) {
 			UniformEntry uniformEntry = entryCache.get(loc);

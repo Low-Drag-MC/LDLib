@@ -1,25 +1,20 @@
 package com.lowdragmc.lowdraglib.gui.widget.nodeWidget.node;
 
-import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import com.lowdragmc.lowdraglib.gui.widget.nodeWidget.TransType;
 import com.lowdragmc.lowdraglib.gui.widget.nodeWidget.connector.Connector;
-import com.lowdragmc.lowdraglib.gui.widget.nodeWidget.connector.FloatConnector;
+import com.lowdragmc.lowdraglib.gui.widget.nodeWidget.connector.SliderConnector;
 import com.lowdragmc.lowdraglib.utils.Rect;
 
 import java.util.List;
 
-/**
- * builtin node for producing a const value manually
- */
-public class ConstNode implements Node {
+public class ConstNode extends BaseNode {
 
-	private final FloatConnector connector = makeConnector(new FloatConnector(), node -> node.setTransType(TransType.OUT));
-	private TransType transType;
-	private Widget holder;
+	private final SliderConnector connector = makeConnector(new SliderConnector(),
+			node -> node.setTransType(TransType.OUT));
 
 	@Override
 	public List<Connector<?>> getInputs() {
-		return List.of();
+		return List.of(connector);
 	}
 
 	@Override
@@ -28,16 +23,8 @@ public class ConstNode implements Node {
 	}
 
 	@Override
-	public Rect getRect() {
-		return null;
-	}
-
-	@Override
-	public Widget getHolder() {
-		return holder;
-	}
-
-	public void setHolder(Widget holder) {
-		this.holder = holder;
+	public void setRect(Rect rect) {
+		super.setRect(rect);
+		this.connector.setRect(rect);
 	}
 }

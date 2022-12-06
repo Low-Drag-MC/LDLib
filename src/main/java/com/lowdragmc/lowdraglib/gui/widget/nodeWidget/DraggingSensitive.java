@@ -3,6 +3,7 @@ package com.lowdragmc.lowdraglib.gui.widget.nodeWidget;
 /**
  * interface for widget to implementation to interact with {@link DraggingState}
  */
+@FunctionalInterface
 public interface DraggingSensitive {
 
 	/**

@@ -58,25 +58,29 @@ public class TextBoxWidget extends Widget {
 
     public TextBoxWidget setShadow(boolean shadow) {
         isShadow = shadow;
-        this.calculate();
-        return this;
+	    this.calculate();
+	    return this;
     }
 
-    public TextBoxWidget setCenter(boolean center) {
-        isCenter = center;
-        this.calculate();
-        return this;
-    }
+	public TextBoxWidget setCenter(boolean center) {
+		isCenter = center;
+		this.calculate();
+		return this;
+	}
 
-    protected void calculate() {
-        if (isRemote()) {
-            this.textLines = new ArrayList<>();
-            Font font = Minecraft.getInstance().font;
-            this.space = Math.max(space, 0);
-            this.fontSize = Math.max(fontSize, 1);
-            int wrapWidth = getSize().width * font.lineHeight / fontSize;
-            if (content != null) {
-                for (String textLine : content) {
+	public int getMaxContentWidth() {
+		return content.stream().mapToInt(Minecraft.getInstance().font::width).max().orElse(0);
+	}
+
+	protected void calculate() {
+		if (isRemote()) {
+			this.textLines = new ArrayList<>();
+			Font font = Minecraft.getInstance().font;
+			this.space = Math.max(space, 0);
+			this.fontSize = Math.max(fontSize, 1);
+			int wrapWidth = getSize().width * font.lineHeight / fontSize;
+			if (content != null) {
+				for (String textLine : content) {
                     this.textLines.addAll(font.getSplitter()
                             .splitLines(textLine, wrapWidth, Style.EMPTY)
                             .stream().map(FormattedText::getString).toList());

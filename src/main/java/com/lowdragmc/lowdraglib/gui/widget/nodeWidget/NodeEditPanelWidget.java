@@ -2,6 +2,8 @@ package com.lowdragmc.lowdraglib.gui.widget.nodeWidget;
 
 import com.lowdragmc.lowdraglib.gui.util.DrawerHelper;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
+import com.lowdragmc.lowdraglib.gui.widget.nodeWidget.node.ConstNode;
+import com.lowdragmc.lowdraglib.utils.LdUtils;
 import com.lowdragmc.lowdraglib.utils.Position;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -15,6 +17,10 @@ import org.lwjgl.glfw.GLFW;
 public class NodeEditPanelWidget extends WidgetGroup implements DraggingSensitive {
 
 	private Position locatePosition;
+	private final NodeEditContextMenuWidget contextMenu = LdUtils.make(
+			new NodeEditContextMenuWidget(70, this),
+			(menu -> menu.setVisible(false))
+	);
 
 
 	public NodeEditPanelWidget(int x, int y, int width, int height) {
@@ -23,21 +29,21 @@ public class NodeEditPanelWidget extends WidgetGroup implements DraggingSensitiv
 	}
 
 	private final DraggingState<DraggingData> draggingState = new DraggingState<>(this,
-			new DraggingData(), dragginData -> {
-		dragginData.initLocateX = locatePosition.x;
-		dragginData.initLocateY = locatePosition.y;
+			new DraggingData(), draggingData -> {
+		draggingData.initLocateX = locatePosition.x;
+		draggingData.initLocateY = locatePosition.y;
 	});
 
 	@Override
 	public void initWidget() {
 		super.initWidget();
-		this.addWidget(new NodeWidget("Test2", 0, 0, 50, 100));
-		this.addWidget(new NodeWidget("Test", 100, 0, 50, 100));
+		NodeWidget widget = new NodeWidget(100, 0, 100, 100);
+		widget.setNode(new ConstNode());
+		this.addWidget(widget);
 	}
 
 	@Override
 	public void drawInBackground(@NotNull PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
-		DrawerHelper.drawSolidRect(poseStack, getPosition().x, getPosition().y, getSize().width, getSize().height, 0x5500FF00);
 		var scale = Minecraft.getInstance().getWindow().getGuiScale();
 		{
 			var x = (int) (getPosition().x * scale);
@@ -46,9 +52,11 @@ public class NodeEditPanelWidget extends WidgetGroup implements DraggingSensitiv
 			var height = (int) (getSize().height * scale);
 			RenderSystem.enableScissor(x, y, width, height);
 		}
+		DrawerHelper.drawPanelBg();
 		super.drawInBackground(poseStack, mouseX, mouseY, partialTicks);
 		RenderSystem.disableScissor();
 	}
+
 
 	@Override
 	public void drawInForeground(@NotNull PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
@@ -59,6 +67,7 @@ public class NodeEditPanelWidget extends WidgetGroup implements DraggingSensitiv
 	public boolean mouseClicked(double mouseX, double mouseY, int button) {
 		if (!super.mouseClicked(mouseX, mouseY, button)) {
 			draggingState.onMouseClicked(mouseX, mouseY, button);
+			return contextMenu.mouseClicked(mouseX, mouseY, button);
 		}
 		return true;
 	}

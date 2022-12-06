@@ -21,10 +21,11 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLLoadCompleteEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.minecraftforge.fml.loading.FMLLoader;
 import net.minecraftforge.registries.IForgeRegistry;
 
 public class CommonProxy {
-    protected final boolean DEBUG = false;
+    protected static final boolean DEBUG = !FMLLoader.isProduction();
 
     public CommonProxy() {
         IEventBus eventBus = FMLJavaModLoadingContext.get().getModEventBus();
@@ -73,10 +74,10 @@ public class CommonProxy {
         }
     }
 
-    public void registerCommand(RegisterCommandsEvent event){
+    public void registerCommand(RegisterCommandsEvent event) {
         if (DEBUG) {
             event.getDispatcher().register(Commands.literal("editor").executes(context -> {
-                TestNodeEditor.instance.openUI(TestNodeEditor.instance,context.getSource().getPlayerOrException());
+                TestNodeEditor.instance.openUI(TestNodeEditor.instance, context.getSource().getPlayerOrException());
                 return 1;
             }));
         }

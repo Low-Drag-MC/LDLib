@@ -6,22 +6,11 @@ import com.lowdragmc.lowdraglib.utils.Rect;
 import net.minecraft.client.Minecraft;
 import org.jetbrains.annotations.Nullable;
 
-public class FloatConnector implements Connector<Float> {
+public abstract class BaseConnector implements Connector<Float> {
 
-	private final Float value = Float.valueOf(1f);
 	private Node holder;
 	private Rect rect;
 	private TransType transType;
-
-	@Override
-	public Float getDefaultValue() {
-		return 1f;
-	}
-
-	@Override
-	public Float getValue() {
-		return value;
-	}
 
 	@Override
 	public Class<Float> getHolderClass() {
@@ -29,15 +18,16 @@ public class FloatConnector implements Connector<Float> {
 	}
 
 	@Override
-	public int getConnectorRenderHeight() {
+	public int getHeight() {
 		return Minecraft.getInstance().font.lineHeight + CONNECTOR_GAP_HEIGHT;
 	}
 
 	@Override
-	public Rect getArea() {
+	public Rect getRect() {
 		return rect;
 	}
 
+	@Override
 	public void setRect(Rect rect) {
 		this.rect = rect;
 	}
@@ -54,6 +44,12 @@ public class FloatConnector implements Connector<Float> {
 	@Override
 	public void setTransType(TransType type) {
 		this.transType = type;
+	}
+
+	@Nullable
+	@Override
+	public Connector<Float> getConnector() {
+		return null;
 	}
 
 	@Nullable

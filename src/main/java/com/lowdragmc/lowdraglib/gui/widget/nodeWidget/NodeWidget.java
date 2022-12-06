@@ -1,10 +1,16 @@
 package com.lowdragmc.lowdraglib.gui.widget.nodeWidget;
 
+import com.lowdragmc.lowdraglib.gui.util.DrawerHelper;
 import com.lowdragmc.lowdraglib.gui.widget.TextBoxWidget;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 import com.lowdragmc.lowdraglib.gui.widget.nodeWidget.connector.Connector;
+import com.lowdragmc.lowdraglib.gui.widget.nodeWidget.node.Node;
+import com.lowdragmc.lowdraglib.gui.widget.nodeWidget.node.NodeHolder;
 import com.lowdragmc.lowdraglib.utils.Position;
+import com.lowdragmc.lowdraglib.utils.Rect;
+import com.lowdragmc.lowdraglib.utils.Size;
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.math.Vector4f;
 import org.jetbrains.annotations.NotNull;
 import org.lwjgl.glfw.GLFW;
 
@@ -13,23 +19,63 @@ import java.util.List;
 /**
  * the base node widget class, can contain multi {@link Connector}
  */
-public class NodeWidget extends WidgetGroup implements DraggingSensitive {
+public class NodeWidget extends WidgetGroup implements DraggingSensitive, NodeHolder {
 
-	private final String nodeName;
-	private final NodeEditContextMenuWidget contextMenu = new NodeEditContextMenuWidget(0, 0, 200, 200);
-	private final DraggingState draggingState = new DraggingState(this);
+	private final DraggingState<?> draggingState = new DraggingState<>(this);
+	private Node node;
+	private final TextBoxWidget textWidget = new TextBoxWidget(0, Connector.CONNECTOR_GAP_HEIGHT, getSize().width,
+			List.of("unknown")).setCenter(true);
+	private final int textHeight = textWidget.getSize().getHeight();
+	private int innerHeight = 0;
 
-	public NodeWidget(String nodeName, int x, int y, int width, int height) {
+	public NodeWidget(int x, int y, int width, int height) {
 		super(x, y, width, height);
-		this.nodeName = nodeName;
-		TextBoxWidget textBoxWidget = new TextBoxWidget(0, 0, width, List.of(nodeName)).setCenter(true);
-		addWidget(textBoxWidget);
+		addWidget(textWidget);
+	}
+
+	public void setNode(Node node) {
+		if (node != null) {
+			this.node = node;
+			this.node.setHolder(this);
+			onNodeUpdate();
+		}
+	}
+
+	@Override
+	public void onNodeUpdate() {
+		textWidget.setContent(List.of(node.getNodeName()));
+		innerHeight = node.getHeight();
+
+		this.setSize(new Size(Math.max(getSize().width, textWidget.getMaxContentWidth()), innerHeight + textHeight + 2 * Connector.CONNECTOR_GAP_HEIGHT));
+
+		int up = getPosition().y + textHeight + Connector.CONNECTOR_GAP_HEIGHT;
+
+		node.setRect(Rect.ofRelative(getPosition().x, getSize().width,
+				up, innerHeight + Connector.CONNECTOR_GAP_HEIGHT));
+	}
+
+	@Override
+	protected void onPositionUpdate() {
+		super.onPositionUpdate();
+		onNodeUpdate();
+	}
+
+	@Override
+	protected void onSizeUpdate() {
+		super.onSizeUpdate();
+		textWidget.setSize(new Size(this.getSize().width, textWidget.getSize().height));
 	}
 
 	@Override
 	public void drawInBackground(@NotNull PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
+		if (node != null) {
+			DrawerHelper.drawRoundBox(getRect(), Node.getOuterRadius(), node.getNodeColor());
+			node.render(poseStack, mouseX, mouseY, partialTicks);
+		} else {
+			DrawerHelper.drawRoundBox(getRect(),
+					new Vector4f(8, 8, 8, 8), 0x55FFFF00);
+		}
 		super.drawInBackground(poseStack, mouseX, mouseY, partialTicks);
-		this.drawRectSolid(poseStack, 0x55FFFF00);
 	}
 
 	@Override
@@ -41,7 +87,6 @@ public class NodeWidget extends WidgetGroup implements DraggingSensitive {
 	@Override
 	public boolean mouseClicked(double mouseX, double mouseY, int button) {
 		draggingState.onMouseClicked(mouseX, mouseY, button);
-		contextMenu.mouseClicked(mouseX, mouseY, button);
 		return super.mouseClicked(mouseX, mouseY, button);
 	}
 

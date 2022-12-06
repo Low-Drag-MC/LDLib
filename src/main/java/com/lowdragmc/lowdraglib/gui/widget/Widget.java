@@ -8,8 +8,8 @@ import com.lowdragmc.lowdraglib.gui.modular.ModularUIGuiContainer;
 import com.lowdragmc.lowdraglib.gui.modular.WidgetUIAccess;
 import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
-import com.lowdragmc.lowdraglib.gui.util.DrawerHelper;
 import com.lowdragmc.lowdraglib.utils.Position;
+import com.lowdragmc.lowdraglib.utils.Rect;
 import com.lowdragmc.lowdraglib.utils.Size;
 import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -175,6 +175,10 @@ public class Widget {
 
     public final Size getSize() {
         return size;
+    }
+
+    public final Rect getRect() {
+        return Rect.of(position, size);
     }
 
     public boolean isVisible() {
@@ -460,9 +464,4 @@ public class Widget {
         return list;
     }
 
-    @OnlyIn(Dist.CLIENT)
-    public void drawRectSolid(PoseStack poseStack, int color) {
-        DrawerHelper.drawSolidRect(poseStack,
-                getPosition().x, getPosition().y, getSize().getWidth(), getSize().getHeight(), color);
-    }
 }

@@ -8,10 +8,10 @@ import java.util.function.Predicate;
 
 public abstract class UniformEntry<T> {
 
-	public static final Predicate<UniformEntry> IS_INT = uniformEntry -> uniformEntry instanceof IntUniformEntry;
-	public static final Predicate<UniformEntry> IS_FLOAT = uniformEntry -> uniformEntry instanceof FloatUniformEntry;
-	public static final Predicate<UniformEntry> IS_MATRIX = uniformEntry -> uniformEntry instanceof MatrixUniformEntry;
-	public static final Predicate<UniformEntry> IS_BOOLEAN = uniformEntry -> uniformEntry instanceof BooleanUniformEntry;
+	public static final Predicate<UniformEntry<?>> IS_INT = uniformEntry -> uniformEntry instanceof IntUniformEntry;
+	public static final Predicate<UniformEntry<?>> IS_FLOAT = uniformEntry -> uniformEntry instanceof FloatUniformEntry;
+	public static final Predicate<UniformEntry<?>> IS_MATRIX = uniformEntry -> uniformEntry instanceof MatrixUniformEntry;
+	public static final Predicate<UniformEntry<?>> IS_BOOLEAN = uniformEntry -> uniformEntry instanceof BooleanUniformEntry;
 
 	public abstract boolean check(T other);
 
