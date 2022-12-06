@@ -2,16 +2,12 @@ package com.lowdragmc.lowdraglib.utils;
 
 
 import com.lowdragmc.lowdraglib.gui.editor.data.resource.Resource;
-import lombok.Setter;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.fml.loading.FMLEnvironment;
 
-import javax.annotation.Nullable;
-
 public class LocalizationUtils {
-    @Nullable
-    private static Resource<String> RESOURCE;
+    public static Resource<String> RESOURCE;
 
     public static void setResource(Resource<String> resource) {
         RESOURCE = resource;

@@ -189,7 +189,6 @@ public class ShaderTexture extends TransformTexture {
                 });
             } catch (Exception e) {
                 e.printStackTrace();
-                stack.popPose();
                 dispose();
             }
 

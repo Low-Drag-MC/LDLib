@@ -2,6 +2,7 @@ package com.lowdragmc.lowdraglib.gui.widget;
 
 import com.lowdragmc.lowdraglib.gui.animation.Animation;
 import com.lowdragmc.lowdraglib.gui.editor.annotation.RegisterUI;
+import com.lowdragmc.lowdraglib.gui.editor.configurator.IConfigurableWidget;
 import com.lowdragmc.lowdraglib.gui.ingredient.IGhostIngredientTarget;
 import com.lowdragmc.lowdraglib.gui.ingredient.IIngredientSlot;
 import com.lowdragmc.lowdraglib.gui.ingredient.Target;
@@ -16,13 +17,14 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nonnull;
 import java.util.*;
 import java.util.function.Consumer;
 
 @RegisterUI(name = "group", group = "advanced")
-public class WidgetGroup extends Widget implements IGhostIngredientTarget, IIngredientSlot {
+public class WidgetGroup extends Widget implements IGhostIngredientTarget, IIngredientSlot, IConfigurableWidget {
 
     public final List<Widget> widgets = new ArrayList<>();
     private final WidgetGroupUIAccess groupUIAccess = new WidgetGroupUIAccess();
@@ -103,6 +105,32 @@ public class WidgetGroup extends Widget implements IGhostIngredientTarget, IIngr
             widget.setParentPosition(selfPosition);
         }
         recomputeSize();
+    }
+
+    @Override
+    public boolean isMouseOverElement(double mouseX, double mouseY) {
+        for (int i = widgets.size() - 1; i >= 0; i--) {
+            Widget widget = widgets.get(i);
+            if(widget.isVisible() && widget.isMouseOverElement(mouseX, mouseY)) {
+                return true;
+            }
+        }
+        return super.isMouseOverElement(mouseX, mouseY);
+    }
+
+    @Nullable
+    @Override
+    public Widget getHoverElement(double mouseX, double mouseY) {
+        for (int i = widgets.size() - 1; i >= 0; i--) {
+            Widget widget = widgets.get(i);
+            if(widget.isVisible()) {
+                widget = widget.getHoverElement(mouseX, mouseY);
+                if (widget != null) {
+                    return widget;
+                }
+            }
+        }
+        return super.getHoverElement(mouseX, mouseY);
     }
 
     protected boolean recomputeSize() {
@@ -572,4 +600,26 @@ public class WidgetGroup extends Widget implements IGhostIngredientTarget, IIngr
         }
         return super.getGuiExtraAreas(guiRect, list);
     }
+
+    @Override
+    public boolean canWidgetDragIn(IConfigurableWidget widget) {
+        if (widget == this) return false;
+        var parent = this.getParent();
+        while (parent != null) {
+            if (parent == widget) return false;
+            parent = parent.getParent();
+        }
+        return true;
+    }
+
+    @Override
+    public void onWidgetDragIn(IConfigurableWidget widget) {
+        addWidget(widget.widget());
+    }
+
+    @Override
+    public void onWidgetDragOut(IConfigurableWidget widget) {
+        removeWidget(widget.widget());
+    }
+
 }

@@ -4,6 +4,7 @@ import com.lowdragmc.lowdraglib.gui.animation.Transform;
 import com.lowdragmc.lowdraglib.gui.editor.ColorPattern;
 import com.lowdragmc.lowdraglib.gui.editor.Icons;
 import com.lowdragmc.lowdraglib.gui.editor.annotation.RegisterUI;
+import com.lowdragmc.lowdraglib.gui.editor.configurator.IConfigurableWidget;
 import com.lowdragmc.lowdraglib.gui.editor.runtime.UIDetector;
 import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
 import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
@@ -57,17 +58,6 @@ public class WidgetPanel extends WidgetGroup {
     public void initWidget() {
         Size size = getSize();
         this.setBackground(ColorPattern.BLACK.rectTexture());
-        addWidget(buttonHide = new ButtonWidget(WIDTH - 13, 3, 10, 10, new GuiTextureGroup(
-                ColorPattern.BLACK.rectTexture(),
-                ColorPattern.T_GRAY.borderTexture(1),
-                Icons.RIGHT
-        ), cd -> {
-            if (isShow()) {
-                hide();
-            } else {
-                show();
-            }
-        }).setHoverBorderTexture(1, -1));
 
         addWidget(new LabelWidget(3, 3, "ldlib.gui.editor.group.widgets"));
         addWidget(new ImageWidget(WIDTH, 15, 20, Tab.values().length * 20, ColorPattern.BLACK.rectTexture()));
@@ -80,6 +70,18 @@ public class WidgetPanel extends WidgetGroup {
             initWidgets(tab, y);
             y += 20;
         }
+
+        addWidget(buttonHide = new ButtonWidget(WIDTH - 13, 3, 10, 10, new GuiTextureGroup(
+                ColorPattern.BLACK.rectTexture(),
+                ColorPattern.T_GRAY.borderTexture(1),
+                Icons.RIGHT
+        ), cd -> {
+            if (isShow()) {
+                hide();
+            } else {
+                show();
+            }
+        }).setHoverBorderTexture(1, -1));
 
         super.initWidget();
     }
@@ -99,19 +101,19 @@ public class WidgetPanel extends WidgetGroup {
         }.setTexture(tab.icon, tab.icon.copy().setColor(ColorPattern.T_GREEN.color)), container);
 
         int yOffset = 3;
-        for (UIDetector.Wrapper<RegisterUI, Widget> wrapper : UIDetector.REGISTER_WIDGETS) {
+        for (UIDetector.Wrapper<RegisterUI, IConfigurableWidget> wrapper : UIDetector.REGISTER_WIDGETS) {
             String group = wrapper.annotation().group().isEmpty() ? "basic" : wrapper.annotation().group();
             if (group.equals(tab.name().toLowerCase())) {
                 var widget = wrapper.creator().get();
-                var size = widget.getSize();
-                widget.setSelfPosition(new Position((WIDTH - 2 - size.width) / 2, (65 - size.height) / 2 + 14));
-                widget.setActive(false);
+                var size = widget.widget().getSize();
+                widget.widget().setSelfPosition(new Position((WIDTH - 2 - size.width) / 2, (65 - size.height) / 2 + 14));
+                widget.widget().setActive(false);
                 SelectableWidgetGroup selectableWidgetGroup = new SelectableWidgetGroup(0, yOffset, WIDTH - 2, 65 + 14);
-                selectableWidgetGroup.addWidget(widget);
+                selectableWidgetGroup.addWidget(widget.widget());
                 selectableWidgetGroup.addWidget(new LabelWidget(3, 3,
                         "ldlib.gui.editor.register.widget." + wrapper.annotation().name()));
                 selectableWidgetGroup.setSelectedTexture(ColorPattern.T_GRAY.rectTexture());
-                selectableWidgetGroup.setDraggingProvider(() -> new UIWrapper(editor, wrapper.creator().get()), w -> new WidgetDraggingTexture(widget));
+                selectableWidgetGroup.setDraggingProvider(() -> new UIWrapper[]{new UIWrapper(editor.getMainPanel(), wrapper.creator().get())}, w -> new WidgetDraggingTexture(widget.widget()));
                 container.addWidget(selectableWidgetGroup);
 
                 yOffset += 65 + 14 + 3;

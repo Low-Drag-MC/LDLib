@@ -1,6 +1,7 @@
 package com.lowdragmc.lowdraglib.gui.widget;
 
 import com.lowdragmc.lowdraglib.gui.editor.annotation.*;
+import com.lowdragmc.lowdraglib.gui.editor.configurator.IConfigurableWidget;
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.utils.Position;
 import com.lowdragmc.lowdraglib.utils.Size;
@@ -29,7 +30,7 @@ import java.util.function.Supplier;
 
 @Configurable(name = "ldlib.gui.editor.register.widget.text_field", collapse = false)
 @RegisterUI(name = "text_field")
-public class TextFieldWidget extends Widget {
+public class TextFieldWidget extends Widget implements IConfigurableWidget {
 
     @OnlyIn(Dist.CLIENT)
     protected EditBox textField;

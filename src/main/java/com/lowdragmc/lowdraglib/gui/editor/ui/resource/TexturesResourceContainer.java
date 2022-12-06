@@ -77,7 +77,7 @@ public class TexturesResourceContainer extends ResourceContainer<IGuiTexture, Im
                         });
                     }
                 })
-                .leaf("ldlib.gui.editor.menu.remove_resource", this::removeSelectedResource)
+                .leaf("ldlib.gui.editor.menu.remove", this::removeSelectedResource)
                 .leaf("ldlib.gui.editor.menu.rename", this::renameResource);
     }
 }

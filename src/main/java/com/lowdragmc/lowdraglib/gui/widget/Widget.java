@@ -4,7 +4,6 @@ import com.google.common.base.Preconditions;
 import com.lowdragmc.lowdraglib.LDLMod;
 import com.lowdragmc.lowdraglib.gui.animation.Animation;
 import com.lowdragmc.lowdraglib.gui.editor.annotation.Configurable;
-import com.lowdragmc.lowdraglib.gui.editor.configurator.IConfigurable;
 import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
 import com.lowdragmc.lowdraglib.gui.modular.ModularUIGuiContainer;
 import com.lowdragmc.lowdraglib.gui.modular.WidgetUIAccess;
@@ -28,7 +27,10 @@ import org.lwjgl.glfw.GLFW;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -42,7 +44,7 @@ import java.util.stream.Collectors;
  */
 @SuppressWarnings("UnusedReturnValue")
 @Configurable(name = "ldlib.gui.editor.group.basic_info")
-public class Widget implements IConfigurable {
+public class Widget {
 
     protected ModularUI gui;
     protected WidgetUIAccess uiAccess;
@@ -246,6 +248,16 @@ public class Widget implements IConfigurable {
         Position position = getPosition();
         Size size = getSize();
         return isMouseOver(position.x, position.y, size.width, size.height, mouseX, mouseY);
+    }
+
+    @Nullable
+    public Widget getHoverElement(double mouseX, double mouseY) {
+        Position position = getPosition();
+        Size size = getSize();
+        if (isMouseOver(position.x, position.y, size.width, size.height, mouseX, mouseY)) {
+            return this;
+        }
+        return null;
     }
 
     public static boolean isMouseOver(int x, int y, int width, int height, double mouseX, double mouseY) {
@@ -479,24 +491,24 @@ public class Widget implements IConfigurable {
     }
 
     @OnlyIn(Dist.CLIENT)
-    protected static void playButtonClickSound() {
+    public static void playButtonClickSound() {
         Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
     }
 
     @OnlyIn(Dist.CLIENT)
-    protected static boolean isShiftDown() {
+    public static boolean isShiftDown() {
         long id = Minecraft.getInstance().getWindow().getWindow();
         return InputConstants.isKeyDown(id, GLFW.GLFW_KEY_LEFT_SHIFT) || InputConstants.isKeyDown(id, GLFW.GLFW_KEY_LEFT_SHIFT);
     }
 
     @OnlyIn(Dist.CLIENT)
-    protected static boolean isCtrlDown() {
+    public static boolean isCtrlDown() {
         long id = Minecraft.getInstance().getWindow().getWindow();
         return InputConstants.isKeyDown(id, GLFW.GLFW_KEY_LEFT_CONTROL) || InputConstants.isKeyDown(id, GLFW.GLFW_KEY_RIGHT_CONTROL);
     }
 
     @OnlyIn(Dist.CLIENT)
-    protected static boolean isAltDown() {
+    public static boolean isAltDown() {
         long id = Minecraft.getInstance().getWindow().getWindow();
         return InputConstants.isKeyDown(id, GLFW.GLFW_KEY_LEFT_ALT) || InputConstants.isKeyDown(id, GLFW.GLFW_KEY_RIGHT_ALT);
     }
@@ -530,5 +542,7 @@ public class Widget implements IConfigurable {
         }
         return list;
     }
+
+
 
 }

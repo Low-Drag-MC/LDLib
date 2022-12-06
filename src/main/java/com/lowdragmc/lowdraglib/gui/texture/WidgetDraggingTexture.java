@@ -22,6 +22,12 @@ public class WidgetDraggingTexture extends TransformTexture{
         this.centerY = widget.getPosition().y + widget.getSize().height / 2;
     }
 
+    public WidgetDraggingTexture(int mouseX, int mouseY, Widget widget) {
+        this.widget = widget;
+        this.centerX = mouseX;
+        this.centerY = mouseY;
+    }
+
     @Override
     @OnlyIn(Dist.CLIENT)
     protected void drawInternal(PoseStack stack, int mouseX, int mouseY, float x, float y, int width, int height) {

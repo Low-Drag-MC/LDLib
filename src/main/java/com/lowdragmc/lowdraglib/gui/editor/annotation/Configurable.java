@@ -10,4 +10,5 @@ public @interface Configurable {
     boolean collapse() default true;
     boolean canCollapse() default true;
     boolean forceUpdate() default true;
+    String key() default "";
 }

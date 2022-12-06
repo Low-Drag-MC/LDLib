@@ -4,6 +4,7 @@ import com.lowdragmc.lowdraglib.gui.editor.annotation.ConfigSetter;
 import com.lowdragmc.lowdraglib.gui.editor.annotation.Configurable;
 import com.lowdragmc.lowdraglib.gui.editor.annotation.NumberColor;
 import com.lowdragmc.lowdraglib.gui.editor.annotation.RegisterUI;
+import com.lowdragmc.lowdraglib.gui.editor.configurator.IConfigurableWidget;
 import com.lowdragmc.lowdraglib.utils.LocalizationUtils;
 import com.lowdragmc.lowdraglib.utils.Position;
 import com.lowdragmc.lowdraglib.utils.Size;
@@ -18,7 +19,7 @@ import java.util.function.Supplier;
 
 @Configurable(name = "ldlib.gui.editor.register.widget.label", collapse = false)
 @RegisterUI(name = "label")
-public class LabelWidget extends Widget {
+public class LabelWidget extends Widget implements IConfigurableWidget {
 
     protected Supplier<String> textSupplier;
 

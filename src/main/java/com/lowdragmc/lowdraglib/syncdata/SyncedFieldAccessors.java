@@ -23,6 +23,10 @@ public class SyncedFieldAccessors {
 
     public static final IAccessor BLOCK_STATE_ACCESSOR = new BlockStateAccessor();
     public static final IAccessor RECIPE_ACCESSOR = new RecipeAccessor();
+    public static final IAccessor POSITION_ACCESSOR = new PositionAccessor();
+    public static final IAccessor COMPONENT_ACCESSOR = new ComponentAccessor();
+    public static final IAccessor SIZE_ACCESSOR = new SizeAccessor();
+    public static final IAccessor GUI_TEXTURE_ACCESSOR = new IGuiTextureAccessor();
 
 
     private static final BiFunction<IAccessor, Class<?>, IAccessor> ARRAY_ACCESSOR_FACTORY = Util.memoize(ArrayAccessor::new);

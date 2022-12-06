@@ -4,7 +4,6 @@ import com.lowdragmc.lowdraglib.gui.editor.ColorPattern;
 import com.lowdragmc.lowdraglib.gui.editor.Icons;
 import com.lowdragmc.lowdraglib.gui.editor.data.Project;
 import com.lowdragmc.lowdraglib.gui.texture.ColorRectTexture;
-import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.texture.ResourceBorderTexture;
 import com.lowdragmc.lowdraglib.gui.util.TreeBuilder;
@@ -16,7 +15,6 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import lombok.Getter;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-import org.checkerframework.checker.units.qual.C;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -27,18 +25,6 @@ import org.jetbrains.annotations.NotNull;
 public class Editor extends WidgetGroup {
     @OnlyIn(Dist.CLIENT)
     public static Editor INSTANCE;
-
-    @Getter
-    private UIWrapper focusUI;
-
-    @Getter
-    protected UIWrapper hover;
-
-    @Getter
-    protected UIWrapper lastHover;
-
-    @Getter
-    protected UIWrapper lastDraggingHover;
 
     @Getter
     protected Project currentProject;
@@ -55,8 +41,6 @@ public class Editor extends WidgetGroup {
     @Getter
     protected WidgetPanel widgetPanel;
 
-    @Getter
-    protected UIWrapper rootWidget;
 
     public Editor() {
         super(0, 0, 10, 10);
@@ -85,39 +69,7 @@ public class Editor extends WidgetGroup {
         addWidget(resourcePanel = new ResourcePanel(this));
         addWidget(widgetPanel = new WidgetPanel(this));
 
-        mainPanel.addWidget(rootWidget = new UIWrapper(this, new WidgetGroup(0, 0, 200, 200).setBackground(ResourceBorderTexture.BORDERED_BACKGROUND)));
-    }
-
-    @Override
-    @OnlyIn(Dist.CLIENT)
-    public void drawInBackground(@NotNull PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
-        this.hover = null;
-        this.lastDraggingHover = null;
-        super.drawInBackground(poseStack, mouseX, mouseY, partialTicks);
-        this.lastHover = hover;
-    }
-
-    public void setFocusUI(UIWrapper focusUI) {
-        if (lastHover == focusUI) {
-            this.focusUI = focusUI;
-        }
-    }
-
-    public boolean setHover(UIWrapper hover) {
-//        if (this.hover == null || (this.hover.getParent() == hover.getParent())) {
-//            this.hover = hover;
-//            return true;
-//        }
-        this.hover = hover;
-        return false;
-    }
-
-    public boolean setLastDraggingHover(UIWrapper dragging) {
-        if (this.lastDraggingHover == null) {
-            this.lastDraggingHover = dragging;
-            return true;
-        }
-        return false;
+        mainPanel.addWidget(new WidgetGroup(30, 30, 200, 200).setBackground(ResourceBorderTexture.BORDERED_BACKGROUND));
     }
 
     public <T, C> MenuWidget<T, C> openMenu(double posX, double posY, TreeNode<T, C> menuNode) {

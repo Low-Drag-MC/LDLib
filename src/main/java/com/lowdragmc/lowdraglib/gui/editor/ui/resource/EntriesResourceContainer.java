@@ -5,6 +5,7 @@ import com.lowdragmc.lowdraglib.gui.editor.data.resource.Resource;
 import com.lowdragmc.lowdraglib.gui.editor.ui.ResourcePanel;
 import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
 import com.lowdragmc.lowdraglib.gui.texture.TextTexture;
+import com.lowdragmc.lowdraglib.gui.util.TreeBuilder;
 import com.lowdragmc.lowdraglib.gui.widget.ImageWidget;
 import com.lowdragmc.lowdraglib.gui.widget.SelectableWidgetGroup;
 import com.lowdragmc.lowdraglib.gui.widget.TextFieldWidget;
@@ -69,5 +70,13 @@ public class EntriesResourceContainer extends ResourceContainer<String, TextFiel
             container.addWidget(selectableWidgetGroup);
             i++;
         }
+    }
+
+    @Override
+    protected TreeBuilder.Menu getMenu() {
+        return TreeBuilder.Menu.start()
+                .leaf("ldlib.gui.editor.menu.add_resource", this::addNewResource)
+                .leaf("ldlib.gui.editor.menu.remove", this::removeSelectedResource)
+                .leaf("ldlib.gui.editor.menu.rename", this::renameResource);
     }
 }

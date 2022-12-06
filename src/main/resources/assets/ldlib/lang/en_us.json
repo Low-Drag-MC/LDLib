@@ -47,7 +47,7 @@
 
   "ldlib.gui.editor.menu.edit": "edit",
   "ldlib.gui.editor.menu.add_resource": "add a new resource",
-  "ldlib.gui.editor.menu.remove_resource": "remove selected resource",
+  "ldlib.gui.editor.menu.remove": "remove",
   "ldlib.gui.editor.menu.rename": "rename",
 
   "ldlib.gui.editor.tips.id": "Widget id, it doesn't have to be unique，and can be empty.",
