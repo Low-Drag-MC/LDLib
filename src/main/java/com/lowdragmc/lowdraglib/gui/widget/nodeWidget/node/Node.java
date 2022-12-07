@@ -2,8 +2,8 @@ package com.lowdragmc.lowdraglib.gui.widget.nodeWidget.node;
 
 import com.lowdragmc.lowdraglib.gui.util.DrawerHelper;
 import com.lowdragmc.lowdraglib.gui.widget.nodeWidget.NodeGraphState;
+import com.lowdragmc.lowdraglib.gui.widget.nodeWidget.NodeRect;
 import com.lowdragmc.lowdraglib.gui.widget.nodeWidget.connector.Connector;
-import com.lowdragmc.lowdraglib.utils.Rect;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Vector4f;
 
@@ -13,9 +13,6 @@ import java.util.Objects;
 import java.util.function.Consumer;
 
 public interface Node {
-
-	int NODE_DEFAULT_COLOR = 0xFF_FF_FF_FF;
-	float NODE_RADIUS = 8;
 
 	/**
 	 * @return all the input connector
@@ -34,9 +31,9 @@ public interface Node {
 	/**
 	 * @return the area this Node take
 	 */
-	Rect getRect();
+	NodeRect getRect();
 
-	void setRect(Rect rect);
+	void setRect(NodeRect rect);
 
 	default int getNodeColor() {
 		return this.hashCode() | 0xFF;
@@ -59,7 +56,7 @@ public interface Node {
 		for (Connector<?> connector : outputs) {
 			height += connector.getHeight();
 		}
-		height += (inputs.size() + outputs.size()) * Connector.CONNECTOR_GAP_HEIGHT;
+		height += (inputs.size() + outputs.size()) * StyleConstants.CONNECTOR_GAP_HEIGHT;
 		return height;
 	}
 
@@ -87,19 +84,21 @@ public interface Node {
 	 * render the node self and all the {@link Connector}
 	 */
 	default void render(@Nonnull PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
-		DrawerHelper.drawRoundBox(getRect(), getInnerRadius(), 0xFF303030);
+		DrawerHelper.drawRoundBox(getRect().unwarp(), getInnerRadius(), 0xFF303030);
 		getInputs().forEach(connector ->
 				connector.render(poseStack, mouseX, mouseY, partialTicks));
 		getOutputs().forEach(connector ->
 				connector.render(poseStack, mouseX, mouseY, partialTicks));
+		var processStr = "";
+
 	}
 
 	static Vector4f getOuterRadius() {
-		return new Vector4f(NODE_RADIUS, NODE_RADIUS, NODE_RADIUS, NODE_RADIUS);
+		return new Vector4f(StyleConstants.NODE_RADIUS, StyleConstants.NODE_RADIUS, StyleConstants.NODE_RADIUS, StyleConstants.NODE_RADIUS);
 	}
 
 	static Vector4f getInnerRadius() {
-		return new Vector4f(0, NODE_RADIUS, 0, NODE_RADIUS);
+		return new Vector4f(0, StyleConstants.NODE_RADIUS, 0, StyleConstants.NODE_RADIUS);
 	}
 
 

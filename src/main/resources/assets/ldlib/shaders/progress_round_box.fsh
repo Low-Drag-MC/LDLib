@@ -37,7 +37,6 @@ vec4 run(vec2 uv, vec4 squareVertex, vec4 roundRadius){
 
     float dis = sdRoundedBox(uv, vec2((squareVertex.z - squareVertex.x) / 2., (squareVertex.w - squareVertex.y) / 2.), roundRadius);
     float percent = smoothstep(Blur, .0, dis);
-    //if (length(fragColor.rgb) < 0.3) discard;
     float vertex_percent = (screenPos.x - squareVertex.x) / (squareVertex.z - squareVertex.x);
     return percent * mix(Color1, Color2, smoothstep(Progress - progressHalfBlur, Progress + progressHalfBlur, vertex_percent));
 }

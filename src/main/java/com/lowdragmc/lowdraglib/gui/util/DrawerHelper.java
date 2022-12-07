@@ -45,6 +45,9 @@ public class DrawerHelper {
     public static ShaderProgram PROGRESS_ROUND_BOX = LdUtils.make(new ShaderProgram(), program
             -> program.attach(Shaders.PROGRESS_ROUND_BOX_F).attach(Shaders.SCREEN_V));
 
+    public static ShaderProgram ROUND_LINE = LdUtils.make(new ShaderProgram(), program
+            -> program.attach(Shaders.ROUND_LINE_F).attach(Shaders.SCREEN_V));
+
 
     @OnlyIn(Dist.CLIENT)
     public static void drawFluidTexture(PoseStack poseStack, float xCoord, float yCoord, TextureAtlasSprite textureSprite, int maskTop, int maskRight, float zLevel, int fluidColor) {
@@ -353,6 +356,7 @@ public class DrawerHelper {
             uniform.glUniform2F("CenterPos", centerPos.x, centerPos.y);
         });
 
+        RenderSystem.enableBlend();
         uploadScreenPosVertex();
     }
 
@@ -370,6 +374,7 @@ public class DrawerHelper {
             uniform.glUniform4F("SquareColor", square, square, square, 0.95f);
         });
 
+        RenderSystem.enableBlend();
         uploadScreenPosVertex();
     }
 
@@ -384,6 +389,7 @@ public class DrawerHelper {
             uniform.glUniform1F("Blur", 2);
         });
 
+        RenderSystem.enableBlend();
         uploadScreenPosVertex();
     }
 
@@ -400,6 +406,24 @@ public class DrawerHelper {
             uniform.glUniform1F("Progress", progress);
         });
 
+        RenderSystem.enableBlend();
+        uploadScreenPosVertex();
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    public static void drawRoundLine(Position begin,Position end,int width, int color1, int color2) {
+        DrawerHelper.ROUND_LINE.use(uniform -> {
+            DrawerHelper.updateScreenVshUniform(uniform);
+
+            uniform.glUniform1F("Width",width);
+            uniform.glUniform2F("Point1",begin.x,begin.y);
+            uniform.glUniform2F("Point2",end.x,end.y);
+            uniform.fillRGBAColor("Color1", color1);
+            uniform.fillRGBAColor("Color2", color2);
+            uniform.glUniform1F("Blur", 2);
+        });
+
+        RenderSystem.enableBlend();
         uploadScreenPosVertex();
     }
 

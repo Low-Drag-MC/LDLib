@@ -6,8 +6,8 @@ import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 import com.lowdragmc.lowdraglib.gui.widget.nodeWidget.connector.Connector;
 import com.lowdragmc.lowdraglib.gui.widget.nodeWidget.node.Node;
 import com.lowdragmc.lowdraglib.gui.widget.nodeWidget.node.NodeHolder;
+import com.lowdragmc.lowdraglib.gui.widget.nodeWidget.node.StyleConstants;
 import com.lowdragmc.lowdraglib.utils.Position;
-import com.lowdragmc.lowdraglib.utils.Rect;
 import com.lowdragmc.lowdraglib.utils.Size;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Vector4f;
@@ -23,13 +23,11 @@ public class NodeWidget extends WidgetGroup implements DraggingSensitive, NodeHo
 
 	private final DraggingState<?> draggingState = new DraggingState<>(this);
 	private Node node;
-	private final TextBoxWidget textWidget = new TextBoxWidget(0, Connector.CONNECTOR_GAP_HEIGHT, getSize().width,
+	private final TextBoxWidget textWidget = new TextBoxWidget(0, (int) (StyleConstants.CONNECTOR_GAP_HEIGHT * 1.5), getSize().width,
 			List.of("unknown")).setCenter(true);
-	private final int textHeight = textWidget.getSize().getHeight();
-	private int innerHeight = 0;
 
-	public NodeWidget(int x, int y, int width, int height) {
-		super(x, y, width, height);
+	public NodeWidget(int x, int y) {
+		super(x, y, 100, 100);
 		addWidget(textWidget);
 	}
 
@@ -44,14 +42,20 @@ public class NodeWidget extends WidgetGroup implements DraggingSensitive, NodeHo
 	@Override
 	public void onNodeUpdate() {
 		textWidget.setContent(List.of(node.getNodeName()));
-		innerHeight = node.getHeight();
 
-		this.setSize(new Size(Math.max(getSize().width, textWidget.getMaxContentWidth()), innerHeight + textHeight + 2 * Connector.CONNECTOR_GAP_HEIGHT));
+		var nodeConnectorHeight = node.getHeight();
 
-		int up = getPosition().y + textHeight + Connector.CONNECTOR_GAP_HEIGHT;
+		this.setSize(new Size(Math.max(getSize().width, textWidget.getMaxContentWidth()),
+				nodeConnectorHeight + StyleConstants.STRING_HEIGHT
+						+ StyleConstants.CONNECTOR_GAP_HEIGHT * 2
+						+ StyleConstants.NODE_DOWN_PADDING));
 
-		node.setRect(Rect.ofRelative(getPosition().x, getSize().width,
-				up, innerHeight + Connector.CONNECTOR_GAP_HEIGHT));
+		int up = getPosition().y + StyleConstants.STRING_HEIGHT;
+
+		node.setRect(NodeRect.warp(
+				getRect().verticalExpand(-(StyleConstants.STRING_HEIGHT + 2 * StyleConstants.CONNECTOR_GAP_HEIGHT),
+						0)
+		));
 	}
 
 	@Override

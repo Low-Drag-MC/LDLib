@@ -37,7 +37,7 @@ public class NodeEditPanelWidget extends WidgetGroup implements DraggingSensitiv
 	@Override
 	public void initWidget() {
 		super.initWidget();
-		NodeWidget widget = new NodeWidget(100, 0, 100, 100);
+		NodeWidget widget = new NodeWidget(100, 0);
 		widget.setNode(new ConstNode());
 		this.addWidget(widget);
 	}

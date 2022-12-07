@@ -28,6 +28,14 @@ public class Position {
         return new Position(x + size.width, y + size.height);
     }
 
+    public Position addX(int x) {
+        return new Position(this.x + x,y);
+    }
+
+    public Position addY(int y){
+        return new Position(x,this.y + y);
+    }
+
     public int getX() {
         return x;
     }

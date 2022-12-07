@@ -1,8 +1,8 @@
 package com.lowdragmc.lowdraglib.gui.widget.nodeWidget.node;
 
 import com.lowdragmc.lowdraglib.gui.widget.nodeWidget.NodeGraphState;
+import com.lowdragmc.lowdraglib.gui.widget.nodeWidget.NodeRect;
 import com.lowdragmc.lowdraglib.gui.widget.nodeWidget.TransType;
-import com.lowdragmc.lowdraglib.utils.Rect;
 
 /**
  * builtin node for producing a const value manually
@@ -12,16 +12,22 @@ public abstract class BaseNode implements Node {
 	private TransType transType;
 	private NodeHolder holder;
 	private NodeGraphState graphState = NodeGraphState.UNKNOWN;
-	private Rect rect;
+	private NodeRect rect;
 
 	@Override
-	public Rect getRect() {
+	public NodeRect getRect() {
 		return rect;
 	}
 
 	@Override
-	public void setRect(Rect rect) {
+	public void setRect(NodeRect rect) {
 		this.rect = rect;
+		rect.reset();
+		this.getInputs().stream().takeWhile(c -> rect.remainSpace())
+				.forEach(connector -> connector.setRect(rect.take(connector.getHeight())));
+		this.getOutputs().stream().takeWhile(c -> rect.remainSpace())
+				.forEach(connector -> connector.setRect(rect.take(connector.getHeight())));
+		rect.reset();
 	}
 
 	@Override

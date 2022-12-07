@@ -1,7 +1,9 @@
 package com.lowdragmc.lowdraglib.gui.widget.nodeWidget.connector;
 
+import com.lowdragmc.lowdraglib.gui.widget.nodeWidget.NodeRect;
 import com.lowdragmc.lowdraglib.gui.widget.nodeWidget.TransType;
 import com.lowdragmc.lowdraglib.gui.widget.nodeWidget.node.Node;
+import com.lowdragmc.lowdraglib.gui.widget.nodeWidget.node.StyleConstants;
 import com.lowdragmc.lowdraglib.utils.Rect;
 import net.minecraft.client.Minecraft;
 import org.jetbrains.annotations.Nullable;
@@ -10,6 +12,7 @@ public abstract class BaseConnector implements Connector<Float> {
 
 	private Node holder;
 	private Rect rect;
+	private NodeRect nodeRect;
 	private TransType transType;
 
 	@Override
@@ -19,7 +22,7 @@ public abstract class BaseConnector implements Connector<Float> {
 
 	@Override
 	public int getHeight() {
-		return Minecraft.getInstance().font.lineHeight + CONNECTOR_GAP_HEIGHT;
+		return Minecraft.getInstance().font.lineHeight + StyleConstants.CONNECTOR_GAP_HEIGHT;
 	}
 
 	@Override
@@ -58,5 +61,13 @@ public abstract class BaseConnector implements Connector<Float> {
 		return transType;
 	}
 
+	@Override
+	public NodeRect getNodeRect() {
+		return nodeRect;
+	}
 
+	@Override
+	public void refreshNodeRect() {
+		this.nodeRect = NodeRect.warp(rect);
+	}
 }

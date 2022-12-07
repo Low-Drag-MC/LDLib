@@ -36,7 +36,6 @@ vec4 run(vec2 uv, vec4 squareVertex, vec4 roundRadius){
 
     float percent = smoothstep(Blur, .0, dis);
     vec4 fragColor = vec4(Color.rgba * percent);
-    if (length(fragColor.rgb) < 0.01) discard;
     return fragColor;
 }
 
