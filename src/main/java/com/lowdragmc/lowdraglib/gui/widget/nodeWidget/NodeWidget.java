@@ -73,10 +73,10 @@ public class NodeWidget extends WidgetGroup implements DraggingSensitive, NodeHo
 	@Override
 	public void drawInBackground(@NotNull PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
 		if (node != null) {
-			DrawerHelper.drawRoundBox(getRect(), Node.getOuterRadius(), node.getNodeColor());
+			DrawerHelper.drawRoundBox(poseStack, getRect(), Node.getOuterRadius(), node.getNodeColor());
 			node.render(poseStack, mouseX, mouseY, partialTicks);
 		} else {
-			DrawerHelper.drawRoundBox(getRect(),
+			DrawerHelper.drawRoundBox(poseStack, getRect(),
 					new Vector4f(8, 8, 8, 8), 0x55FFFF00);
 		}
 		super.drawInBackground(poseStack, mouseX, mouseY, partialTicks);

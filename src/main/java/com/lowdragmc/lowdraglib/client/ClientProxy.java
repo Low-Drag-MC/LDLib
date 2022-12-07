@@ -5,6 +5,7 @@ import com.lowdragmc.lowdraglib.LDLMod;
 import com.lowdragmc.lowdraglib.client.model.LDLRendererModel;
 import com.lowdragmc.lowdraglib.client.renderer.IRenderer;
 import com.lowdragmc.lowdraglib.client.shader.Shaders;
+import com.lowdragmc.lowdraglib.gui.util.DrawerHelper;
 import com.lowdragmc.lowdraglib.jei.JEIClientEventHandler;
 import com.lowdragmc.lowdraglib.test.TestBlock;
 import com.lowdragmc.lowdraglib.utils.CustomResourcePack;
@@ -49,6 +50,7 @@ public class ClientProxy extends CommonProxy {
     public void clientSetup(final FMLClientSetupEvent e) {
         e.enqueueWork(() -> {
             Shaders.init();
+            DrawerHelper.init();
             if (DEBUG) {
                 ItemBlockRenderTypes.setRenderLayer(TestBlock.BLOCK, x -> true);
             }

@@ -70,13 +70,13 @@ public interface Connector<T> {
 	default void render(@Nonnull PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
 		refreshNodeRect();
 		Rect drawRect = getNodeRect().walk(StyleConstants.CONNECTOR_GAP_HEIGHT).take(StyleConstants.STRING_HEIGHT);
-		renderConnectorRound(StyleConstants.CONNECTOR_RADIUS,
+		renderConnectorRound(poseStack, StyleConstants.CONNECTOR_RADIUS,
 				getTransType() == TransType.IN ? drawRect.toLeftCenter() : drawRect.toRightCenter());
 		renderName(poseStack, drawRect, mouseX, mouseY);
 	}
 
-	default void renderConnectorRound(float radius, Position centerPos) {
-		DrawerHelper.drawRound(getConnectorColor(), radius, centerPos);
+	default void renderConnectorRound(PoseStack poseStack, float radius, Position centerPos) {
+		DrawerHelper.drawRound(poseStack, getConnectorColor(), radius, centerPos);
 	}
 
 

@@ -53,7 +53,7 @@ public class NodeEditContextMenuWidget extends WidgetGroup {
 	@Override
 	public void drawInBackground(@NotNull PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
 		if (this.isVisible()) {
-			DrawerHelper.drawRoundBox(getRect(),
+			DrawerHelper.drawRoundBox(poseStack, getRect(),
 					new Vector4f(5, 5, 5, 5), 0xffff00ff);
 			super.drawInBackground(poseStack, mouseX, mouseY, partialTicks);
 		}

@@ -84,7 +84,7 @@ public interface Node {
 	 * render the node self and all the {@link Connector}
 	 */
 	default void render(@Nonnull PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
-		DrawerHelper.drawRoundBox(getRect().unwarp(), getInnerRadius(), 0xFF303030);
+		DrawerHelper.drawRoundBox(poseStack, getRect().unwarp(), getInnerRadius(), 0xFF303030);
 		getInputs().forEach(connector ->
 				connector.render(poseStack, mouseX, mouseY, partialTicks));
 		getOutputs().forEach(connector ->

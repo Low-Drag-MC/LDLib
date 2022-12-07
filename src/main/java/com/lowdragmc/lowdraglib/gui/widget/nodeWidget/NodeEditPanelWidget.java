@@ -50,9 +50,9 @@ public class NodeEditPanelWidget extends WidgetGroup implements DraggingSensitiv
 			var y = (int) (getPosition().y * scale);
 			var width = (int) (getSize().width * scale);
 			var height = (int) (getSize().height * scale);
-			RenderSystem.enableScissor(x, y, width, height);
+//			RenderSystem.enableScissor(x, y, width, height);
 		}
-		DrawerHelper.drawPanelBg();
+		DrawerHelper.drawPanelBg(poseStack);
 		super.drawInBackground(poseStack, mouseX, mouseY, partialTicks);
 		RenderSystem.disableScissor();
 	}
