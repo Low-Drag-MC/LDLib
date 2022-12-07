@@ -9,6 +9,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.common.extensions.IForgeBlockEntity;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -22,6 +23,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(BlockEntity.class)
 public abstract class BlockEntityMixin implements IForgeBlockEntity {
 
+    @Shadow public abstract void load(CompoundTag pTag);
+
     @Inject(method = "getUpdateTag", at = @At(value = "RETURN"), cancellable = true)
     private void injectGetUpdateTag(CallbackInfoReturnable<CompoundTag> cir) {
         if (this instanceof IAutoSyncBlockEntity autoSyncBlockEntity) {
@@ -33,6 +36,8 @@ public abstract class BlockEntityMixin implements IForgeBlockEntity {
     public void handleUpdateTag(CompoundTag tag) {
         if (this instanceof IAutoSyncBlockEntity autoSyncBlockEntity) {
             new SPacketManagedPayload(tag).processPacket(autoSyncBlockEntity);
+        } else {
+            this.load(tag);
         }
     }
 

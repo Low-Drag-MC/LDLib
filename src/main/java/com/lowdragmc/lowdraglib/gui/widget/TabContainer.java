@@ -16,8 +16,8 @@ public class TabContainer extends WidgetGroup {
 
     public TabContainer(int x, int y, int width, int height) {
         super(x, y, width, height);
-        buttonGroup = new WidgetGroup(x, y, width, height);
-        containerGroup = new WidgetGroup(x, y, width, height);
+        buttonGroup = new WidgetGroup(0, 0, width, height);
+        containerGroup = new WidgetGroup(0, 0, width, height);
         this.addWidget(containerGroup);
         this.addWidget(buttonGroup);
     }
@@ -56,5 +56,13 @@ public class TabContainer extends WidgetGroup {
         tabButton.setPressed(focus == tabWidget);
         tabWidget.setVisible(focus == tabWidget);
         tabWidget.setActive(focus == tabWidget);
+    }
+
+    @Override
+    public void clearAllWidgets() {
+        tabs.clear();
+        buttonGroup.clearAllWidgets();
+        containerGroup.clearAllWidgets();
+        focus = null;
     }
 }

@@ -6,6 +6,7 @@ import com.lowdragmc.lowdraglib.client.shader.uniform.UniformCache;
 import com.lowdragmc.lowdraglib.utils.LdUtils;
 import com.lowdragmc.lowdraglib.utils.Position;
 import com.lowdragmc.lowdraglib.utils.Rect;
+import com.lowdragmc.lowdraglib.client.utils.RenderBufferUtils;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
@@ -284,39 +285,15 @@ public class DrawerHelper {
         BufferBuilder bufferbuilder = tesselator.getBuilder();
         RenderSystem.enableBlend();
         RenderSystem.disableTexture();
-        RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
-        RenderSystem.lineWidth(width);
-        Matrix4f mat = poseStack.last().pose();
+        RenderSystem.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE);
         RenderSystem.setShader(GameRenderer::getPositionColorShader);
-        if (startColor == endColor) {
-            bufferbuilder.begin(VertexFormat.Mode.DEBUG_LINE_STRIP, DefaultVertexFormat.POSITION_COLOR);
-            for (Vec2 point : points) {
-                bufferbuilder.vertex(mat, point.x, point.y, 0).color(startColor).endVertex();
-            }
-        } else {
-            float startAlpha = (float)(startColor >> 24 & 255) / 255.0F;
-            float startRed   = (float)(startColor >> 16 & 255) / 255.0F;
-            float startGreen = (float)(startColor >>  8 & 255) / 255.0F;
-            float startBlue  = (float)(startColor       & 255) / 255.0F;
-            float endAlpha   = (float)(endColor   >> 24 & 255) / 255.0F;
-            float endRed     = (float)(endColor   >> 16 & 255) / 255.0F;
-            float endGreen   = (float)(endColor   >>  8 & 255) / 255.0F;
-            float endBlue    = (float)(endColor         & 255) / 255.0F;
-            bufferbuilder.begin(VertexFormat.Mode.DEBUG_LINE_STRIP, DefaultVertexFormat.POSITION_COLOR);
-            int size = points.size();
+        bufferbuilder.begin(VertexFormat.Mode.TRIANGLE_STRIP, DefaultVertexFormat.POSITION_COLOR);
 
-            for (int i = 0; i < size; i++) {
-                float p = i * 1.0f / size;
-                bufferbuilder.vertex(mat, points.get(i).x, points.get(i).y, 0)
-                        .color(startRed + (endRed - startRed) * p,
-                                startGreen + (endGreen - startGreen) * p,
-                                startBlue + (endBlue - startBlue) * p,
-                                startAlpha + (endAlpha - startAlpha) * p)
-                        .endVertex();
-            }
-        }
+        RenderBufferUtils.drawColorLines(poseStack, bufferbuilder, points, startColor, endColor, width);
+
         tesselator.end();
         RenderSystem.enableTexture();
+        RenderSystem.defaultBlendFunc();
     }
 
     @OnlyIn(Dist.CLIENT)

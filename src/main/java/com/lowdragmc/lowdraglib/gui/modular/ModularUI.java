@@ -24,6 +24,7 @@ public final class ModularUI {
 
     private int screenWidth, screenHeight;
     private int width, height;
+    private boolean fullScreen;
     @OnlyIn(Dist.CLIENT)
     private ModularUIGuiContainer guiContainer;
     private ModularUIContainer container;
@@ -43,6 +44,11 @@ public final class ModularUI {
         this.holder = holder;
         this.entityPlayer = entityPlayer;
         this.uiCloseCallback = new ArrayList<>();
+    }
+
+    public ModularUI(IUIHolder holder, Player entityPlayer) {
+        this(0, 0, holder, entityPlayer);
+        fullScreen = true;
     }
 
     public ModularUIContainer getModularUIContainer() {
@@ -116,7 +122,14 @@ public final class ModularUI {
         }
     }
 
+    @OnlyIn(Dist.CLIENT)
     public void updateScreenSize(int screenWidth, int screenHeight) {
+        if (fullScreen && (screenWidth != width || screenHeight != height)) {
+            width = screenWidth;
+            height = screenHeight;
+            getModularUIGui().init();
+            return;
+        }
         this.screenWidth = screenWidth;
         this.screenHeight = screenHeight;
         Position displayOffset = new Position(getGuiLeft(), getGuiTop());

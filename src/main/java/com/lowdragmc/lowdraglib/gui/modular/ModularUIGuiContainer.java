@@ -1,5 +1,6 @@
 package com.lowdragmc.lowdraglib.gui.modular;
 
+import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.util.DrawerHelper;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import com.lowdragmc.lowdraglib.networking.s2c.SPacketUIWidgetUpdate;
@@ -12,6 +13,7 @@ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
+import net.minecraft.util.Tuple;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import net.minecraft.world.item.ItemStack;
@@ -33,10 +35,13 @@ public class ModularUIGuiContainer extends AbstractContainerScreen<ModularUICont
     public boolean focused;
     public int dragSplittingLimit;
     public int dragSplittingButton;
+    // hover tips
     protected List<Component> tooltipTexts;
+    protected TooltipComponent tooltipComponent;
     protected Font tooltipFont;
     protected ItemStack tooltipStack = ItemStack.EMPTY;
-    protected TooltipComponent tooltipComponent;
+    // drag element
+    protected Tuple<Object, IGuiTexture> draggingElement;
 
     public ModularUIGuiContainer(ModularUI modularUI, int windowId) {
         super(new ModularUIContainer(modularUI, windowId), modularUI.entityPlayer.getInventory(), new TextComponent("modularUI"));
@@ -45,11 +50,22 @@ public class ModularUIGuiContainer extends AbstractContainerScreen<ModularUICont
     }
 
     public void setHoverTooltip(List<Component> tooltipTexts, ItemStack tooltipStack, @Nullable Font tooltipFont, @Nullable TooltipComponent tooltipComponent) {
-//        if (this.tooltipTexts != null) return;
         this.tooltipTexts = tooltipTexts;
         this.tooltipStack = tooltipStack;
         this.tooltipFont = tooltipFont;
         this.tooltipComponent = tooltipComponent;
+    }
+
+    public boolean setDraggingElement(Object element, IGuiTexture renderer) {
+        if (draggingElement != null) return false;
+        draggingElement = new Tuple<>(element, renderer);
+        return true;
+    }
+
+    @Nullable
+    public Object getDraggingElement() {
+        if (draggingElement == null) return null;
+        return draggingElement.getA();
     }
 
     @Override
@@ -104,7 +120,9 @@ public class ModularUIGuiContainer extends AbstractContainerScreen<ModularUICont
 
         modularUI.mainGroup.drawInForeground(poseStack, mouseX, mouseY, partialTicks);
 
-        if (tooltipTexts != null && tooltipTexts.size() > 0) {
+        if (draggingElement != null) {
+            draggingElement.getB().draw(poseStack, mouseX, mouseY, mouseX - 20, mouseY - 20, 40, 40);
+        } else if (tooltipTexts != null && tooltipTexts.size() > 0) {
             poseStack.translate(0, 0, 200);
             renderTooltip(poseStack, tooltipTexts, Optional.ofNullable(tooltipComponent), mouseX, mouseY, tooltipFont, tooltipStack);
             poseStack.translate(0, 0, -200);
@@ -187,9 +205,9 @@ public class ModularUIGuiContainer extends AbstractContainerScreen<ModularUICont
 
     public boolean switchFocus(@Nonnull Widget widget) {
         if (focused) return false;
+        focused = true;
         if (lastFocus == widget) return false;
         Widget l = lastFocus;
-        focused = true;
         lastFocus = widget;
         if (l != null) l.setFocus(false);
         return true;
@@ -218,7 +236,9 @@ public class ModularUIGuiContainer extends AbstractContainerScreen<ModularUICont
     @Override
     public boolean mouseReleased(double mouseX, double mouseY, int pButton) {
         focused = false;
-        return modularUI.mainGroup.mouseReleased(mouseX, mouseY, pButton);
+        var result = modularUI.mainGroup.mouseReleased(mouseX, mouseY, pButton);
+        draggingElement = null;
+        return result;
     }
 
     @Override

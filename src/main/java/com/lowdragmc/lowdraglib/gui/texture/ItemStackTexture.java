@@ -2,16 +2,18 @@ package com.lowdragmc.lowdraglib.gui.texture;
 
 import com.lowdragmc.lowdraglib.gui.util.DrawerHelper;
 import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.Minecraft;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
-public class ItemStackTexture implements IGuiTexture{
+public class ItemStackTexture extends TransformTexture{
     public final ItemStack[] itemStack;
     private int index = 0;
     private int ticks = 0;
     private int color = -1;
+    private long lastTick;
 
     public ItemStackTexture(ItemStack... itemStacks) {
         this.itemStack = itemStacks;
@@ -31,7 +33,13 @@ public class ItemStackTexture implements IGuiTexture{
     }
 
     @Override
+    @OnlyIn(Dist.CLIENT)
     public void updateTick() {
+        if (Minecraft.getInstance().level != null) {
+            long tick = Minecraft.getInstance().level.getGameTime();
+            if (tick == lastTick) return;
+            lastTick = tick;
+        }
         if(itemStack.length > 1 && ++ticks % 20 == 0)
             if(++index == itemStack.length)
                 index = 0;
@@ -39,7 +47,7 @@ public class ItemStackTexture implements IGuiTexture{
 
     @OnlyIn(Dist.CLIENT)
     @Override
-    public void draw(PoseStack mStack, int mouseX, int mouseY, float x, float y, int width, int height) {
+    protected void drawInternal(PoseStack mStack, int mouseX, int mouseY, float x, float y, int width, int height) {
         if (itemStack.length == 0) return;
         mStack.pushPose();
         mStack.scale(width / 16f, height / 16f, (width + height) / 32f);

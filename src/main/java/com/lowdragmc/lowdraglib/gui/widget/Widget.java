@@ -3,6 +3,8 @@ package com.lowdragmc.lowdraglib.gui.widget;
 import com.google.common.base.Preconditions;
 import com.lowdragmc.lowdraglib.LDLMod;
 import com.lowdragmc.lowdraglib.gui.animation.Animation;
+import com.lowdragmc.lowdraglib.gui.editor.annotation.ConfigSetter;
+import com.lowdragmc.lowdraglib.gui.editor.annotation.Configurable;
 import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
 import com.lowdragmc.lowdraglib.gui.modular.ModularUIGuiContainer;
 import com.lowdragmc.lowdraglib.gui.modular.WidgetUIAccess;
@@ -27,36 +29,52 @@ import org.lwjgl.glfw.GLFW;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 /**
  * Widget is functional element of ModularUI
  * It can draw, perform actions, react to key press and mouse
  * It's information is also synced to client
  */
+@SuppressWarnings("UnusedReturnValue")
+@Configurable(name = "ldlib.gui.editor.group.basic_info", collapse = false)
 public class Widget {
 
     protected ModularUI gui;
     protected WidgetUIAccess uiAccess;
+    @Configurable(tips = "ldlib.gui.editor.tips.id")
+    protected String id = "";
     private Position parentPosition = Position.ORIGIN;
+    @Configurable(name = "ldlib.gui.editor.name.pos", tips = "ldlib.gui.editor.tips.pos")
     private Position selfPosition;
     private Position position;
+    @Configurable
     private Size size;
     private boolean isVisible;
     private boolean isActive;
     private boolean isFocus;
     protected boolean isClientSideWidget;
-    protected List<Component> tooltipTexts;
+    @Configurable(name = "ldlib.gui.editor.name.hover_tips", tips = "ldlib.gui.editor.tips.hover_tips")
+    protected final List<Component> tooltipTexts = new ArrayList<>();
+    @Configurable(name = "ldlib.gui.editor.name.background")
     protected IGuiTexture backgroundTexture;
+    @Configurable(name = "ldlib.gui.editor.name.hover_texture")
     protected IGuiTexture hoverTexture;
     protected WidgetGroup parent;
     protected Animation animation;
-    private boolean initialized;
+    protected boolean initialized;
+    protected boolean tryToDrag = false;
+    protected Supplier<Object> draggingProvider;
+    protected Function<Object, IGuiTexture> draggingRenderer;
+    protected Predicate<Object> draggingAccept = o -> false;
+    protected Consumer<Object> draggingIn;
+    protected Consumer<Object> draggingOut;
+    protected Consumer<Object> draggingSuccess;
+    protected Object draggingElement;
 
     public Widget(Position selfPosition, Size size) {
         Preconditions.checkNotNull(selfPosition, "selfPosition");
@@ -78,28 +96,27 @@ public class Widget {
     }
 
     public Widget setHoverTooltips(String... tooltipText) {
-        tooltipTexts = Arrays.stream(tooltipText).filter(Objects::nonNull).filter(s->!s.isEmpty()).map(
-                TranslatableComponent::new).collect(Collectors.toList());
+        tooltipTexts.clear();
+        Arrays.stream(tooltipText).filter(Objects::nonNull).filter(s->!s.isEmpty()).map(
+                TranslatableComponent::new).forEach(tooltipTexts::add);
         return this;
     }
 
     public Widget setHoverTooltips(Component... tooltipText) {
-        tooltipTexts = Arrays.stream(tooltipText).filter(Objects::nonNull).collect(Collectors.toList());
+        tooltipTexts.clear();
+        Arrays.stream(tooltipText).filter(Objects::nonNull).forEach(tooltipTexts::add);
         return this;
     }
 
     public Widget setHoverTooltips(List<Component> tooltipText) {
-        tooltipTexts = tooltipText;
-        return this;
-    }
-
-    public Widget setHoverTooltip(Component tooltipText) {
-        tooltipTexts = List.of(tooltipText);
+        tooltipTexts.clear();
+        tooltipTexts.addAll(tooltipText);
         return this;
     }
 
     public Widget setKJSHoverTooltips(Component... tooltipText) {
-        tooltipTexts = Arrays.stream(tooltipText).filter(Objects::nonNull).collect(Collectors.toList());
+        tooltipTexts.clear();
+        Arrays.stream(tooltipText).filter(Objects::nonNull).forEach(tooltipTexts::add);
         return this;
     }
 
@@ -110,6 +127,21 @@ public class Widget {
 
     public Widget setHoverTexture(IGuiTexture... hoverTexture) {
         this.hoverTexture = hoverTexture.length > 1 ? new GuiTextureGroup(hoverTexture) : hoverTexture[0];
+        return this;
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T> Widget setDraggingProvider(Supplier<T> draggingProvider, Function<T, IGuiTexture> draggingRenderer) {
+        this.draggingProvider = (Supplier<Object>) draggingProvider;
+        this.draggingRenderer = (Function<Object, IGuiTexture>) draggingRenderer;
+        return this;
+    }
+
+    public Widget setDraggingConsumer(Predicate<Object> draggingAccept, Consumer<Object> draggingIn, Consumer<Object> draggingOut, Consumer<Object> draggingSuccess) {
+        this.draggingAccept = draggingAccept;
+        this.draggingIn = draggingIn;
+        this.draggingOut = draggingOut;
+        this.draggingSuccess = draggingSuccess;
         return this;
     }
 
@@ -147,6 +179,7 @@ public class Widget {
         recomputePosition();
     }
 
+    @ConfigSetter(field = "selfPosition")
     public void setSelfPosition(Position selfPosition) {
         Preconditions.checkNotNull(selfPosition, "selfPosition");
         this.selfPosition = selfPosition;
@@ -163,6 +196,7 @@ public class Widget {
         return selfPosition;
     }
 
+    @ConfigSetter(field = "size")
     public void setSize(Size size) {
         Preconditions.checkNotNull(size, "size");
         this.size = size;
@@ -219,6 +253,16 @@ public class Widget {
         Position position = getPosition();
         Size size = getSize();
         return isMouseOver(position.x, position.y, size.width, size.height, mouseX, mouseY);
+    }
+
+    @Nullable
+    public Widget getHoverElement(double mouseX, double mouseY) {
+        Position position = getPosition();
+        Size size = getSize();
+        if (isMouseOver(position.x, position.y, size.width, size.height, mouseX, mouseY)) {
+            return this;
+        }
+        return null;
     }
 
     public static boolean isMouseOver(int x, int y, int width, int height, double mouseX, double mouseY) {
@@ -285,14 +329,15 @@ public class Widget {
      */
     @OnlyIn(Dist.CLIENT)
     public void drawInBackground(@Nonnull PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
+        if (backgroundTexture != null) {
+            Position pos = getPosition();
+            Size size = getSize();
+            backgroundTexture.draw(poseStack, mouseX, mouseY, pos.x, pos.y, size.width, size.height);
+        }
         if (hoverTexture != null && isMouseOverElement(mouseX, mouseY)) {
             Position pos = getPosition();
             Size size = getSize();
             hoverTexture.draw(poseStack, mouseX, mouseY, pos.x, pos.y, size.width, size.height);
-        } else if (backgroundTexture != null) {
-            Position pos = getPosition();
-            Size size = getSize();
-            backgroundTexture.draw(poseStack, mouseX, mouseY, pos.x, pos.y, size.width, size.height);
         }
     }
 
@@ -310,6 +355,12 @@ public class Widget {
      */
     @OnlyIn(Dist.CLIENT)
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        draggingElement = null;
+        tryToDrag = false;
+        if (draggingProvider != null && isMouseOverElement(mouseX, mouseY)) {
+            tryToDrag = true;
+            return false;
+        }
         return false;
     }
 
@@ -318,11 +369,28 @@ public class Widget {
      */
     @OnlyIn(Dist.CLIENT)
     public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
+        if (!isMouseOverElement(mouseX, mouseY) && tryToDrag && draggingProvider != null && draggingRenderer != null) {
+            var element = draggingProvider.get();
+            getGui().getModularUIGui().setDraggingElement(element, draggingRenderer.apply(element));
+        }
+        if (isMouseOverElement(mouseX, mouseY) && draggingAccept.test(getGui().getModularUIGui().getDraggingElement())) {
+            var element = getGui().getModularUIGui().getDraggingElement();
+            if (draggingElement != element && draggingIn != null) {
+                draggingElement = element;
+                draggingIn.accept(element);
+            }
+            return true;
+        }
+        if (draggingElement != null && draggingOut != null) {
+            draggingOut.accept(draggingElement);
+            draggingElement = null;
+        }
         return false;
     }
 
     @OnlyIn(Dist.CLIENT)
-    public void mouseMoved(double mouseX, double mouseY) {
+    public boolean mouseMoved(double mouseX, double mouseY) {
+        return false;
     }
 
     /**
@@ -330,6 +398,16 @@ public class Widget {
      */
     @OnlyIn(Dist.CLIENT)
     public boolean mouseReleased(double mouseX, double mouseY, int button) {
+        tryToDrag = false;
+        if (isMouseOverElement(mouseX, mouseY) && draggingAccept.test(getGui().getModularUIGui().getDraggingElement())) {
+            var element = getGui().getModularUIGui().getDraggingElement();
+            if (draggingElement == element && draggingSuccess != null) {
+                draggingSuccess.accept(element);
+                draggingElement = null;
+                return true;
+            }
+        }
+        draggingElement = null;
         return false;
     }
 
@@ -356,7 +434,7 @@ public class Widget {
      */
     @OnlyIn(Dist.CLIENT)
     public final void setFocus(boolean focus) {
-        if (isFocus != focus && gui != null) {
+        if (gui != null) {
             ModularUIGuiContainer guiContainer = gui.getModularUIGui();
             Widget lastFocus = guiContainer.lastFocus;
             if (!focus) {
@@ -418,20 +496,26 @@ public class Widget {
     }
 
     @OnlyIn(Dist.CLIENT)
-    protected static void playButtonClickSound() {
+    public static void playButtonClickSound() {
         Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
     }
 
     @OnlyIn(Dist.CLIENT)
-    protected static boolean isShiftDown() {
+    public static boolean isShiftDown() {
         long id = Minecraft.getInstance().getWindow().getWindow();
         return InputConstants.isKeyDown(id, GLFW.GLFW_KEY_LEFT_SHIFT) || InputConstants.isKeyDown(id, GLFW.GLFW_KEY_LEFT_SHIFT);
     }
 
     @OnlyIn(Dist.CLIENT)
-    protected static boolean isCtrlDown() {
+    public static boolean isCtrlDown() {
         long id = Minecraft.getInstance().getWindow().getWindow();
         return InputConstants.isKeyDown(id, GLFW.GLFW_KEY_LEFT_CONTROL) || InputConstants.isKeyDown(id, GLFW.GLFW_KEY_RIGHT_CONTROL);
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    public static boolean isAltDown() {
+        long id = Minecraft.getInstance().getWindow().getWindow();
+        return InputConstants.isKeyDown(id, GLFW.GLFW_KEY_LEFT_ALT) || InputConstants.isKeyDown(id, GLFW.GLFW_KEY_RIGHT_ALT);
     }
 
     public boolean isRemote() {

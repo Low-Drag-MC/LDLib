@@ -121,6 +121,33 @@ public class DialogWidget extends WidgetGroup {
         return node -> !(node.isLeaf() && node.getContent().isFile() && !node.getContent().getName().toLowerCase().endsWith(suffix.toLowerCase()));
     }
 
+    public static DialogWidget showStringEditorDialog(WidgetGroup parent, String title, String initial, Predicate<String> predicate, Consumer<String> result) {
+        Size size = parent.getSize();
+        DialogWidget dialog = new DialogWidget(parent, true);
+        TextFieldWidget textFieldWidget;
+        int x = (size.width - WIDTH) / 2;
+        int y = (size.height - HEIGHT) / 2;
+        dialog.addWidget(new ImageWidget(x, y, WIDTH, HEIGHT, ResourceBorderTexture.BORDERED_BACKGROUND));
+
+        dialog.addWidget(textFieldWidget = new TextFieldWidget(x + WIDTH / 2 - 70, y + HEIGHT / 2 - 10, 140, 20,  null, null).setCurrentString(initial));
+        if (predicate != null) {
+            textFieldWidget.setValidator(s -> predicate.test(s) ? s : textFieldWidget.getCurrentString());
+        }
+
+        dialog.addWidget(new ButtonWidget(x + WIDTH / 2 - 30 - 20, y + HEIGHT - 32, 40, 20, cd -> {
+            dialog.close();
+            if (result != null) result.accept(textFieldWidget.getCurrentString());
+        }).setButtonTexture(new ResourceTexture("ldlib:textures/gui/darkened_slot.png"), new TextTexture("ldlib.gui.tips.confirm", -1).setDropShadow(true)).setHoverBorderTexture(1, 0xff000000));
+        dialog.addWidget(new ButtonWidget(x + WIDTH / 2 + 30 - 20, y + HEIGHT - 32, 40, 20, cd -> {
+            dialog.close();
+            if (result != null) result.accept(null);
+        }).setButtonTexture(new ResourceTexture("ldlib:textures/gui/darkened_slot.png"), new TextTexture("ldlib.gui.tips.cancel", 0xffff0000).setDropShadow(true)).setHoverBorderTexture(1, 0xff000000));
+
+
+        dialog.addWidget(new ImageWidget(x + 15, y + 20, WIDTH - 30,10, new TextTexture(title, -1).setWidth(WIDTH - 30).setDropShadow(true)));
+        return dialog;
+    }
+
     public static DialogWidget showFileDialog(WidgetGroup parent, String title, File dir, boolean isSelector, Predicate<TreeNode<File, File>> valid, Consumer<File> result) {
         Size size = parent.getSize();
         DialogWidget dialog = new DialogWidget(parent, true);
@@ -158,7 +185,7 @@ public class DialogWidget extends WidgetGroup {
                                 return "no file selected";
                             })));
         } else {
-            dialog.addWidget(new TextFieldWidget(x + WIDTH / 2 - 38, y + HEIGHT / 2 - 10, 76, 20,  ()->{
+            dialog.addWidget(new TextFieldWidget(x + WIDTH / 2 - 70, y + HEIGHT / 2 - 10, 140, 20,  ()->{
                 File file = selected.get();
                 if (file != null && !file.isDirectory()) {
                     return selected.get().getName();

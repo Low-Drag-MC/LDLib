@@ -1,11 +1,12 @@
 package com.lowdragmc.lowdraglib.gui.texture;
 
+import com.lowdragmc.lowdraglib.gui.editor.annotation.*;
 import com.lowdragmc.lowdraglib.gui.util.DrawerHelper;
+import com.lowdragmc.lowdraglib.utils.LocalizationUtils;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.chat.FormattedText;
 import net.minecraft.network.chat.Style;
 import net.minecraftforge.api.distmarker.Dist;
@@ -18,22 +19,45 @@ import java.util.List;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-public class TextTexture implements IGuiTexture{
+@RegisterUI(name = "text_texture")
+public class TextTexture extends TransformTexture{
+
+    @Configurable
     public String text;
+
+    @Configurable
+    @NumberColor
     public int color;
+
+    @Configurable
+    @NumberColor
     public int backgroundColor;
+
+    @Configurable(tips = "ldlib.gui.editor.tips.image_text_width")
+    @NumberRange(range = {1, Integer.MAX_VALUE})
     public int width;
+    @Configurable
     public boolean dropShadow;
+
+    @Configurable(tips = "ldlib.gui.editor.tips.image_text_type")
     public TextType type;
+
     public Supplier<String> supplier;
     @OnlyIn(Dist.CLIENT)
     private List<String> texts;
+
+    private long lastTick;
+
+    public TextTexture() {
+        this("A", -1);
+        setWidth(50);
+    }
 
     public TextTexture(String text, int color) {
         this.color = color;
         this.type = TextType.NORMAL;
         if (FMLEnvironment.dist == Dist.CLIENT) {
-            this.text = I18n.get(text);
+            this.text = LocalizationUtils.format(text);
             texts = Collections.singletonList(this.text);
         }
     }
@@ -50,14 +74,20 @@ public class TextTexture implements IGuiTexture{
 
     @Override
     public void updateTick() {
+        if (Minecraft.getInstance().level != null) {
+            long tick = Minecraft.getInstance().level.getGameTime();
+            if (tick == lastTick) return;
+            lastTick = tick;
+        }
         if (supplier != null) {
             updateText(supplier.get());
         }
     }
 
+    @ConfigSetter(field = "text")
     public void updateText(String text) {
         if (FMLEnvironment.dist == Dist.CLIENT) {
-            this.text = I18n.get(text);
+            this.text = LocalizationUtils.format(text);
             texts = Collections.singletonList(this.text);
             setWidth(this.width);
         }
@@ -104,7 +134,7 @@ public class TextTexture implements IGuiTexture{
 
     @OnlyIn(Dist.CLIENT)
     @Override
-    public void draw(PoseStack stack, int mouseX, int mouseY, float x, float y, int width, int height) {
+    protected void drawInternal(PoseStack stack, int mouseX, int mouseY, float x, float y, int width, int height) {
         if (backgroundColor != 0) {
             DrawerHelper.drawSolidRect(stack, (int) x, (int) y, width, height, backgroundColor);
         }
@@ -135,9 +165,9 @@ public class TextTexture implements IGuiTexture{
             } else {
                 fontRenderer.draw(stack, resultText, _x, _y, color);
             }
-        } else if (type == TextType.ROLL) {
+        } else if (type == TextType.ROLL || type == TextType.ROLL_ALWAYS) {
             int i = 0;
-            if (mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + height) {
+            if (type == TextType.ROLL_ALWAYS || (mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + height)) {
                 i = (int) (Math.abs(System.currentTimeMillis() / 1000) % texts.size());
             }
             String resultText = texts.get(i);
@@ -181,6 +211,7 @@ public class TextTexture implements IGuiTexture{
         NORMAL,
         HIDE,
         ROLL,
+        ROLL_ALWAYS,
         LEFT,
         RIGHT
     }
