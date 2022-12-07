@@ -4,6 +4,7 @@ import com.lowdragmc.lowdraglib.gui.editor.Icons;
 import com.lowdragmc.lowdraglib.gui.editor.configurator.IConfigurableWidget;
 import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
+import com.lowdragmc.lowdraglib.gui.texture.ResourceBorderTexture;
 import com.lowdragmc.lowdraglib.gui.util.TreeBuilder;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
@@ -11,6 +12,7 @@ import com.lowdragmc.lowdraglib.utils.Position;
 import com.lowdragmc.lowdraglib.utils.Size;
 import com.mojang.blaze3d.vertex.PoseStack;
 import lombok.Getter;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.NotNull;
@@ -27,6 +29,8 @@ public class MainPanel extends WidgetGroup {
 
     @Getter
     protected final Editor editor;
+    @Getter
+    protected final WidgetGroup root;
 
     @Getter
     private final Set<UIWrapper> selectedUIs = new HashSet<>();
@@ -40,6 +44,9 @@ public class MainPanel extends WidgetGroup {
     public MainPanel(Editor editor) {
         super(0, 0, editor.getSize().width, editor.getSize().height);
         this.editor = editor;
+        root = new WidgetGroup(30, 30, 200, 200);
+        root.setBackground(ResourceBorderTexture.BORDERED_BACKGROUND);
+        addWidget(root);
     }
 
     @Override
@@ -107,12 +114,25 @@ public class MainPanel extends WidgetGroup {
         for (UIWrapper selectedUI : selectedUIs) {
             selectedUI.remove();
         }
+        hoverUI = null;
         selectedUIs.clear();
     }
 
+    private CompoundTag tag;
+
     protected TreeBuilder.Menu createMenu() {
         return TreeBuilder.Menu.start()
-                .leaf("ldlib.gui.editor.menu.remove", this::removeSelected);
+                .leaf("ldlib.gui.editor.menu.remove", this::removeSelected)
+                .leaf("ser", () -> {
+                    tag = root.serializeNBT();
+                })
+                .leaf("desr", () -> {
+                    if (tag != null) {
+                        selectedUIs.clear();
+                        hoverUI = null;
+                        root.deserializeNBT(tag);
+                    }
+                });
     }
 
     @Override

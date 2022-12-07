@@ -50,10 +50,10 @@ public class ConfigPanel extends WidgetGroup {
     public void initWidget() {
         this.setBackground(ColorPattern.T_BLACK.rectTexture());
         addWidget(new ImageWidget(0, 10, WIDTH, 10, new TextTexture("ldlib.gui.editor.configurator").setWidth(202)));
-        addWidget(new ImageWidget(-20, 0, 20, Tab.values().length * 20, ColorPattern.T_BLACK.rectTexture()));
+        addWidget(new ImageWidget(-20, 30, 20, Tab.values().length * 20, ColorPattern.T_BLACK.rectTexture()));
 
         addWidget(tabContainer = new TabContainer(0, 0, WIDTH, editor.getSize().height));
-        int y = 4;
+        int y = 34;
 
         for (Tab tab : Tab.values()) {
             tabContainer.addTab(new TabButton(-16, y, 12, 12).setTexture(

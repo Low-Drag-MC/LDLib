@@ -5,6 +5,7 @@ import com.lowdragmc.lowdraglib.gui.editor.ColorPattern;
 import com.lowdragmc.lowdraglib.gui.editor.Icons;
 import com.lowdragmc.lowdraglib.gui.editor.data.Resources;
 import com.lowdragmc.lowdraglib.gui.editor.data.resource.Resource;
+import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
 import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
 import com.lowdragmc.lowdraglib.gui.texture.TextTexture;
 import com.lowdragmc.lowdraglib.gui.widget.*;
@@ -49,8 +50,17 @@ public class ResourcePanel extends WidgetGroup {
     }
 
     @Override
+    public void setGui(ModularUI gui) {
+        super.setGui(gui);
+        if (gui == null) {
+            dispose();
+        } else {
+            getGui().registerCloseListener(this::dispose);
+        }
+    }
+
+    @Override
     public void initWidget() {
-        getGui().registerCloseListener(this::dispose);
         Size size = getSize();
         this.setBackground(ColorPattern.BLACK.rectTexture());
         addWidget(buttonHide = new ButtonWidget((getSize().width - 30) / 2, -10, 30, 10, new GuiTextureGroup(
@@ -67,7 +77,7 @@ public class ResourcePanel extends WidgetGroup {
         addWidget(new LabelWidget(3, 3, "ldlib.gui.editor.group.resources"));
         addWidget(tabContainer = new TabContainer(0, 15, size.width, size.height - 14));
         tabContainer.setBackground(ColorPattern.T_GRAY.borderTexture(-1));
-        loadResource(Resources.defaultResource());
+        loadResource(Resources.defaultResource(), false);
         super.initWidget();
     }
 
@@ -99,16 +109,22 @@ public class ResourcePanel extends WidgetGroup {
         }
     }
 
-    public void loadResource(Resources resources) {
-        if (this.resources != null) {
+    public void loadResource(Resources resources, boolean merge) {
+        tabContainer.clearAllWidgets();
+
+        if (!merge && this.resources != null) {
             this.resources.dispose();
         }
 
-        this.resources = resources;
-        resources.load();
+        if (!merge || this.resources == null) {
+            this.resources = resources;
+            resources.load();
+        } else {
+            this.resources.merge(resources);
+        }
 
         int offset = Minecraft.getInstance().font.width(LocalizationUtils.format("ldlib.gui.editor.group.resources")) + 8;
-        for (Resource<?> resource : resources.resources.values()) {
+        for (Resource<?> resource : this.resources.resources.values()) {
             tabContainer.addTab(
                     new TabButton(offset, -15, 50, 15).setTexture(
                             new TextTexture(resource.name()),

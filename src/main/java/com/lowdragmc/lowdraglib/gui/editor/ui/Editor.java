@@ -3,6 +3,7 @@ package com.lowdragmc.lowdraglib.gui.editor.ui;
 import com.lowdragmc.lowdraglib.gui.editor.ColorPattern;
 import com.lowdragmc.lowdraglib.gui.editor.Icons;
 import com.lowdragmc.lowdraglib.gui.editor.data.Project;
+import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
 import com.lowdragmc.lowdraglib.gui.texture.ColorRectTexture;
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.texture.ResourceBorderTexture;
@@ -25,19 +26,16 @@ import org.jetbrains.annotations.NotNull;
 public class Editor extends WidgetGroup {
     @OnlyIn(Dist.CLIENT)
     public static Editor INSTANCE;
-
     @Getter
     protected Project currentProject;
-
+    @Getter
+    protected MenuPanel menuPanel;
     @Getter
     protected MainPanel mainPanel;
-
     @Getter
     protected ConfigPanel configPanel;
-
     @Getter
     protected ResourcePanel resourcePanel;
-
     @Getter
     protected WidgetPanel widgetPanel;
 
@@ -49,11 +47,15 @@ public class Editor extends WidgetGroup {
     }
 
     @Override
-    public void initWidget() {
-        super.initWidget();
+    public void setGui(ModularUI gui) {
+        super.setGui(gui);
         if (isRemote()) {
-            INSTANCE = this;
-            getGui().registerCloseListener(() -> INSTANCE = null);
+            if (gui == null) {
+                INSTANCE = null;
+            } else {
+                INSTANCE = this;
+                getGui().registerCloseListener(() -> INSTANCE = null);
+            }
         }
     }
 
@@ -65,11 +67,11 @@ public class Editor extends WidgetGroup {
         this.clearAllWidgets();
 
         addWidget(mainPanel = new MainPanel(this));
+        addWidget(widgetPanel = new WidgetPanel(this));
         addWidget(configPanel = new ConfigPanel(this));
         addWidget(resourcePanel = new ResourcePanel(this));
-        addWidget(widgetPanel = new WidgetPanel(this));
+        addWidget(menuPanel = new MenuPanel(this));
 
-        mainPanel.addWidget(new WidgetGroup(30, 30, 200, 200).setBackground(ResourceBorderTexture.BORDERED_BACKGROUND));
     }
 
     public <T, C> MenuWidget<T, C> openMenu(double posX, double posY, TreeNode<T, C> menuNode) {

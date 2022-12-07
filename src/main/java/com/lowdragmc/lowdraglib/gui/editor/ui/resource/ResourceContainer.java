@@ -1,6 +1,7 @@
 package com.lowdragmc.lowdraglib.gui.editor.ui.resource;
 
 import com.lowdragmc.lowdraglib.gui.editor.ColorPattern;
+import com.lowdragmc.lowdraglib.gui.editor.Icons;
 import com.lowdragmc.lowdraglib.gui.editor.data.resource.Resource;
 import com.lowdragmc.lowdraglib.gui.editor.ui.Editor;
 import com.lowdragmc.lowdraglib.gui.editor.ui.ResourcePanel;
@@ -126,8 +127,8 @@ public class ResourceContainer<T, C extends Widget> extends WidgetGroup {
     protected TreeBuilder.Menu getMenu() {
         return TreeBuilder.Menu.start()
                 .leaf("ldlib.gui.editor.menu.edit", this::editResource)
-                .leaf("ldlib.gui.editor.menu.add_resource", this::addNewResource)
-                .leaf("ldlib.gui.editor.menu.remove", this::removeSelectedResource)
+                .leaf(Icons.borderText("+").scale(0.6f), "ldlib.gui.editor.menu.add_resource", this::addNewResource)
+                .leaf(Icons.borderText("-").scale(0.6f), "ldlib.gui.editor.menu.remove", this::removeSelectedResource)
                 .leaf("ldlib.gui.editor.menu.rename", this::renameResource);
     }
 

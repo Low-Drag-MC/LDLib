@@ -3,6 +3,7 @@ package com.lowdragmc.lowdraglib.gui.widget;
 import com.google.common.base.Preconditions;
 import com.lowdragmc.lowdraglib.LDLMod;
 import com.lowdragmc.lowdraglib.gui.animation.Animation;
+import com.lowdragmc.lowdraglib.gui.editor.annotation.ConfigSetter;
 import com.lowdragmc.lowdraglib.gui.editor.annotation.Configurable;
 import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
 import com.lowdragmc.lowdraglib.gui.modular.ModularUIGuiContainer;
@@ -27,15 +28,11 @@ import org.lwjgl.glfw.GLFW;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 /**
  * Widget is functional element of ModularUI
@@ -43,7 +40,7 @@ import java.util.stream.Collectors;
  * It's information is also synced to client
  */
 @SuppressWarnings("UnusedReturnValue")
-@Configurable(name = "ldlib.gui.editor.group.basic_info")
+@Configurable(name = "ldlib.gui.editor.group.basic_info", collapse = false)
 public class Widget {
 
     protected ModularUI gui;
@@ -51,15 +48,17 @@ public class Widget {
     @Configurable(tips = "ldlib.gui.editor.tips.id")
     protected String id = "";
     private Position parentPosition = Position.ORIGIN;
+    @Configurable(name = "ldlib.gui.editor.name.pos", tips = "ldlib.gui.editor.tips.pos")
     private Position selfPosition;
     private Position position;
+    @Configurable
     private Size size;
     private boolean isVisible;
     private boolean isActive;
     private boolean isFocus;
     protected boolean isClientSideWidget;
     @Configurable(name = "ldlib.gui.editor.name.hover_tips", tips = "ldlib.gui.editor.tips.hover_tips")
-    protected List<Component> tooltipTexts;
+    protected final List<Component> tooltipTexts = new ArrayList<>();
     @Configurable(name = "ldlib.gui.editor.name.background")
     protected IGuiTexture backgroundTexture;
     @Configurable(name = "ldlib.gui.editor.name.hover_texture")
@@ -96,28 +95,27 @@ public class Widget {
     }
 
     public Widget setHoverTooltips(String... tooltipText) {
-        tooltipTexts = Arrays.stream(tooltipText).filter(Objects::nonNull).filter(s->!s.isEmpty()).map(
-                TranslatableComponent::new).collect(Collectors.toList());
+        tooltipTexts.clear();
+        Arrays.stream(tooltipText).filter(Objects::nonNull).filter(s->!s.isEmpty()).map(
+                TranslatableComponent::new).forEach(tooltipTexts::add);
         return this;
     }
 
     public Widget setHoverTooltips(Component... tooltipText) {
-        tooltipTexts = Arrays.stream(tooltipText).filter(Objects::nonNull).collect(Collectors.toList());
+        tooltipTexts.clear();
+        Arrays.stream(tooltipText).filter(Objects::nonNull).forEach(tooltipTexts::add);
         return this;
     }
 
     public Widget setHoverTooltips(List<Component> tooltipText) {
-        tooltipTexts = tooltipText;
-        return this;
-    }
-
-    public Widget setHoverTooltip(Component tooltipText) {
-        tooltipTexts = List.of(tooltipText);
+        tooltipTexts.clear();
+        tooltipTexts.addAll(tooltipText);
         return this;
     }
 
     public Widget setKJSHoverTooltips(Component... tooltipText) {
-        tooltipTexts = Arrays.stream(tooltipText).filter(Objects::nonNull).collect(Collectors.toList());
+        tooltipTexts.clear();
+        Arrays.stream(tooltipText).filter(Objects::nonNull).forEach(tooltipTexts::add);
         return this;
     }
 
@@ -180,6 +178,7 @@ public class Widget {
         recomputePosition();
     }
 
+    @ConfigSetter(field = "selfPosition")
     public void setSelfPosition(Position selfPosition) {
         Preconditions.checkNotNull(selfPosition, "selfPosition");
         this.selfPosition = selfPosition;
@@ -196,6 +195,7 @@ public class Widget {
         return selfPosition;
     }
 
+    @ConfigSetter(field = "size")
     public void setSize(Size size) {
         Preconditions.checkNotNull(size, "size");
         this.size = size;

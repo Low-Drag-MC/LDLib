@@ -57,10 +57,22 @@ public class TextBoxWidget extends Widget implements IConfigurableWidget {
         this.calculate();
     }
 
+    @Override
+    @ConfigSetter(field = "size")
+    public void setSize(Size size) {
+        int lastWidth = getSize().width;
+        super.setSize(size);
+        if (size.width != lastWidth) {
+            calculate();
+        }
+    }
+
     @ConfigSetter(field = "content")
     public TextBoxWidget setContent(List<String> content) {
-        this.content.clear();
-        this.content.addAll(content);
+        if (this.content != content) {
+            this.content.clear();
+            this.content.addAll(content);
+        }
         this.calculate();
         return this;
     }

@@ -3,7 +3,6 @@ package com.lowdragmc.lowdraglib.gui.editor.ui;
 import com.lowdragmc.lowdraglib.gui.editor.configurator.ConfiguratorGroup;
 import com.lowdragmc.lowdraglib.gui.editor.configurator.IConfigurable;
 import com.lowdragmc.lowdraglib.gui.editor.configurator.IConfigurableWidget;
-import com.lowdragmc.lowdraglib.gui.editor.configurator.NumberConfigurator;
 import com.lowdragmc.lowdraglib.gui.texture.ColorBorderTexture;
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.texture.WidgetDraggingTexture;
@@ -103,43 +102,20 @@ public record UIWrapper(@Getter MainPanel panel, @Getter IConfigurableWidget inn
 
     @Override
     public void buildConfigurator(ConfiguratorGroup father) {
-        ConfiguratorGroup common = new ConfiguratorGroup("ldlib.gui.editor.group.focused_widget", false);
-        common.setCanCollapse(false);
-        father.addConfigurators(common);
-
-        // position
-        ConfiguratorGroup position = new ConfiguratorGroup("ldlib.gui.editor.group.position");
-        position.addConfigurators(new NumberConfigurator("x",
-                () -> inner.widget().getSelfPosition().x,
-                number -> inner.widget().setSelfPosition(new Position(number.intValue(), inner.widget().getSelfPosition().y)),
-                0,
-                true).setRange(Integer.MIN_VALUE, Integer.MAX_VALUE));
-        position.addConfigurators(new NumberConfigurator("y",
-                () -> inner.widget().getSelfPosition().y,
-                number -> inner.widget().setSelfPosition(new Position(inner.widget().getSelfPosition().x, number.intValue())),
-                0,
-                true).setRange(Integer.MIN_VALUE, Integer.MAX_VALUE));
-
-        // size
-        ConfiguratorGroup size = new ConfiguratorGroup("ldlib.gui.editor.group.size");
-        size.addConfigurators(new NumberConfigurator("width",
-                () -> inner.widget().getSize().width,
-                number -> inner.widget().setSize(new Size(number.intValue(), inner.widget().getSize().height)),
-                10,
-                true).setRange(0, Integer.MAX_VALUE));
-        size.addConfigurators(new NumberConfigurator("height",
-                () -> inner.widget().getSize().height,
-                number -> inner.widget().setSize(new Size(inner.widget().getSize().width, number.intValue())),
-                10,
-                true).setRange(0, Integer.MAX_VALUE));
-
-        common.addConfigurators(position, size);
-        inner.buildConfigurator(common);
+        if (inner.isRegisterUI()) {
+            ConfiguratorGroup common = new ConfiguratorGroup("ldlib.gui.editor.register.widget." + inner.getRegisterUI().name(), false);
+            common.setCanCollapse(false);
+            father.addConfigurators(common);
+            father = common;
+        }
+        inner.buildConfigurator(father);
     }
 
     public void remove() {
         var parent = inner.widget().getParent();
-        parent.waitToRemoved(inner.widget());
+        if (parent != panel.root) {
+            parent.waitToRemoved(inner.widget());
+        }
     }
 
     public void onDragPosition(int deltaX, int deltaY) {

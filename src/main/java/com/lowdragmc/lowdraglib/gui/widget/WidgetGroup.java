@@ -3,6 +3,7 @@ package com.lowdragmc.lowdraglib.gui.widget;
 import com.lowdragmc.lowdraglib.gui.animation.Animation;
 import com.lowdragmc.lowdraglib.gui.editor.annotation.RegisterUI;
 import com.lowdragmc.lowdraglib.gui.editor.configurator.IConfigurableWidget;
+import com.lowdragmc.lowdraglib.gui.editor.runtime.UIDetector;
 import com.lowdragmc.lowdraglib.gui.ingredient.IGhostIngredientTarget;
 import com.lowdragmc.lowdraglib.gui.ingredient.IIngredientSlot;
 import com.lowdragmc.lowdraglib.gui.ingredient.Target;
@@ -12,7 +13,11 @@ import com.lowdragmc.lowdraglib.utils.Position;
 import com.lowdragmc.lowdraglib.utils.Size;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.Util;
 import net.minecraft.client.renderer.Rect2i;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
@@ -22,6 +27,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.annotation.Nonnull;
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 @RegisterUI(name = "group", group = "advanced")
 public class WidgetGroup extends Widget implements IGhostIngredientTarget, IIngredientSlot, IConfigurableWidget {
@@ -592,6 +598,8 @@ public class WidgetGroup extends Widget implements IGhostIngredientTarget, IIngr
 
     }
 
+    // *********** for jei rei ************* //
+
     @Override
     @OnlyIn(Dist.CLIENT)
     public List<Rect2i> getGuiExtraAreas(Rect2i guiRect, List<Rect2i> list) {
@@ -600,6 +608,8 @@ public class WidgetGroup extends Widget implements IGhostIngredientTarget, IIngr
         }
         return super.getGuiExtraAreas(guiRect, list);
     }
+
+    // *********** IConfigurableWidget ************* //
 
     @Override
     public boolean canWidgetDragIn(IConfigurableWidget widget) {
@@ -622,4 +632,46 @@ public class WidgetGroup extends Widget implements IGhostIngredientTarget, IIngr
         removeWidget(widget.widget());
     }
 
+    @Override
+    public CompoundTag serializeNBT() {
+        CompoundTag tag = IConfigurableWidget.super.serializeNBT();
+        var children = new ListTag();
+        for (Widget widget : widgets) {
+            if (widget instanceof IConfigurableWidget child && child.isRegisterUI()) {
+                CompoundTag ui = new CompoundTag();
+                ui.putString("type", child.getRegisterUI().name());
+                ui.put("data", child.serializeNBT());
+                children.add(ui);
+            }
+        }
+        tag.put("children", children);
+        return tag;
+    }
+
+    public static final Function<String, UIDetector.Wrapper<RegisterUI, IConfigurableWidget>> CACHE = Util.memoize(type -> {
+        for (var wrapper : UIDetector.REGISTER_WIDGETS) {
+            if (wrapper.annotation().name().equals(type)) {
+                return wrapper;
+            }
+        }
+        return null;
+    });
+
+    @Override
+    public void deserializeNBT(CompoundTag nbt) {
+        clearAllWidgets();
+        IConfigurableWidget.super.deserializeNBT(nbt);
+        var children = nbt.getList("children", Tag.TAG_COMPOUND);
+        for (Tag tag : children) {
+            if (tag instanceof CompoundTag ui) {
+                String type = ui.getString("type");
+                var wrapper = CACHE.apply(type);
+                if (wrapper != null) {
+                    var child = wrapper.creator().get();
+                    addWidget(child.widget());
+                    child.deserializeNBT(ui.getCompound("data"));
+                }
+            }
+        }
+    }
 }

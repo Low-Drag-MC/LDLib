@@ -185,7 +185,7 @@ public class DialogWidget extends WidgetGroup {
                                 return "no file selected";
                             })));
         } else {
-            dialog.addWidget(new TextFieldWidget(x + WIDTH / 2 - 38, y + HEIGHT / 2 - 10, 76, 20,  ()->{
+            dialog.addWidget(new TextFieldWidget(x + WIDTH / 2 - 70, y + HEIGHT / 2 - 10, 140, 20,  ()->{
                 File file = selected.get();
                 if (file != null && !file.isDirectory()) {
                     return selected.get().getName();

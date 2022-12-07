@@ -35,12 +35,12 @@ public class PersistedParser {
 
             if (field.isAnnotationPresent(Configurable.class)) {
                 Configurable configurable = field.getAnnotation(Configurable.class);
-                if (Strings.isNullOrEmpty(configurable.key())) {
+                if (!Strings.isNullOrEmpty(configurable.key())) {
                     key = configurable.key();
                 }
             } else if (field.isAnnotationPresent(Persisted.class)) {
                 Persisted persisted = field.getAnnotation(Persisted.class);
-                if (Strings.isNullOrEmpty(persisted.key())) {
+                if (!Strings.isNullOrEmpty(persisted.key())) {
                     key = persisted.key();
                 }
             } else {
@@ -80,12 +80,12 @@ public class PersistedParser {
 
             if (field.isAnnotationPresent(Configurable.class)) {
                 Configurable configurable = field.getAnnotation(Configurable.class);
-                if (Strings.isNullOrEmpty(configurable.key())) {
+                if (!Strings.isNullOrEmpty(configurable.key())) {
                     key = configurable.key();
                 }
             } else if (field.isAnnotationPresent(Persisted.class)) {
                 Persisted persisted = field.getAnnotation(Persisted.class);
-                if (Strings.isNullOrEmpty(persisted.key())) {
+                if (!Strings.isNullOrEmpty(persisted.key())) {
                     key = persisted.key();
                 }
             } else {
@@ -95,7 +95,7 @@ public class PersistedParser {
             var nbt = TagUtils.getTagExtended(tag, key);
             if (nbt != null) {
                 var managedKey = ManagedFieldUtils.createKey(field);
-                managedKey.writePersistedField(managedKey.createRef(object), tag);
+                managedKey.writePersistedField(managedKey.createRef(object), nbt);
                 Method setter = setters.get(field.getName());
 
                 if (setter != null) {

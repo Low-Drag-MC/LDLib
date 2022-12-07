@@ -9,6 +9,8 @@ import com.lowdragmc.lowdraglib.syncdata.payload.NbtTagPayload;
 import com.lowdragmc.lowdraglib.syncdata.payload.PrimitiveTypedPayload;
 import net.minecraft.nbt.CompoundTag;
 
+import java.util.HashMap;
+
 /**
  * @author KilaBash
  * @date 2022/9/7
@@ -41,7 +43,7 @@ public class IGuiTextureAccessor extends CustomObjectAccessor<IGuiTexture>{
             var type = tag.getString("type");
             var data = tag.getCompound("data");
             IGuiTexture value = UIDetector.REGISTER_TEXTURES.stream().filter(w -> w.annotation().name().equals(type)).map(UIDetector.Wrapper::creator).findFirst().orElse(() -> IGuiTexture.EMPTY).get();
-            PersistedParser.serializeNBT(data, value.getClass(), value);
+            PersistedParser.deserializeNBT(data, new HashMap<>(), value.getClass(), value);
             return value;
         }
         return null;

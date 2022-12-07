@@ -28,7 +28,6 @@ public interface IConfigurable {
         return getClass().isAnnotationPresent(RegisterUI.class);
     }
 
-    @Nullable
     default RegisterUI getRegisterUI() {
         return getClass().getAnnotation(RegisterUI.class);
     }

@@ -31,7 +31,7 @@ public abstract class ReadonlyAccessor implements IAccessor {
     public ITypedPayload<?> readField(IRef field) {
         var obj = field.readRaw();
         if (obj == null) {
-            throw new IllegalArgumentException("readonly field %s has a null reference".formatted(field));
+            throw new IllegalArgumentException("readonly field %s has a null reference".formatted(field.getKey()));
         }
 
         return readFromReadonlyField(obj);

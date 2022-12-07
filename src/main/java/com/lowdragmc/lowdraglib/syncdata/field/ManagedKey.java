@@ -134,7 +134,7 @@ public class ManagedKey {
                 throw new RuntimeException(e);
             }
         }catch (Exception e) {
-            throw new IllegalStateException("Failed to create ref of " + this.name + "with type:" + this.rawField.getType().getCanonicalName(), e);
+            throw new IllegalStateException("Failed to create ref of " + this.name + " with type:" + this.rawField.getType().getCanonicalName(), e);
         }
     }
 }

@@ -1,5 +1,6 @@
 package com.lowdragmc.lowdraglib.gui.editor.ui.resource;
 
+import com.lowdragmc.lowdraglib.gui.editor.Icons;
 import com.lowdragmc.lowdraglib.gui.editor.annotation.RegisterUI;
 import com.lowdragmc.lowdraglib.gui.editor.configurator.ConfiguratorGroup;
 import com.lowdragmc.lowdraglib.gui.editor.configurator.IConfigurable;
@@ -67,7 +68,7 @@ public class TexturesResourceContainer extends ResourceContainer<IGuiTexture, Im
     protected TreeBuilder.Menu getMenu() {
         return TreeBuilder.Menu.start()
                 .leaf("ldlib.gui.editor.menu.edit", this::editResource)
-                .branch("ldlib.gui.editor.menu.add_resource", menu -> {
+                .branch(Icons.borderText("+").scale(0.6f), "ldlib.gui.editor.menu.add_resource", menu -> {
                     for (UIDetector.Wrapper<RegisterUI, IGuiTexture> wrapper : UIDetector.REGISTER_TEXTURES) {
                         IGuiTexture icon = wrapper.creator().get();
                         String name = "ldlib.gui.editor.register.texture." + wrapper.annotation().name();
@@ -77,7 +78,7 @@ public class TexturesResourceContainer extends ResourceContainer<IGuiTexture, Im
                         });
                     }
                 })
-                .leaf("ldlib.gui.editor.menu.remove", this::removeSelectedResource)
+                .leaf(Icons.borderText("-").scale(0.6f), "ldlib.gui.editor.menu.remove", this::removeSelectedResource)
                 .leaf("ldlib.gui.editor.menu.rename", this::renameResource);
     }
 }

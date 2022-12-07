@@ -17,6 +17,8 @@ public enum ColorPattern {
     T_GRAY(0x66666666),
     GREEN(0xff33ff00),
     T_GREEN(0x8833ff00),
+    RED(0xff9d0122),
+    T_RED(0x889d0122),
     ;
     public final int color;
 
