@@ -26,6 +26,7 @@ public class Shaders {
 	public static Shader PANEL_BG_F;
 	public static Shader ROUND_BOX_F;
 	public static Shader PROGRESS_ROUND_BOX_F;
+	public static Shader FRAME_ROUND_BOX_F;
 	public static Shader ROUND_LINE_F;
 
 	public static void init() {
@@ -37,6 +38,7 @@ public class Shaders {
 		PANEL_BG_F = load(Shader.ShaderType.FRAGMENT, new ResourceLocation(LDLMod.MODID, "panel_bg"));
 		ROUND_BOX_F = load(Shader.ShaderType.FRAGMENT, new ResourceLocation(LDLMod.MODID, "round_box"));
 		PROGRESS_ROUND_BOX_F = load(Shader.ShaderType.FRAGMENT, new ResourceLocation(LDLMod.MODID, "progress_round_box"));
+		FRAME_ROUND_BOX_F = load(Shader.ShaderType.FRAGMENT, new ResourceLocation(LDLMod.MODID, "frame_round_box"));
 		ROUND_LINE_F = load(Shader.ShaderType.FRAGMENT, new ResourceLocation(LDLMod.MODID, "round_line"));
 	}
 
