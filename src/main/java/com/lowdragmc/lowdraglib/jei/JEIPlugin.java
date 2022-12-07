@@ -43,6 +43,7 @@ public class JEIPlugin implements IModPlugin {
     
     @Override
     public void registerGuiHandlers(@Nonnull IGuiHandlerRegistration registration) {
+        if (LDLMod.isReiLoaded()) return;
         registration.addGhostIngredientHandler(ModularUIGuiContainer.class, modularUIGuiHandler);
         registration.addGenericGuiContainerHandler(ModularUIGuiContainer.class, modularUIGuiHandler);
     }

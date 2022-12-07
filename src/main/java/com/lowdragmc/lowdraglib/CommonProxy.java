@@ -1,5 +1,6 @@
 package com.lowdragmc.lowdraglib;
 
+import com.lowdragmc.lowdraglib.gui.editor.runtime.UIDetector;
 import com.lowdragmc.lowdraglib.gui.factory.BlockEntityUIFactory;
 import com.lowdragmc.lowdraglib.gui.factory.HeldItemUIFactory;
 import com.lowdragmc.lowdraglib.gui.factory.UIFactory;
@@ -35,6 +36,7 @@ public class CommonProxy {
         UIFactory.register(BlockEntityUIFactory.INSTANCE);
         UIFactory.register(HeldItemUIFactory.INSTANCE);
         UIFactory.register(TestNodeEditor.instance);
+        UIDetector.init();
     }
 
     @SubscribeEvent

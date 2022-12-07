@@ -4,6 +4,7 @@ import com.lowdragmc.lowdraglib.client.utils.RenderUtils;
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.util.DrawerHelper;
 import com.lowdragmc.lowdraglib.gui.util.TreeNode;
+import com.lowdragmc.lowdraglib.utils.LocalizationUtils;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
@@ -158,7 +159,7 @@ public class TreeListWidget<K, T> extends Widget {
                     DrawerHelper.drawSolidRect(matrixStack, x, sY, width, ITEM_HEIGHT, 0x7f000000);
                 }
                 int textW = Math.max(width - 10 * node.dimension, 10);
-                List<FormattedText> list = fr.getSplitter().splitLines(I18n.get(name), textW, Style.EMPTY);
+                List<FormattedText> list = fr.getSplitter().splitLines(LocalizationUtils.format(name), textW, Style.EMPTY);
                 fr.draw(matrixStack, list.get(Math.abs((tick / 20) % list.size())).getString(), sX, sY + 2, 0xff000000);
             }
         });

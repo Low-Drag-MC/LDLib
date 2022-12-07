@@ -32,7 +32,7 @@ description='''Low Drag Lib, a library for rendering, gui, particles, synchroniz
 [[dependencies.ldlib]]
     modId="jei"
     mandatory=false
-    versionRange="[10.1.4.263,)"
+    versionRange="[9.9,)"
     ordering="NONE"
     side="CLIENT"
 [[dependencies.ldlib]]

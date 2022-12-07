@@ -1,11 +1,20 @@
 package com.lowdragmc.lowdraglib.gui.texture;
 
+import com.lowdragmc.lowdraglib.gui.editor.annotation.Configurable;
+import com.lowdragmc.lowdraglib.gui.editor.annotation.RegisterUI;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
-public class GuiTextureGroup implements IGuiTexture{
+@RegisterUI(name = "group_texture")
+public class GuiTextureGroup extends TransformTexture{
+
+    @Configurable(collapse = false)
     public IGuiTexture[] textures;
+
+    public GuiTextureGroup() {
+        this(ResourceBorderTexture.BORDERED_BACKGROUND, new ResourceTexture());
+    }
 
     public GuiTextureGroup(IGuiTexture... textures) {
         this.textures = textures;
@@ -26,13 +35,14 @@ public class GuiTextureGroup implements IGuiTexture{
 
     @Override
     @OnlyIn(Dist.CLIENT)
-    public void draw(PoseStack stack, int mouseX, int mouseY, float x, float y, int width, int height) {
+    protected void drawInternal(PoseStack stack, int mouseX, int mouseY, float x, float y, int width, int height) {
         for (IGuiTexture texture : textures) {
             texture.draw(stack, mouseX,mouseY,  x, y, width, height);
         }
     }
 
     @Override
+    @OnlyIn(Dist.CLIENT)
     public void updateTick() {
         for (IGuiTexture texture : textures) {
             texture.updateTick();
@@ -41,7 +51,7 @@ public class GuiTextureGroup implements IGuiTexture{
 
     @OnlyIn(Dist.CLIENT)
     @Override
-    public void drawSubArea(PoseStack stack, float x, float y, int width, int height, float drawnU, float drawnV, float drawnWidth, float drawnHeight) {
+    protected void drawSubAreaInternal(PoseStack stack, float x, float y, int width, int height, float drawnU, float drawnV, float drawnWidth, float drawnHeight) {
         for (IGuiTexture texture : textures) {
             texture.drawSubArea(stack, x, y, width, height, drawnU, drawnV, drawnWidth, drawnHeight);
         }

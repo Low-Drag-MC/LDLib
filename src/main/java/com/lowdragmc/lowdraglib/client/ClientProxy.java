@@ -7,9 +7,12 @@ import com.lowdragmc.lowdraglib.client.renderer.IRenderer;
 import com.lowdragmc.lowdraglib.client.shader.Shaders;
 import com.lowdragmc.lowdraglib.jei.JEIClientEventHandler;
 import com.lowdragmc.lowdraglib.test.TestBlock;
+import com.lowdragmc.lowdraglib.utils.CustomResourcePack;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.packs.repository.PackSource;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.event.ModelRegistryEvent;
@@ -36,6 +39,9 @@ public class ClientProxy extends CommonProxy {
         super();
         if (LDLMod.isJeiLoaded()) {
             MinecraftForge.EVENT_BUS.register(JEIClientEventHandler.class);
+        }
+        if (Minecraft.getInstance() != null) {
+            Minecraft.getInstance().getResourcePackRepository().addPackFinder(new CustomResourcePack(LDLMod.location, PackSource.DEFAULT, LDLMod.MODID, "LDLib Extended Resources", 6));
         }
     }
 

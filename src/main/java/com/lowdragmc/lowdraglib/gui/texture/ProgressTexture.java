@@ -1,5 +1,7 @@
 package com.lowdragmc.lowdraglib.gui.texture;
 
+import com.lowdragmc.lowdraglib.gui.editor.annotation.Configurable;
+import com.lowdragmc.lowdraglib.gui.editor.annotation.RegisterUI;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.util.Mth;
 import net.minecraftforge.api.distmarker.Dist;
@@ -8,12 +10,33 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 /**
  * @author youyihj
  */
-public class ProgressTexture implements IGuiTexture {
-    protected final IGuiTexture emptyBarArea;
-    protected final IGuiTexture filledBarArea;
+@RegisterUI(name = "progress_texture")
+public class ProgressTexture extends TransformTexture {
+    @Configurable
+    protected IGuiTexture emptyBarArea;
+    @Configurable
+    protected IGuiTexture filledBarArea;
 
     protected double progress;
+
+    @Configurable
     protected FillDirection fillDirection = FillDirection.LEFT_TO_RIGHT;
+
+    private boolean demo;
+
+    public ProgressTexture() {
+        this(new ResourceTexture("ldlib:textures/gui/progress_bar_fuel.png").getSubTexture(0, 0, 1, 0.5),
+                new ResourceTexture("ldlib:textures/gui/progress_bar_fuel.png").getSubTexture(0, 0.5, 1, 0.5));
+        fillDirection = FillDirection.DOWN_TO_UP;
+        demo = true;
+    }
+
+    @Override
+    public void updateTick() {
+        if (demo) {
+            progress = Math.abs(System.currentTimeMillis() % 2000) / 2000.0;
+        }
+    }
 
     public ProgressTexture(IGuiTexture emptyBarArea, IGuiTexture filledBarArea) {
         this.emptyBarArea = emptyBarArea;
@@ -31,7 +54,7 @@ public class ProgressTexture implements IGuiTexture {
 
     @Override
     @OnlyIn(Dist.CLIENT)
-    public void draw(PoseStack stack, int mouseX, int mouseY, float x, float y, int width, int height) {
+    protected void drawInternal(PoseStack stack, int mouseX, int mouseY, float x, float y, int width, int height) {
         if (emptyBarArea != null) {
             emptyBarArea.draw(stack, mouseX, mouseY, x, y, width, height);
         }
