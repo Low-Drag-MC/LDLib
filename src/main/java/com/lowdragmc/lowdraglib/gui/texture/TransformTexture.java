@@ -78,8 +78,10 @@ public abstract class TransformTexture implements IGuiTexture{
         postDraw(stack, x, y, width, height);
     }
 
+    @OnlyIn(Dist.CLIENT)
     protected abstract void drawInternal(PoseStack stack, int mouseX, int mouseY, float x, float y, int width, int height);
 
+    @OnlyIn(Dist.CLIENT)
     protected void drawSubAreaInternal(PoseStack stack, float x, float y, int width, int height, float drawnU, float drawnV, float drawnWidth, float drawnHeight) {
         drawInternal(stack, 0, 0, x, y, width, height);
     }

@@ -54,54 +54,34 @@ minecraft {
 
     runs {
         client {
-            workingDirectory project.file('run')
-
-            arg "-mixin.config=ldlib.mixins.json"
-            property 'mixin.env.remapRefMap', 'true'
-            property 'mixin.env.refMapRemappingFile', "${projectDir}/build/createSrgToMcp/output.srg"
-
-            property 'forge.logging.markers', 'REGISTRIES'
-
-            property 'forge.logging.console.level', 'debug'
-
-            mods {
-                ldlib {
-                    source sourceSets.main
-                }
-            }
         }
 
         server {
-            workingDirectory project.file('run')
-
-            property 'forge.logging.markers', 'REGISTRIES'
-
-            property 'mixin.env.remapRefMap', 'true'
-            property 'mixin.env.refMapRemappingFile', "${projectDir}/build/createSrgToMcp/output.srg"
-
-            property 'forge.logging.console.level', 'debug'
-
-            mods {
-                ldlib {
-                    source sourceSets.main
-                }
-            }
         }
 
         data {
-            workingDirectory project.file('run')
-
-            property 'forge.logging.markers', 'REGISTRIES'
-
-            property 'forge.logging.console.level', 'debug'
-
             args '--mod', 'ldlib', '--all', '--output', file('src/generated/resources/'), '--existing', file('src/main/resources/')
-
-            mods {
-                ldlib {
-                    source sourceSets.main
-                }
+        }
+    }
+    runs.forEach { runConfig ->
+        runConfig.workingDirectory(project.file("run"))
+        runConfig.property('forge.logging.console.level', 'debug')
+        runConfig.property('forge.logging.markers', 'REGISTRIES')
+        runConfig.arg("-mixin.config' , 'ldlib.mixins.json")
+        runConfig.mods {
+            ldlib {
+                source sourceSets.main
+                source sourceSets.test
             }
+        }
+        if (enable_mixin_debug) runConfig.jvmArg("-Dmixin.debug=true")
+        runConfig.jvmArg("-Dmixin.debug.export=true")
+        runConfig.jvmArg("-Dmixin.dumpTargetOnFailure=true")
+        runConfig.jvmArg("-Dmixin.checks.interfaces=true")
+        runConfig.jvmArg("-Dmixin.hotSwap=true")
+        if (enable_hot_swap_agent) {
+            runConfig.jvmArg("-XX:+AllowEnhancedClassRedefinition")
+            runConfig.jvmArg("-XX:HotswapAgent=fatjar")
         }
     }
 }

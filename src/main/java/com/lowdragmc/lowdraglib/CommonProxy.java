@@ -9,26 +9,33 @@ import com.lowdragmc.lowdraglib.syncdata.TypedPayloadRegistries;
 import com.lowdragmc.lowdraglib.test.TestBlock;
 import com.lowdragmc.lowdraglib.test.TestBlockEntity;
 import com.lowdragmc.lowdraglib.test.TestItem;
+import com.lowdragmc.lowdraglib.test.TestNodeEditor;
+import net.minecraft.commands.Commands;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLLoadCompleteEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.minecraftforge.fml.loading.FMLLoader;
 import net.minecraftforge.registries.IForgeRegistry;
 
 public class CommonProxy {
-    protected final boolean DEBUG = true;
+    protected static final boolean DEBUG = !FMLLoader.isProduction();
 
     public CommonProxy() {
         IEventBus eventBus = FMLJavaModLoadingContext.get().getModEventBus();
         eventBus.register(this);
+        MinecraftForge.EVENT_BUS.addListener(this::registerCommand);
         LDLNetworking.init();
         UIFactory.register(BlockEntityUIFactory.INSTANCE);
         UIFactory.register(HeldItemUIFactory.INSTANCE);
+        UIFactory.register(TestNodeEditor.instance);
         UIDetector.init();
     }
 
@@ -66,6 +73,15 @@ public class CommonProxy {
         if (DEBUG) {
             IForgeRegistry<Item> registry = event.getRegistry();
             registry.register(TestItem.ITEM);
+        }
+    }
+
+    public void registerCommand(RegisterCommandsEvent event) {
+        if (DEBUG) {
+            event.getDispatcher().register(Commands.literal("editor").executes(context -> {
+                TestNodeEditor.instance.openUI(TestNodeEditor.instance, context.getSource().getPlayerOrException());
+                return 1;
+            }));
         }
     }
 }

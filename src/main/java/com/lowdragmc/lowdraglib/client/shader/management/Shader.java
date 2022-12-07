@@ -8,6 +8,7 @@ import net.minecraft.server.packs.resources.Resource;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.apache.commons.io.IOUtils;
+import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL20;
 
 import java.io.BufferedReader;
@@ -48,8 +49,8 @@ public class Shader {
         if (!this.isCompiled && shaderId != 0) {
             GL20.glShaderSource(this.shaderId, source);
             GL20.glCompileShader(this.shaderId);
-            if (GL20.glGetShaderi(this.shaderId, 35713) == 0) {
-                int maxLength = GL20.glGetShaderi(this.shaderId, 35716);
+            if (GL20.glGetShaderi(this.shaderId, GL20.GL_COMPILE_STATUS) == GL11.GL_FALSE) {
+                int maxLength = GL20.glGetShaderi(this.shaderId, GL20.GL_INFO_LOG_LENGTH);
                 String error = String.format("Unable to compile %s shader object:\n%s", this.shaderType.name(), GL20.glGetShaderInfoLog(this.shaderId, maxLength));
                 LDLMod.LOGGER.error(error);
             }

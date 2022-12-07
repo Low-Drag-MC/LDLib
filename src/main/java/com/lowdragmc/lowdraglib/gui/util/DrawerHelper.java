@@ -1,15 +1,17 @@
 package com.lowdragmc.lowdraglib.gui.util;
 
+import com.lowdragmc.lowdraglib.client.shader.Shaders;
+import com.lowdragmc.lowdraglib.client.shader.management.ShaderProgram;
+import com.lowdragmc.lowdraglib.client.shader.uniform.UniformCache;
 import com.lowdragmc.lowdraglib.client.utils.RenderBufferUtils;
+import com.lowdragmc.lowdraglib.utils.LdUtils;
+import com.lowdragmc.lowdraglib.utils.Position;
+import com.lowdragmc.lowdraglib.utils.Rect;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.BufferBuilder;
-import com.mojang.blaze3d.vertex.BufferUploader;
-import com.mojang.blaze3d.vertex.DefaultVertexFormat;
-import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.Tesselator;
-import com.mojang.blaze3d.vertex.VertexFormat;
+import com.mojang.blaze3d.vertex.*;
 import com.mojang.math.Matrix4f;
+import com.mojang.math.Vector4f;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.Gui;
@@ -30,7 +32,28 @@ import net.minecraftforge.fluids.FluidStack;
 import javax.annotation.Nullable;
 import java.util.List;
 
+@OnlyIn(Dist.CLIENT)
 public class DrawerHelper {
+
+    public static ShaderProgram ROUND;
+    public static ShaderProgram PANEL_BG;
+    public static ShaderProgram ROUND_BOX;
+    public static ShaderProgram PROGRESS_ROUND_BOX;
+    public static ShaderProgram ROUND_LINE;
+
+    public static void init() {
+        ROUND = LdUtils.make(new ShaderProgram(), program
+                -> program.attach(Shaders.ROUND_F).attach(Shaders.SCREEN_V));
+        PANEL_BG = LdUtils.make(new ShaderProgram(), program
+                -> program.attach(Shaders.PANEL_BG_F).attach(Shaders.SCREEN_V));
+        ROUND_BOX = LdUtils.make(new ShaderProgram(), program
+                -> program.attach(Shaders.ROUND_BOX_F).attach(Shaders.SCREEN_V));
+        PROGRESS_ROUND_BOX = LdUtils.make(new ShaderProgram(), program
+                -> program.attach(Shaders.PROGRESS_ROUND_BOX_F).attach(Shaders.SCREEN_V));
+        ROUND_LINE = LdUtils.make(new ShaderProgram(), program
+                -> program.attach(Shaders.ROUND_LINE_F).attach(Shaders.SCREEN_V));
+    }
+
 
     @OnlyIn(Dist.CLIENT)
     public static void drawFluidTexture(PoseStack poseStack, float xCoord, float yCoord, TextureAtlasSprite textureSprite, int maskTop, int maskRight, float zLevel, int fluidColor) {
@@ -194,6 +217,11 @@ public class DrawerHelper {
     }
 
     @OnlyIn(Dist.CLIENT)
+    public static void drawSolidRect(PoseStack poseStack, Rect rect, int color) {
+        drawSolidRect(poseStack, rect.left, rect.up, rect.right, rect.down, color);
+    }
+
+    @OnlyIn(Dist.CLIENT)
     public static void drawRectShadow(PoseStack poseStack, int x, int y, int width, int height, int distance) {
         drawGradientRect(poseStack, x + distance, y + height, width - distance, distance, 0x4f000000, 0, false);
         drawGradientRect(poseStack, x + width, y + distance, distance, height - distance, 0x4f000000, 0, true);
@@ -288,6 +316,113 @@ public class DrawerHelper {
         buffer.vertex(mat, x + width, y, 0).uv(1, 1).endVertex();
         buffer.vertex(mat, x, y, 0).uv(0, 1).endVertex();
         tesselator.end();
+    }
+
+    public static void updateScreenVshUniform(PoseStack poseStack, UniformCache uniform) {
+        var window = Minecraft.getInstance().getWindow();
+
+        uniform.glUniform1F("GuiScale", (float) window.getGuiScale());
+        uniform.glUniform2F("ScreenSize", (float) window.getWidth(), (float) window.getHeight());
+        uniform.glUniformMatrix4F("PoseStack",poseStack.last().pose());
+        uniform.glUniformMatrix4F("ProjMat", RenderSystem.getProjectionMatrix());
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    public static void drawRound(PoseStack poseStack, int color, float radius, Position centerPos) {
+        DrawerHelper.ROUND.use(uniform -> {
+
+            DrawerHelper.updateScreenVshUniform(poseStack, uniform);
+
+            uniform.fillRGBAColor("Color", color);
+
+            uniform.glUniform1F("StepLength", 1f);
+            uniform.glUniform1F("Radius", radius);
+            uniform.glUniform2F("CenterPos", centerPos.x, centerPos.y);
+        });
+
+        RenderSystem.enableBlend();
+        uploadScreenPosVertex();
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    public static void drawPanelBg(PoseStack poseStack) {
+        DrawerHelper.PANEL_BG.use(uniform -> {
+
+            DrawerHelper.updateScreenVshUniform(poseStack, uniform);
+
+            uniform.glUniform1F("Density", 5);
+            uniform.glUniform1F("SquareSize", 0.1f);
+            var bg = 20f / 255f;
+            uniform.glUniform4F("BgColor", bg, bg, bg, 0.95f);
+            var square = 40f / 255f;
+            uniform.glUniform4F("SquareColor", square, square, square, 0.95f);
+        });
+
+        RenderSystem.enableBlend();
+        uploadScreenPosVertex();
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    public static void drawRoundBox(PoseStack poseStack, Rect square, Vector4f radius, int color) {
+        DrawerHelper.ROUND_BOX.use(uniform -> {
+            DrawerHelper.updateScreenVshUniform(poseStack, uniform);
+
+            uniform.glUniform4F("SquareVertex", square.left, square.up, square.right, square.down);
+            uniform.glUniform4F("RoundRadius", radius.x(), radius.y(), radius.z(), radius.w());
+            uniform.fillRGBAColor("Color", color);
+            uniform.glUniform1F("Blur", 2);
+        });
+
+        RenderSystem.enableBlend();
+        uploadScreenPosVertex();
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    public static void drawProgressRoundBox(PoseStack poseStack, Rect square, Vector4f radius, int color1, int color2, float progress) {
+        DrawerHelper.PROGRESS_ROUND_BOX.use(uniform -> {
+            DrawerHelper.updateScreenVshUniform(poseStack, uniform);
+
+            uniform.glUniform4F("SquareVertex", square.left, square.up, square.right, square.down);
+            uniform.glUniform4F("RoundRadius", radius.x(), radius.y(), radius.z(), radius.w());
+            uniform.fillRGBAColor("Color1", color1);
+            uniform.fillRGBAColor("Color2", color2);
+            uniform.glUniform1F("Blur", 2);
+            uniform.glUniform1F("Progress", progress);
+        });
+
+        RenderSystem.enableBlend();
+        uploadScreenPosVertex();
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    public static void drawRoundLine(PoseStack poseStack, Position begin, Position end, int width, int color1, int color2) {
+        DrawerHelper.ROUND_LINE.use(uniform -> {
+            DrawerHelper.updateScreenVshUniform(poseStack, uniform);
+
+            uniform.glUniform1F("Width", width);
+            uniform.glUniform2F("Point1", begin.x, begin.y);
+            uniform.glUniform2F("Point2", end.x, end.y);
+            uniform.fillRGBAColor("Color1", color1);
+            uniform.fillRGBAColor("Color2", color2);
+            uniform.glUniform1F("Blur", 2);
+        });
+
+        RenderSystem.enableBlend();
+        uploadScreenPosVertex();
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    private static void uploadScreenPosVertex() {
+        var builder = Tesselator.getInstance().getBuilder();
+
+        builder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION);
+        builder.vertex(-1.0, 1.0, 0.0).endVertex();
+        builder.vertex(-1.0, -1.0, 0.0).endVertex();
+        builder.vertex(1.0, -1.0, 0.0).endVertex();
+        builder.vertex(1.0, 1.0, 0.0).endVertex();
+        builder.end();
+
+        BufferUploader._endInternal(builder);
     }
 
 }

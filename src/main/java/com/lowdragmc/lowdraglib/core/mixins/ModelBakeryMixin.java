@@ -19,6 +19,7 @@ public abstract class ModelBakeryMixin {
     @Redirect(method = "getModel",
             at = @At(value = "INVOKE",
                     target = "Lorg/slf4j/Logger;warn(Ljava/lang/String;[Ljava/lang/Object;)V"))
+    @SuppressWarnings("mapping")
     protected void injectStateToModelLocation(Logger logger, String string, Object[] objects) {
         String location = objects[0].toString();
         if (location.endsWith("#inventory") && Registry.ITEM.get(new ResourceLocation(location.substring(0, location.length() - "#inventory".length()))) instanceof IItemRendererProvider) {

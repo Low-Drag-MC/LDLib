@@ -106,6 +106,10 @@ public class TextBoxWidget extends Widget implements IConfigurableWidget {
         return this;
     }
 
+    public int getMaxContentWidth() {
+        return content.stream().mapToInt(Minecraft.getInstance().font::width).max().orElse(0);
+    }
+
     protected void calculate() {
         if (isRemote()) {
             this.textLines = new ArrayList<>();

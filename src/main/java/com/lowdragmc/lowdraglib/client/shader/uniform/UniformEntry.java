@@ -1,5 +1,6 @@
 package com.lowdragmc.lowdraglib.client.shader.uniform;
 
+import com.mojang.math.Matrix4f;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.nio.FloatBuffer;
@@ -8,10 +9,11 @@ import java.util.function.Predicate;
 
 public abstract class UniformEntry<T> {
 
-	public static final Predicate<UniformEntry> IS_INT = uniformEntry -> uniformEntry instanceof IntUniformEntry;
-	public static final Predicate<UniformEntry> IS_FLOAT = uniformEntry -> uniformEntry instanceof FloatUniformEntry;
-	public static final Predicate<UniformEntry> IS_MATRIX = uniformEntry -> uniformEntry instanceof MatrixUniformEntry;
-	public static final Predicate<UniformEntry> IS_BOOLEAN = uniformEntry -> uniformEntry instanceof BooleanUniformEntry;
+	public static final Predicate<UniformEntry<?>> IS_INT = uniformEntry -> uniformEntry instanceof IntUniformEntry;
+	public static final Predicate<UniformEntry<?>> IS_FLOAT = uniformEntry -> uniformEntry instanceof FloatUniformEntry;
+	public static final Predicate<UniformEntry<?>> IS_MATRIX = uniformEntry -> uniformEntry instanceof MatrixUniformEntry;
+	public static final Predicate<UniformEntry<?>> IS_MATRIX4F = uniformEntry -> uniformEntry instanceof Matrix4FUniformEntry;
+	public static final Predicate<UniformEntry<?>> IS_BOOLEAN = uniformEntry -> uniformEntry instanceof BooleanUniformEntry;
 
 	public abstract boolean check(T other);
 
@@ -78,6 +80,22 @@ public abstract class UniformEntry<T> {
 		@Override
 		public boolean check(Pair<FloatBuffer, Boolean> other) {
 			return matrix.equals(other.getKey()) && transpose == other.getValue();
+		}
+	}
+
+	public static class Matrix4FUniformEntry extends UniformEntry<Matrix4f> {
+
+		public static Function<Matrix4f, UniformEntry<Matrix4f>> NEW = Matrix4FUniformEntry::new;
+
+		Matrix4f matrix;
+
+		public Matrix4FUniformEntry(Matrix4f other) {
+			this.matrix = other.copy();
+		}
+
+		@Override
+		public boolean check(Matrix4f other) {
+			return matrix.equals(other);
 		}
 	}
 
