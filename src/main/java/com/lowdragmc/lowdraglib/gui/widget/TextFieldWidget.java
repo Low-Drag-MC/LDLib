@@ -1,5 +1,7 @@
 package com.lowdragmc.lowdraglib.gui.widget;
 
+import com.lowdragmc.lowdraglib.gui.editor.annotation.*;
+import com.lowdragmc.lowdraglib.gui.editor.configurator.IConfigurableWidget;
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.utils.Position;
 import com.lowdragmc.lowdraglib.utils.Size;
@@ -26,21 +28,37 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public class TextFieldWidget extends Widget {
+@Configurable(name = "ldlib.gui.editor.register.widget.text_field", collapse = false)
+@RegisterUI(name = "text_field")
+public class TextFieldWidget extends Widget implements IConfigurableWidget {
 
     @OnlyIn(Dist.CLIENT)
     protected EditBox textField;
 
+    @Configurable
+    @NumberRange(range = {0, Integer.MAX_VALUE})
     protected int maxStringLength = Integer.MAX_VALUE;
     protected Function<String, String> textValidator = (s)->s;
     protected Supplier<String> textSupplier;
     protected Consumer<String> textResponder;
+
+    @Configurable
     protected String currentString;
+
+    @Configurable
     protected boolean isBordered;
+
+    @Configurable
+    @NumberColor
     protected int textColor = -1;
+
     protected float wheelDur;
     protected NumberFormat numberInstance;
     protected Component hover;
+
+    public TextFieldWidget() {
+        this(0, 0, 60, 15, null, null);
+    }
 
     public TextFieldWidget(int xPosition, int yPosition, int width, int height, Supplier<String> textSupplier, Consumer<String> textResponder) {
         super(new Position(xPosition, yPosition), new Size(width, height));
@@ -71,6 +89,7 @@ public class TextFieldWidget extends Widget {
         return this;
     }
 
+    @ConfigSetter(field = "currentString")
     public TextFieldWidget setCurrentString(Object currentString) {
         this.currentString = currentString.toString();
         if (isRemote()) {
@@ -82,10 +101,14 @@ public class TextFieldWidget extends Widget {
     }
 
     public String getCurrentString() {
-        if (isRemote()) {
-            return this.textField.getValue();
-        }
         return this.currentString;
+    }
+
+    public String getRawCurrentString() {
+        if (isRemote()) {
+            return textField.getValue();
+        }
+        return getCurrentString();
     }
 
     @Override
@@ -100,7 +123,7 @@ public class TextFieldWidget extends Widget {
         if (isRemote() && textField != null) {
             Position position = getPosition();
             Size size = getSize();
-            this.textField.x = isBordered ? position.x : position.x + 1;
+            this.textField.x = isBordered ? position.x : position.x + 2;
             this.textField.y = isBordered ? position.y : position.y + (size.height - Minecraft.getInstance().font.lineHeight) / 2 + 1;
         }
     }
@@ -126,6 +149,7 @@ public class TextFieldWidget extends Widget {
     }
 
     @Override
+    @OnlyIn(Dist.CLIENT)
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         setFocus(isMouseOverElement(mouseX, mouseY));
         return this.textField.mouseClicked(mouseX, mouseY, button);
@@ -199,14 +223,18 @@ public class TextFieldWidget extends Widget {
         }
     }
 
+    @ConfigSetter(field = "isBordered")
     public TextFieldWidget setBordered(boolean bordered) {
         isBordered = bordered;
         if (isRemote()) {
             this.textField.setBordered(bordered);
+            onPositionUpdate();
+            onSizeUpdate();
         }
         return this;
     }
 
+    @ConfigSetter(field = "textColor")
     public TextFieldWidget setTextColor(int textColor) {
         this.textColor = textColor;
         if (isRemote()) {
@@ -215,6 +243,7 @@ public class TextFieldWidget extends Widget {
         return this;
     }
 
+    @ConfigSetter(field = "maxStringLength")
     public TextFieldWidget setMaxStringLength(int maxStringLength) {
         this.maxStringLength = maxStringLength;
         if (isRemote()) {
@@ -300,9 +329,9 @@ public class TextFieldWidget extends Widget {
             } catch (NumberFormatException ignored) { }
             return this.currentString;
         });
-        if (minValue == Float.MIN_VALUE && maxValue == Float.MAX_VALUE) {
+        if (minValue == -Float.MAX_VALUE && maxValue == Float.MAX_VALUE) {
             hover = new TranslatableComponent("ldlib.gui.text_field.number.3");
-        } else if (minValue == Float.MIN_VALUE) {
+        } else if (minValue == -Float.MAX_VALUE) {
             hover = new TranslatableComponent("ldlib.gui.text_field.number.2", maxValue);
         } else if (maxValue == Float.MAX_VALUE) {
             hover = new TranslatableComponent("ldlib.gui.text_field.number.1", minValue);

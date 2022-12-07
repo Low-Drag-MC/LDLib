@@ -1,6 +1,6 @@
 package com.lowdragmc.lowdraglib.gui.editor.configurator;
 
-import com.lowdragmc.lowdraglib.gui.editor.ConfigPanel;
+import com.lowdragmc.lowdraglib.gui.editor.ui.ConfigPanel;
 import com.lowdragmc.lowdraglib.gui.texture.ColorBorderTexture;
 import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
 import com.lowdragmc.lowdraglib.gui.texture.TextTexture;
@@ -76,9 +76,9 @@ public class ArrayConfiguratorGroup extends ConfiguratorGroup{
         }
 
         @Override
-        public void setConfigPanel(ConfigPanel configPanel) {
-            super.setConfigPanel(configPanel);
-            inner.setConfigPanel(configPanel);
+        public void setConfigPanel(ConfigPanel configPanel, ConfigPanel.Tab tab) {
+            super.setConfigPanel(configPanel, tab);
+            inner.setConfigPanel(configPanel, tab);
         }
 
         @Override

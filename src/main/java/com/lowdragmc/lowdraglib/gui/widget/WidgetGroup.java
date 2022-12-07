@@ -1,31 +1,48 @@
 package com.lowdragmc.lowdraglib.gui.widget;
 
 import com.lowdragmc.lowdraglib.gui.animation.Animation;
+import com.lowdragmc.lowdraglib.gui.editor.annotation.RegisterUI;
+import com.lowdragmc.lowdraglib.gui.editor.configurator.IConfigurableWidget;
+import com.lowdragmc.lowdraglib.gui.editor.runtime.UIDetector;
 import com.lowdragmc.lowdraglib.gui.ingredient.IGhostIngredientTarget;
 import com.lowdragmc.lowdraglib.gui.ingredient.IIngredientSlot;
 import com.lowdragmc.lowdraglib.gui.ingredient.Target;
 import com.lowdragmc.lowdraglib.gui.modular.WidgetUIAccess;
+import com.lowdragmc.lowdraglib.gui.texture.ResourceBorderTexture;
 import com.lowdragmc.lowdraglib.utils.Position;
 import com.lowdragmc.lowdraglib.utils.Size;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.Util;
 import net.minecraft.client.renderer.Rect2i;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nonnull;
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
-public class WidgetGroup extends Widget implements IGhostIngredientTarget, IIngredientSlot {
+@RegisterUI(name = "group", group = "advanced")
+public class WidgetGroup extends Widget implements IGhostIngredientTarget, IIngredientSlot, IConfigurableWidget {
 
     public final List<Widget> widgets = new ArrayList<>();
     private final WidgetGroupUIAccess groupUIAccess = new WidgetGroupUIAccess();
     private final boolean isDynamicSized;
     protected final List<Widget> waitToRemoved;
     protected final List<Widget> waitToAdded;
+
+    public WidgetGroup() {
+        this(0, 0,50, 50);
+        setBackground(ResourceBorderTexture.BORDERED_BACKGROUND);
+    }
+
     public WidgetGroup(int x, int y, int width, int height) {
         super(x, y, width, height);
         this.isDynamicSized = false;
@@ -94,6 +111,32 @@ public class WidgetGroup extends Widget implements IGhostIngredientTarget, IIngr
             widget.setParentPosition(selfPosition);
         }
         recomputeSize();
+    }
+
+    @Override
+    public boolean isMouseOverElement(double mouseX, double mouseY) {
+        for (int i = widgets.size() - 1; i >= 0; i--) {
+            Widget widget = widgets.get(i);
+            if(widget.isVisible() && widget.isMouseOverElement(mouseX, mouseY)) {
+                return true;
+            }
+        }
+        return super.isMouseOverElement(mouseX, mouseY);
+    }
+
+    @Nullable
+    @Override
+    public Widget getHoverElement(double mouseX, double mouseY) {
+        for (int i = widgets.size() - 1; i >= 0; i--) {
+            Widget widget = widgets.get(i);
+            if(widget.isVisible()) {
+                widget = widget.getHoverElement(mouseX, mouseY);
+                if (widget != null) {
+                    return widget;
+                }
+            }
+        }
+        return super.getHoverElement(mouseX, mouseY);
     }
 
     protected boolean recomputeSize() {
@@ -376,7 +419,7 @@ public class WidgetGroup extends Widget implements IGhostIngredientTarget, IIngr
                 return true;
             }
         }
-        return false;
+        return super.mouseClicked(mouseX, mouseY, button);
     }
 
     @Override
@@ -388,7 +431,7 @@ public class WidgetGroup extends Widget implements IGhostIngredientTarget, IIngr
                 return true;
             }
         }
-        return false;
+        return super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
     }
 
     @Override
@@ -400,17 +443,18 @@ public class WidgetGroup extends Widget implements IGhostIngredientTarget, IIngr
                 return true;
             }
         }
-        return false;
+        return super.mouseReleased(mouseX, mouseY, button);
     }
 
     @OnlyIn(Dist.CLIENT)
-    public void mouseMoved(double mouseX, double mouseY) {
+    public boolean mouseMoved(double mouseX, double mouseY) {
         for (int i = widgets.size() - 1; i >= 0; i--) {
             Widget widget = widgets.get(i);
-            if(widget.isVisible() && widget.isActive()) {
-                widget.mouseMoved(mouseX, mouseY);
+            if(widget.isVisible() && widget.isActive() && widget.mouseMoved(mouseX, mouseY)) {
+                return true;
             }
         }
+        return false;
     }
 
     @Override
@@ -554,6 +598,8 @@ public class WidgetGroup extends Widget implements IGhostIngredientTarget, IIngr
 
     }
 
+    // *********** for jei rei ************* //
+
     @Override
     @OnlyIn(Dist.CLIENT)
     public List<Rect2i> getGuiExtraAreas(Rect2i guiRect, List<Rect2i> list) {
@@ -561,5 +607,71 @@ public class WidgetGroup extends Widget implements IGhostIngredientTarget, IIngr
             list = widget.getGuiExtraAreas(guiRect, list);
         }
         return super.getGuiExtraAreas(guiRect, list);
+    }
+
+    // *********** IConfigurableWidget ************* //
+
+    @Override
+    public boolean canWidgetDragIn(IConfigurableWidget widget) {
+        if (widget == this) return false;
+        var parent = this.getParent();
+        while (parent != null) {
+            if (parent == widget) return false;
+            parent = parent.getParent();
+        }
+        return true;
+    }
+
+    @Override
+    public void onWidgetDragIn(IConfigurableWidget widget) {
+        addWidget(widget.widget());
+    }
+
+    @Override
+    public void onWidgetDragOut(IConfigurableWidget widget) {
+        removeWidget(widget.widget());
+    }
+
+    @Override
+    public CompoundTag serializeNBT() {
+        CompoundTag tag = IConfigurableWidget.super.serializeNBT();
+        var children = new ListTag();
+        for (Widget widget : widgets) {
+            if (widget instanceof IConfigurableWidget child && child.isRegisterUI()) {
+                CompoundTag ui = new CompoundTag();
+                ui.putString("type", child.getRegisterUI().name());
+                ui.put("data", child.serializeNBT());
+                children.add(ui);
+            }
+        }
+        tag.put("children", children);
+        return tag;
+    }
+
+    public static final Function<String, UIDetector.Wrapper<RegisterUI, IConfigurableWidget>> CACHE = Util.memoize(type -> {
+        for (var wrapper : UIDetector.REGISTER_WIDGETS) {
+            if (wrapper.annotation().name().equals(type)) {
+                return wrapper;
+            }
+        }
+        return null;
+    });
+
+    @Override
+    public void deserializeNBT(CompoundTag nbt) {
+        clearAllWidgets();
+        IConfigurableWidget.super.deserializeNBT(nbt);
+        var children = nbt.getList("children", Tag.TAG_COMPOUND);
+        for (Tag tag : children) {
+            if (tag instanceof CompoundTag ui) {
+                String type = ui.getString("type");
+                var wrapper = CACHE.apply(type);
+                if (wrapper != null) {
+                    var child = wrapper.creator().get();
+                    addWidget(child.widget());
+                    child.deserializeNBT(ui.getCompound("data"));
+                }
+            }
+        }
     }
 }

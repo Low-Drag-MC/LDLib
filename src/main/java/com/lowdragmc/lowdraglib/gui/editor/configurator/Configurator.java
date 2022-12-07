@@ -1,10 +1,11 @@
 package com.lowdragmc.lowdraglib.gui.editor.configurator;
 
-import com.lowdragmc.lowdraglib.gui.editor.ConfigPanel;
+import com.lowdragmc.lowdraglib.gui.editor.ui.ConfigPanel;
 import com.lowdragmc.lowdraglib.gui.texture.*;
 import com.lowdragmc.lowdraglib.gui.widget.ImageWidget;
 import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
+import com.lowdragmc.lowdraglib.utils.LocalizationUtils;
 import com.lowdragmc.lowdraglib.utils.Size;
 import lombok.Setter;
 import net.minecraft.client.Minecraft;
@@ -16,8 +17,8 @@ import net.minecraft.client.resources.language.I18n;
  * @implNote Configurator
  */
 public class Configurator extends WidgetGroup {
-    @Setter
     protected ConfigPanel configPanel;
+    protected ConfigPanel.Tab tab;
     protected String[] tips = new String[0];
     protected String name;
     protected int leftWidth, rightWidth, width = -1;
@@ -28,7 +29,7 @@ public class Configurator extends WidgetGroup {
         setClientSideWidget();
         if (!name.isEmpty()) {
             this.addWidget(new LabelWidget(3, 3, name));
-            leftWidth = Minecraft.getInstance().font.width(I18n.get(name)) + 6;
+            leftWidth = Minecraft.getInstance().font.width(LocalizationUtils.format(name)) + 6;
         } else {
             leftWidth = 3;
         }
@@ -38,11 +39,16 @@ public class Configurator extends WidgetGroup {
         this("");
     }
 
-    protected void computeLayout() {
-        configPanel.computeLayout();
+    public void setConfigPanel(ConfigPanel configPanel, ConfigPanel.Tab tab) {
+        this.configPanel = configPanel;
+        this.tab = tab;
     }
 
-    public void setTips(String[] tips) {
+    protected void computeLayout() {
+        configPanel.computeLayout(tab);
+    }
+
+    public void setTips(String... tips) {
         this.tips = tips;
         rightWidth = tips.length > 0 ? 13 : 0;
     }

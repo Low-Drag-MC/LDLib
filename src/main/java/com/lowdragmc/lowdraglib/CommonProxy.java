@@ -1,5 +1,6 @@
 package com.lowdragmc.lowdraglib;
 
+import com.lowdragmc.lowdraglib.gui.editor.runtime.UIDetector;
 import com.lowdragmc.lowdraglib.gui.factory.BlockEntityUIFactory;
 import com.lowdragmc.lowdraglib.gui.factory.HeldItemUIFactory;
 import com.lowdragmc.lowdraglib.gui.factory.UIFactory;
@@ -20,7 +21,7 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.registries.IForgeRegistry;
 
 public class CommonProxy {
-    protected final boolean DEBUG = false;
+    protected final boolean DEBUG = true;
 
     public CommonProxy() {
         IEventBus eventBus = FMLJavaModLoadingContext.get().getModEventBus();
@@ -28,6 +29,7 @@ public class CommonProxy {
         LDLNetworking.init();
         UIFactory.register(BlockEntityUIFactory.INSTANCE);
         UIFactory.register(HeldItemUIFactory.INSTANCE);
+        UIDetector.init();
     }
 
     @SubscribeEvent

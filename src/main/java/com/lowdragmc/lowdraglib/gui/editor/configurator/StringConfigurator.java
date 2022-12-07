@@ -3,6 +3,8 @@ package com.lowdragmc.lowdraglib.gui.editor.configurator;
 import com.lowdragmc.lowdraglib.gui.editor.ColorPattern;
 import com.lowdragmc.lowdraglib.gui.widget.ImageWidget;
 import com.lowdragmc.lowdraglib.gui.widget.TextFieldWidget;
+import lombok.Setter;
+import net.minecraft.resources.ResourceLocation;
 
 import javax.annotation.Nonnull;
 import java.util.function.Consumer;
@@ -15,6 +17,8 @@ import java.util.function.Supplier;
  */
 public class StringConfigurator extends ValueConfigurator<String>{
     protected TextFieldWidget textFieldWidget;
+    @Setter
+    protected boolean isResourceLocation;
 
     public StringConfigurator(String name, Supplier<String> supplier, Consumer<String> onUpdate, @Nonnull String defaultValue, boolean forceUpdate) {
         super(name, supplier, onUpdate, defaultValue, forceUpdate);
@@ -31,11 +35,26 @@ public class StringConfigurator extends ValueConfigurator<String>{
     @Override
     public void init(int width) {
         super.init(width);
-        addWidget(new ImageWidget(leftWidth, 2, width - leftWidth - 3 - rightWidth, 10, ColorPattern.T_GRAY.rectTexture()));
+        ImageWidget image;
+        addWidget(image = new ImageWidget(leftWidth, 2, width - leftWidth - 3 - rightWidth, 10, ColorPattern.T_GRAY.rectTexture()));
+        image.setDraggingConsumer(
+                o -> (!isResourceLocation && o instanceof Number) || o instanceof String || o instanceof ResourceLocation,
+                o -> image.setImage(ColorPattern.GREEN.rectTexture()),
+                o -> image.setImage(ColorPattern.T_GRAY.rectTexture()),
+                o -> {
+                    if ((!isResourceLocation && o instanceof Number) || o instanceof String || o instanceof ResourceLocation) {
+                        onValueUpdate(o.toString());
+                        updateValue();
+                    }
+                    image.setImage(ColorPattern.T_GRAY.rectTexture());
+                });
         addWidget(textFieldWidget = new TextFieldWidget(leftWidth + 3, 2, width - leftWidth - 6 - rightWidth, 10, null, this::onStringUpdate));
         textFieldWidget.setClientSideWidget();
         textFieldWidget.setCurrentString(value == null ? defaultValue : value);
         textFieldWidget.setBordered(false);
+        if (isResourceLocation) {
+            textFieldWidget.setResourceLocationOnly();
+        }
     }
 
     private void onStringUpdate(String s) {

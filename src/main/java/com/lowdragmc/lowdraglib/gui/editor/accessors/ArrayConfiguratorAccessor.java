@@ -39,14 +39,18 @@ public class ArrayConfiguratorAccessor implements IConfiguratorAccessor<Object> 
     @Override
     public Configurator create(String name, Supplier supplier, Consumer consumer, boolean forceUpdate, Field field) {
         boolean isCollapse = true;
+        boolean canCollapse = true;
         if (field.isAnnotationPresent(Configurable.class)) {
             isCollapse = field.getAnnotation(Configurable.class).collapse();
+            canCollapse = field.getAnnotation(Configurable.class).canCollapse();
         }
         Object array = supplier.get();
         if (array == null) {
             array = defaultValue(field, Object.class);
         }
         ArrayConfiguratorGroup arrayGroup = new ArrayConfiguratorGroup(name, isCollapse);
+        arrayGroup.setCanCollapse(canCollapse);
+
         int length = Array.getLength(array);
 
         List<Object> objectList = new ArrayList<>();

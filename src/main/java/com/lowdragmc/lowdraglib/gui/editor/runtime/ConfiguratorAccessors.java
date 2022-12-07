@@ -1,19 +1,14 @@
 package com.lowdragmc.lowdraglib.gui.editor.runtime;
 
-import com.lowdragmc.lowdraglib.LDLMod;
 import com.lowdragmc.lowdraglib.gui.editor.accessors.ArrayConfiguratorAccessor;
 import com.lowdragmc.lowdraglib.gui.editor.accessors.CollectionConfiguratorAccessor;
 import com.lowdragmc.lowdraglib.gui.editor.accessors.IConfiguratorAccessor;
-import com.lowdragmc.lowdraglib.gui.editor.annotation.ConfigAccessor;
-import com.lowdragmc.lowdraglib.syncdata.SyncedFieldAccessors;
 import com.lowdragmc.lowdraglib.utils.ReflectionUtils;
 
 import java.lang.reflect.GenericArrayType;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -24,7 +19,6 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class ConfiguratorAccessors {
     private static final Map<Class<?>, IConfiguratorAccessor<?>> ACCESSOR_MAP = new ConcurrentHashMap<>();
-    private static final List<IConfiguratorAccessor<?>> REGISTRY = new ArrayList<>();
 
     public static IConfiguratorAccessor<?> findByType(Type clazz) {
 
@@ -60,25 +54,12 @@ public class ConfiguratorAccessors {
 
     public static IConfiguratorAccessor<?> findByClass(Class<?> clazz) {
         return ACCESSOR_MAP.computeIfAbsent(clazz, c -> {
-            for (IConfiguratorAccessor<?> accessor : REGISTRY) {
+            for (IConfiguratorAccessor<?> accessor : UIDetector.CONFIGURATOR_ACCESSORS) {
                 if (accessor.test(c)) {
                     return accessor;
                 }
             }
             return IConfiguratorAccessor.DEFAULT;
-        });
-    }
-
-    public static void init() {
-        ReflectionUtils.getAnnotationClasses(ConfigAccessor.class, clazz -> {
-            try {
-                var instance = clazz.getConstructor().newInstance();
-                if (instance instanceof IConfiguratorAccessor) {
-                    REGISTRY.add((IConfiguratorAccessor<?>) instance);
-                }
-            } catch (Throwable e) {
-                LDLMod.LOGGER.error("failed to init ConfigAccessor class: {}", clazz, e);
-            }
         });
     }
 

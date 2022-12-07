@@ -42,8 +42,10 @@ public class CollectionConfiguratorAccessor implements IConfiguratorAccessor<Col
     @Override
     public Configurator create(String name, Supplier<Collection> supplier, Consumer<Collection> consumer, boolean forceUpdate, Field field) {
         boolean isCollapse = true;
+        boolean canCollapse = true;
         if (field.isAnnotationPresent(Configurable.class)) {
             isCollapse = field.getAnnotation(Configurable.class).collapse();
+            canCollapse = field.getAnnotation(Configurable.class).canCollapse();
         }
 
         var collection = supplier.get();
@@ -54,6 +56,7 @@ public class CollectionConfiguratorAccessor implements IConfiguratorAccessor<Col
         final Collection base = collection;
 
         ArrayConfiguratorGroup arrayGroup = new ArrayConfiguratorGroup(name, isCollapse);
+        arrayGroup.setCanCollapse(canCollapse);
 
         List<Object> objectList = new ArrayList<>(collection);
         Object2IntMap<Configurator> indexMap = new Object2IntOpenHashMap<>();

@@ -9,7 +9,6 @@ import com.lowdragmc.lowdraglib.gui.editor.configurator.ConfiguratorGroup;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.Collection;
 import java.util.Map;
 
 /**
@@ -25,7 +24,7 @@ public class ConfiguratorParser {
         for (Method method : clazz.getMethods()) {
             if (method.isAnnotationPresent(ConfigSetter.class)) {
                 ConfigSetter configSetter = method.getAnnotation(ConfigSetter.class);
-                String name = configSetter.name();
+                String name = configSetter.field();
                 if (!setters.containsKey(name)) {
                     setters.put(name, method);
                 }
@@ -37,6 +36,7 @@ public class ConfiguratorParser {
             Configurable configurable = clazz.getAnnotation(Configurable.class);
             String name = configurable.name().isEmpty() ? clazz.getSimpleName() : configurable.name();
             ConfiguratorGroup newGroup = new ConfiguratorGroup(name, configurable.collapse());
+            newGroup.setCanCollapse(configurable.canCollapse());
             father.addConfigurators(newGroup);
             father = newGroup;
         }

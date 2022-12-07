@@ -1,9 +1,10 @@
 package com.lowdragmc.lowdraglib.gui.widget;
 
 
-import com.lowdragmc.lowdraglib.gui.texture.ColorBorderTexture;
-import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
-import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
+import com.lowdragmc.lowdraglib.gui.editor.annotation.Configurable;
+import com.lowdragmc.lowdraglib.gui.editor.annotation.RegisterUI;
+import com.lowdragmc.lowdraglib.gui.editor.configurator.IConfigurableWidget;
+import com.lowdragmc.lowdraglib.gui.texture.*;
 import com.lowdragmc.lowdraglib.gui.util.ClickData;
 import com.lowdragmc.lowdraglib.utils.Position;
 import com.lowdragmc.lowdraglib.utils.Size;
@@ -16,14 +17,30 @@ import javax.annotation.Nonnull;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
-public class SwitchWidget extends Widget {
+@Configurable(name = "ldlib.gui.editor.register.widget.switch", collapse = false)
+@RegisterUI(name = "switch")
+public class SwitchWidget extends Widget implements IConfigurableWidget {
 
+    @Configurable
     protected IGuiTexture baseTexture;
+
+    @Configurable
     protected IGuiTexture pressedTexture;
+
+    @Configurable
     protected IGuiTexture hoverTexture;
+
+    @Configurable
     protected boolean isPressed;
+
     protected BiConsumer<ClickData, Boolean> onPressCallback;
     protected Supplier<Boolean> supplier;
+
+    public SwitchWidget() {
+        this(0, 0, 40, 20, null);
+        setTexture(new GuiTextureGroup(ResourceBorderTexture.BUTTON_COMMON, new TextTexture("off")), new GuiTextureGroup(ResourceBorderTexture.BUTTON_COMMON, new TextTexture("on")));
+        setHoverBorderTexture(1, -1);
+    }
 
     public SwitchWidget(int xPosition, int yPosition, int width, int height, BiConsumer<ClickData, Boolean> onPressed) {
         super(xPosition, yPosition, width, height);
