@@ -187,8 +187,8 @@ public class ShaderTexture extends TransformTexture {
                     }
                     float mX = Mth.clamp((mouseX - x), 0, width);
                     float mY = Mth.clamp((mouseY - y), 0, height);
-                    cache.glUniform4F("ModelViewMat", RenderSystem.getModelViewMatrix());
-                    cache.glUniform4F("ProjMat", RenderSystem.getProjectionMatrix());
+                    cache.glUniformMatrix4F("ModelViewMat", RenderSystem.getModelViewMatrix());
+                    cache.glUniformMatrix4F("ProjMat", RenderSystem.getProjectionMatrix());
                     cache.glUniform2F("iResolution", width * resolution, height * resolution);
                     cache.glUniform2F("iMouse", mX * resolution, mY * resolution);
                     cache.glUniform1F("iTime", time);

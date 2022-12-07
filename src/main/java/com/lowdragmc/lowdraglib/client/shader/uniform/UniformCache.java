@@ -10,6 +10,7 @@ import net.minecraft.util.FastColor;
 import net.minecraftforge.fml.loading.FMLLoader;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.lwjgl.opengl.GL20;
+import org.lwjgl.system.MemoryStack;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -98,11 +99,15 @@ public class UniformCache {
 		glUniform(location, UniformEntry.IS_BOOLEAN, UniformEntry.BooleanUniformEntry.NEW, (loc) -> GL20.glUniform1i(loc, value ? 1 : 0), value);
 	}
 
-	public void glUniform4F(String location, Matrix4f matrix4f) {
-		MATRIX4F_BUFFER.position(0);
-		matrix4f.store(MATRIX4F_BUFFER);
-		MATRIX4F_BUFFER.clear();
-		glUniformMatrix4(location, false, MATRIX4F_BUFFER);
+	public void glUniformMatrix4F(String location, Matrix4f matrix4f) {
+		glUniform(location, UniformEntry.IS_MATRIX4F, UniformEntry.Matrix4FUniformEntry.NEW, (loc) -> {
+			try(MemoryStack stack = MemoryStack.stackPush()) {
+				FloatBuffer buffer = stack.mallocFloat(16);
+				matrix4f.store(buffer);
+				buffer.rewind();
+				GL20.glUniformMatrix4fv(loc, false, buffer);
+			}
+		}, matrix4f);
 	}
 
 	private int getUniformLocation(String name) {
