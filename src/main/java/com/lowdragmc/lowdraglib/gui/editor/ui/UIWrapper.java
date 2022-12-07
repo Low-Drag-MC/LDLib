@@ -113,7 +113,7 @@ public record UIWrapper(@Getter MainPanel panel, @Getter IConfigurableWidget inn
 
     public void remove() {
         var parent = inner.widget().getParent();
-        if (parent != panel.root) {
+        if (inner.widget() != panel.root) {
             parent.waitToRemoved(inner.widget());
         }
     }

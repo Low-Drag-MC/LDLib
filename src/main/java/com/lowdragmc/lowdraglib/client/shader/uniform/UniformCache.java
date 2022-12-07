@@ -1,5 +1,6 @@
 package com.lowdragmc.lowdraglib.client.shader.uniform;
 
+import com.mojang.math.Matrix4f;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
@@ -7,12 +8,15 @@ import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.lwjgl.opengl.GL20;
 
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import java.util.function.Function;
 import java.util.function.IntConsumer;
 import java.util.function.Predicate;
 
 public class UniformCache {
+	protected static final FloatBuffer MATRIX4F_BUFFER = ByteBuffer.allocateDirect(16 * 4).order(ByteOrder.nativeOrder()).asFloatBuffer();
 
 	private final Int2ObjectMap<UniformEntry> entryCache = new Int2ObjectOpenHashMap<>();
 	private final Object2IntMap<String> locationCache = new Object2IntOpenHashMap<>();
@@ -81,6 +85,13 @@ public class UniformCache {
 
 	public void glUniformBoolean(String location, boolean value) {
 		glUniform(location, UniformEntry.IS_BOOLEAN, UniformEntry.BooleanUniformEntry.NEW, (loc) -> GL20.glUniform1i(loc, value ? 1 : 0), value);
+	}
+
+	public void glUniform4F(String location, Matrix4f matrix4f) {
+		MATRIX4F_BUFFER.position(0);
+		matrix4f.store(MATRIX4F_BUFFER);
+		MATRIX4F_BUFFER.clear();
+		glUniformMatrix4(location, false, MATRIX4F_BUFFER);
 	}
 
 	private int getUniformLocation(String name) {

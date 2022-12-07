@@ -6,10 +6,7 @@ import com.lowdragmc.lowdraglib.client.shader.management.Shader;
 import com.lowdragmc.lowdraglib.client.shader.management.ShaderManager;
 import com.lowdragmc.lowdraglib.client.shader.management.ShaderProgram;
 import com.lowdragmc.lowdraglib.client.shader.uniform.UniformCache;
-import com.lowdragmc.lowdraglib.gui.editor.annotation.ConfigSetter;
-import com.lowdragmc.lowdraglib.gui.editor.annotation.Configurable;
-import com.lowdragmc.lowdraglib.gui.editor.annotation.NumberRange;
-import com.lowdragmc.lowdraglib.gui.editor.annotation.RegisterUI;
+import com.lowdragmc.lowdraglib.gui.editor.annotation.*;
 import com.lowdragmc.lowdraglib.gui.util.DrawerHelper;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.BufferBuilder;
@@ -43,6 +40,10 @@ public class ShaderTexture extends TransformTexture {
     @NumberRange(range = {1, 3})
     private float resolution = 2;
 
+    @Configurable
+    @NumberColor
+    private int color = -1;
+
     private Consumer<UniformCache> uniformCache;
 
     private final boolean isRaw;
@@ -73,6 +74,12 @@ public class ShaderTexture extends TransformTexture {
         }
         shader = null;
         program = null;
+    }
+
+    @Override
+    public ShaderTexture setColor(int color) {
+        this.color = color;
+        return this;
     }
 
     @ConfigSetter(field = "location")
@@ -180,6 +187,8 @@ public class ShaderTexture extends TransformTexture {
                     }
                     float mX = Mth.clamp((mouseX - x), 0, width);
                     float mY = Mth.clamp((mouseY - y), 0, height);
+                    cache.glUniform4F("ModelViewMat", RenderSystem.getModelViewMatrix());
+                    cache.glUniform4F("ProjMat", RenderSystem.getProjectionMatrix());
                     cache.glUniform2F("iResolution", width * resolution, height * resolution);
                     cache.glUniform2F("iMouse", mX * resolution, mY * resolution);
                     cache.glUniform1F("iTime", time);
@@ -194,20 +203,16 @@ public class ShaderTexture extends TransformTexture {
 
             Tesselator tessellator = Tesselator.getInstance();
             BufferBuilder buffer = tessellator.getBuilder();
-            stack.pushPose();
-            stack.mulPoseMatrix(RenderSystem.getProjectionMatrix());
-            stack.mulPoseMatrix(RenderSystem.getModelViewMatrix());
             Matrix4f mat = stack.last().pose();
-            buffer.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
-            buffer.vertex(mat, x, y + height, 0).uv(0, 0).endVertex();
-            buffer.vertex(mat, x + width, y + height, 0).uv(1, 0).endVertex();
-            buffer.vertex(mat, x + width, y, 0).uv(1, 1).endVertex();
-            buffer.vertex(mat, x, y, 0).uv(0, 1).endVertex();
+            buffer.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR_TEX);
+            buffer.vertex(mat, x, y + height, 0).color(color).uv(0, 0).endVertex();
+            buffer.vertex(mat, x + width, y + height, 0).color(color).uv(1, 0).endVertex();
+            buffer.vertex(mat, x + width, y, 0).color(color).uv(1, 1).endVertex();
+            buffer.vertex(mat, x, y, 0).color(color).uv(0, 1).endVertex();
             buffer.end();
             BufferUploader._endInternal(buffer);
 
             program.release();
-            stack.popPose();
         } else {
             DrawerHelper.drawText(stack, "Error compiling shader", x + 2, y + 2, 1, 0xffff0000);
         }
