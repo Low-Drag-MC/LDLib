@@ -100,5 +100,6 @@
   "ldlib.gui.editor.register.widget.label": "Label Widget",
   "ldlib.gui.editor.register.widget.text_box": "Text Box Widget",
   "ldlib.gui.editor.register.widget.text_field": "Text Field Widget",
-  "ldlib.gui.editor.register.widget.group": "Group Widget"
+  "ldlib.gui.editor.register.widget.group": "Group",
+  "ldlib.gui.editor.register.widget.draggable_scrollable_group": "Scrollable Group"
 }

@@ -2,6 +2,7 @@ package com.lowdragmc.lowdraglib.gui.editor.ui;
 
 import com.lowdragmc.lowdraglib.LDLMod;
 import com.lowdragmc.lowdraglib.gui.editor.ColorPattern;
+import com.lowdragmc.lowdraglib.gui.editor.data.Project;
 import com.lowdragmc.lowdraglib.gui.editor.data.Resources;
 import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
 import com.lowdragmc.lowdraglib.gui.texture.TextTexture;
@@ -70,7 +71,7 @@ public class MenuPanel extends WidgetGroup {
         var resources = editor.resourcePanel.getResources();
         if (resources != null) {
             File path = new File(LDLMod.location, "ui_editor");
-            DialogWidget.showFileDialog(Editor.INSTANCE, "ldlib.gui.editor.tips.save_resource", path, false,
+            DialogWidget.showFileDialog(editor, "ldlib.gui.editor.tips.save_resource", path, false,
                     DialogWidget.suffixFilter(".resource"), r -> {
                         if (r != null && !r.isDirectory()) {
                             if (!r.getName().endsWith(".resource")) {
@@ -88,7 +89,7 @@ public class MenuPanel extends WidgetGroup {
 
     private void importResource() {
         File path = new File(LDLMod.location, "ui_editor");
-        DialogWidget.showFileDialog(Editor.INSTANCE, "ldlib.gui.editor.tips.load_resource", path, true,
+        DialogWidget.showFileDialog(editor, "ldlib.gui.editor.tips.load_resource", path, true,
                 DialogWidget.suffixFilter(".resource"), r -> {
                     if (r != null && r.isFile()) {
                         try {
@@ -104,13 +105,44 @@ public class MenuPanel extends WidgetGroup {
     }
 
     private void newProject() {
-
+        editor.loadProject(Project.newEmptyProject());
     }
 
     private void saveProject() {
+        var project = editor.getCurrentProject();
+        if (project != null) {
+            File path = new File(LDLMod.location, "ui_editor");
+            DialogWidget.showFileDialog(editor, "ldlib.gui.editor.tips.save_resource", path, false,
+                    DialogWidget.suffixFilter(".ui"), r -> {
+                        if (r != null && !r.isDirectory()) {
+                            if (!r.getName().endsWith(".ui")) {
+                                r = new File(r.getParentFile(), r.getName() + ".ui");
+                            }
+                            try {
+                                NbtIo.write(project.serializeNBT(), r);
+                            } catch (IOException ignored) {
+                                // TODO
+                            }
+                        }
+                    });
+        }
     }
 
     private void openProject() {
+        File path = new File(LDLMod.location, "ui_editor");
+        DialogWidget.showFileDialog(editor, "ldlib.gui.editor.tips.load_resource", path, true,
+                DialogWidget.suffixFilter(".ui"), r -> {
+                    if (r != null && r.isFile()) {
+                        try {
+                            var tag = NbtIo.read(r);
+                            if (tag != null) {
+                                editor.loadProject(Project.fromNBT(tag));
+                            }
+                        } catch (IOException ignored) {
+                            // TODO
+                        }
+                    }
+                });
     }
 
 }

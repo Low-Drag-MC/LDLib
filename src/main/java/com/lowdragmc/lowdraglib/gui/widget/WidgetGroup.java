@@ -3,6 +3,7 @@ package com.lowdragmc.lowdraglib.gui.widget;
 import com.lowdragmc.lowdraglib.gui.animation.Animation;
 import com.lowdragmc.lowdraglib.gui.editor.annotation.RegisterUI;
 import com.lowdragmc.lowdraglib.gui.editor.configurator.IConfigurableWidget;
+import com.lowdragmc.lowdraglib.gui.editor.configurator.IConfigurableWidgetGroup;
 import com.lowdragmc.lowdraglib.gui.editor.runtime.UIDetector;
 import com.lowdragmc.lowdraglib.gui.ingredient.IGhostIngredientTarget;
 import com.lowdragmc.lowdraglib.gui.ingredient.IIngredientSlot;
@@ -30,7 +31,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 @RegisterUI(name = "group", group = "advanced")
-public class WidgetGroup extends Widget implements IGhostIngredientTarget, IIngredientSlot, IConfigurableWidget {
+public class WidgetGroup extends Widget implements IGhostIngredientTarget, IIngredientSlot, IConfigurableWidgetGroup {
 
     public final List<Widget> widgets = new ArrayList<>();
     private final WidgetGroupUIAccess groupUIAccess = new WidgetGroupUIAccess();
@@ -137,6 +138,14 @@ public class WidgetGroup extends Widget implements IGhostIngredientTarget, IIngr
             }
         }
         return super.getHoverElement(mouseX, mouseY);
+    }
+
+    protected void onChildSelfPositionUpdate(Widget child) {
+
+    }
+
+    protected void onChildSizeUpdate(Widget child) {
+
     }
 
     protected boolean recomputeSize() {
@@ -634,7 +643,7 @@ public class WidgetGroup extends Widget implements IGhostIngredientTarget, IIngr
 
     @Override
     public CompoundTag serializeNBT() {
-        CompoundTag tag = IConfigurableWidget.super.serializeNBT();
+        CompoundTag tag = IConfigurableWidgetGroup.super.serializeNBT();
         var children = new ListTag();
         for (Widget widget : widgets) {
             if (widget instanceof IConfigurableWidget child && child.isRegisterUI()) {
@@ -660,7 +669,7 @@ public class WidgetGroup extends Widget implements IGhostIngredientTarget, IIngr
     @Override
     public void deserializeNBT(CompoundTag nbt) {
         clearAllWidgets();
-        IConfigurableWidget.super.deserializeNBT(nbt);
+        IConfigurableWidgetGroup.super.deserializeNBT(nbt);
         var children = nbt.getList("children", Tag.TAG_COMPOUND);
         for (Tag tag : children) {
             if (tag instanceof CompoundTag ui) {

@@ -370,7 +370,7 @@ public class DrawerHelper {
         DrawerHelper.ROUND_BOX.use(uniform -> {
             DrawerHelper.updateScreenVshUniform(poseStack, uniform);
 
-            uniform.glUniform4F("SquareVertex", square.left, square.up, square.right, square.down);
+            uniform.glUniform4F("SquareVertex", square.left - 1f, square.up - 1f, square.right - 1f, square.down - 1f);
             uniform.glUniform4F("RoundRadius", radius.x(), radius.y(), radius.z(), radius.w());
             uniform.fillRGBAColor("Color", color);
             uniform.glUniform1F("Blur", 2);
@@ -402,7 +402,7 @@ public class DrawerHelper {
         DrawerHelper.FRAME_ROUND_BOX.use(uniform -> {
             DrawerHelper.updateScreenVshUniform(poseStack, uniform);
 
-            uniform.glUniform4F("SquareVertex", square.left, square.up, square.right, square.down);
+            uniform.glUniform4F("SquareVertex", square.left - 1, square.up - 1, square.right - 1, square.down - 1);
             uniform.glUniform4F("RoundRadius1", radius1.x(), radius1.y(), radius1.z(), radius1.w());
             uniform.glUniform4F("RoundRadius2", radius2.x(), radius2.y(), radius2.z(), radius2.w());
             uniform.glUniform1F("Thickness", thickness);

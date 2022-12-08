@@ -63,7 +63,7 @@ public class NumberConfigurator extends ValueConfigurator<Number> {
     }
 
     private IGuiTexture getCommonColor() {
-        return colorBackground ? new ColorRectTexture(value.intValue()) : ColorPattern.T_GRAY.rectTexture();
+        return colorBackground ? new ColorRectTexture(value.intValue()).setRadius(5) : ColorPattern.T_GRAY.rectTexture().setRadius(5);
     }
 
     @Override

@@ -77,7 +77,6 @@ public class ResourcePanel extends WidgetGroup {
         addWidget(new LabelWidget(3, 3, "ldlib.gui.editor.group.resources"));
         addWidget(tabContainer = new TabContainer(0, 15, size.width, size.height - 14));
         tabContainer.setBackground(ColorPattern.T_GRAY.borderTexture(-1));
-        loadResource(Resources.defaultResource(), false);
         super.initWidget();
     }
 

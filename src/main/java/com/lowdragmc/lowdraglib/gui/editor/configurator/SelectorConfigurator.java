@@ -53,7 +53,7 @@ public class SelectorConfigurator<T> extends ValueConfigurator<T>{
                     value = nameMap.get(s);
                     updateValue();
                 })
-                .setButtonBackground(ColorPattern.T_GRAY.rectTexture())
+                .setButtonBackground(ColorPattern.T_GRAY.rectTexture().setRadius(5))
                 .setBackground(ColorPattern.T_BLACK.rectTexture())
                 .setValue(mapping.apply(value))
         );

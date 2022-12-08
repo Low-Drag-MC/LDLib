@@ -72,7 +72,7 @@ public class ResourceContainer<T, C extends Widget> extends WidgetGroup {
     public void initWidget() {
         Size size = getSize();
         container = new DraggableScrollableWidgetGroup(1, 2, size.width - 2, size.height - 2);
-        container.setYScrollBarWidth(4).setYBarStyle(null, ColorPattern.T_WHITE.rectTexture());
+        container.setYScrollBarWidth(4).setYBarStyle(null, ColorPattern.T_WHITE.rectTexture().setRadius(2));
         addWidget(container);
         reBuild();
         super.initWidget();

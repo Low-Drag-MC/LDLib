@@ -18,6 +18,7 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 import java.util.EnumMap;
+import java.util.function.Supplier;
 
 /**
  * @author KilaBash
@@ -60,7 +61,7 @@ public class WidgetPanel extends WidgetGroup {
         this.setBackground(ColorPattern.BLACK.rectTexture());
 
         addWidget(new LabelWidget(3, 3, "ldlib.gui.editor.group.widgets"));
-        addWidget(new ImageWidget(WIDTH, 15, 20, Tab.values().length * 20, ColorPattern.BLACK.rectTexture()));
+        addWidget(new ImageWidget(WIDTH, 15, 20, Tab.values().length * 20, ColorPattern.BLACK.rectTexture().setRightRadius(8)));
 
         addWidget(tabContainer = new TabContainer(0, 15, WIDTH, size.height - 15));
         tabContainer.setBackground(ColorPattern.T_GRAY.borderTexture(-1));
@@ -88,7 +89,7 @@ public class WidgetPanel extends WidgetGroup {
 
     public void initWidgets(Tab tab, int y) {
         var container = widgetGroup.computeIfAbsent(tab, key -> new DraggableScrollableWidgetGroup(0, 0, WIDTH, getSize().height - 15)
-                        .setYScrollBarWidth(2).setYBarStyle(null, ColorPattern.T_WHITE.rectTexture()));
+                        .setYScrollBarWidth(2).setYBarStyle(null, ColorPattern.T_WHITE.rectTexture().setRadius(1).transform(-0.5f, 0)));
         tabContainer.addTab(new TabButton(WIDTH + 4, y, 12, 12) {
             @Override
             @OnlyIn(Dist.CLIENT)
@@ -113,7 +114,13 @@ public class WidgetPanel extends WidgetGroup {
                 selectableWidgetGroup.addWidget(new LabelWidget(3, 3,
                         "ldlib.gui.editor.register.widget." + wrapper.annotation().name()));
                 selectableWidgetGroup.setSelectedTexture(ColorPattern.T_GRAY.rectTexture());
-                selectableWidgetGroup.setDraggingProvider(() -> new UIWrapper[]{new UIWrapper(editor.getMainPanel(), wrapper.creator().get())}, w -> new WidgetDraggingTexture(widget.widget()));
+                selectableWidgetGroup.setDraggingProvider(() -> new IWidgetPanelDragging() {
+                    final IConfigurableWidget configurableWidget = wrapper.creator().get();
+                    @Override
+                    public IConfigurableWidget get() {
+                        return configurableWidget;
+                    }
+                }, w -> new WidgetDraggingTexture(w.get().widget()));
                 container.addWidget(selectableWidgetGroup);
 
                 yOffset += 65 + 14 + 3;
@@ -149,4 +156,6 @@ public class WidgetPanel extends WidgetGroup {
         }
     }
 
+    public interface IWidgetPanelDragging extends Supplier<IConfigurableWidget> {
+    }
 }

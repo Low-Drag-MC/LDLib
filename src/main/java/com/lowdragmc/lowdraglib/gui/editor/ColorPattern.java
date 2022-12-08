@@ -33,4 +33,5 @@ public enum ColorPattern {
     public ColorBorderTexture borderTexture(int border) {
         return new ColorBorderTexture(border, color);
     }
+
 }

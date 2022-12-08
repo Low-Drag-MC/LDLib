@@ -40,7 +40,7 @@ public abstract class TransformTexture implements IGuiTexture{
         return this;
     }
 
-    public TransformTexture transform(int xOffset, int yOffset) {
+    public TransformTexture transform(float xOffset, float yOffset) {
         this.xOffset = xOffset;
         this.yOffset = yOffset;
         return this;

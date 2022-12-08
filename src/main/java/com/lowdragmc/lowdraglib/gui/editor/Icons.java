@@ -18,7 +18,7 @@ public class Icons {
     public static ResourceTexture ADVANCED_WIDGET_TAB = new ResourceTexture("ldlib:textures/gui/advanced_widget_tab.png");
 
     public static IGuiTexture borderText(int border, String text, int color) {
-        return new GuiTextureGroup(new ColorBorderTexture(border, color), new TextTexture(text, color));
+        return new GuiTextureGroup(new ColorBorderTexture(border, color), new TextTexture(text, color).transform(1, 1));
     }
 
     public static IGuiTexture borderText(String text) {

@@ -50,7 +50,7 @@ public class ConfigPanel extends WidgetGroup {
     public void initWidget() {
         this.setBackground(ColorPattern.T_BLACK.rectTexture());
         addWidget(new ImageWidget(0, 10, WIDTH, 10, new TextTexture("ldlib.gui.editor.configurator").setWidth(202)));
-        addWidget(new ImageWidget(-20, 30, 20, Tab.values().length * 20, ColorPattern.T_BLACK.rectTexture()));
+        addWidget(new ImageWidget(-20, 30, 20, Tab.values().length * 20, ColorPattern.T_BLACK.rectTexture().setLeftRadius(8)));
 
         addWidget(tabContainer = new TabContainer(0, 0, WIDTH, editor.getSize().height));
         int y = 34;
@@ -61,7 +61,7 @@ public class ConfigPanel extends WidgetGroup {
                             tab.icon.copy().setColor(ColorPattern.T_GREEN.color)
                     ),
                     configuratorGroup.computeIfAbsent(tab, key -> new DraggableScrollableWidgetGroup(0, 25, WIDTH, editor.getSize().height - 25)
-                            .setYScrollBarWidth(2).setYBarStyle(null, ColorPattern.T_WHITE.rectTexture()))
+                            .setYScrollBarWidth(2).setYBarStyle(null, ColorPattern.T_WHITE.rectTexture().setRadius(1)))
             );
             configurators.put(tab, new ArrayList<>());
             y += 20;
@@ -98,10 +98,9 @@ public class ConfigPanel extends WidgetGroup {
     
     public void computeLayout(Tab tab) {
         int height = 0;
-        int yOffset = configuratorGroup.get(tab).getScrollYOffset();
         for (Configurator configurator : configurators.get(tab)) {
             configurator.computeHeight();
-            configurator.setSelfPosition(new Position(0, height - yOffset));
+            configurator.setSelfPosition(new Position(0, height - configuratorGroup.get(tab).getScrollYOffset()));
             height += configurator.getSize().height + 5;
         }
         configuratorGroup.get(tab).computeMax();

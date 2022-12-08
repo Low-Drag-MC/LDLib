@@ -36,7 +36,7 @@ public class StringConfigurator extends ValueConfigurator<String>{
     public void init(int width) {
         super.init(width);
         ImageWidget image;
-        addWidget(image = new ImageWidget(leftWidth, 2, width - leftWidth - 3 - rightWidth, 10, ColorPattern.T_GRAY.rectTexture()));
+        addWidget(image = new ImageWidget(leftWidth, 2, width - leftWidth - 3 - rightWidth, 10, ColorPattern.T_GRAY.rectTexture().setRadius(5)));
         image.setDraggingConsumer(
                 o -> (!isResourceLocation && o instanceof Number) || o instanceof String || o instanceof ResourceLocation,
                 o -> image.setImage(ColorPattern.GREEN.rectTexture()),

@@ -174,21 +174,21 @@ public class Widget {
     }
 
     public void setParentPosition(Position parentPosition) {
-        Preconditions.checkNotNull(parentPosition, "parentPosition");
         this.parentPosition = parentPosition;
         recomputePosition();
     }
 
     @ConfigSetter(field = "selfPosition")
     public void setSelfPosition(Position selfPosition) {
-        Preconditions.checkNotNull(selfPosition, "selfPosition");
         this.selfPosition = selfPosition;
         recomputePosition();
+        if (isParent(parent)) {
+            parent.onChildSelfPositionUpdate(this);
+        }
     }
 
     public Position addSelfPosition(int addX, int addY) {
-        this.selfPosition = new Position(selfPosition.x + addX, selfPosition.y + addY);
-        recomputePosition();
+        setSelfPosition(new Position(selfPosition.x + addX, selfPosition.y + addY));
         return this.selfPosition;
     }
 
@@ -198,9 +198,12 @@ public class Widget {
 
     @ConfigSetter(field = "size")
     public void setSize(Size size) {
-        Preconditions.checkNotNull(size, "size");
+        if (this.size.equals(size)) return;
         this.size = size;
         onSizeUpdate();
+        if (isParent(parent)) {
+            parent.onChildSizeUpdate(this);
+        }
     }
 
     public final Position getPosition() {
@@ -371,7 +374,9 @@ public class Widget {
     public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
         if (!isMouseOverElement(mouseX, mouseY) && tryToDrag && draggingProvider != null && draggingRenderer != null) {
             var element = draggingProvider.get();
-            getGui().getModularUIGui().setDraggingElement(element, draggingRenderer.apply(element));
+            if (element != null) {
+                getGui().getModularUIGui().setDraggingElement(element, draggingRenderer.apply(element));
+            }
         }
         if (isMouseOverElement(mouseX, mouseY) && draggingAccept.test(getGui().getModularUIGui().getDraggingElement())) {
             var element = getGui().getModularUIGui().getDraggingElement();

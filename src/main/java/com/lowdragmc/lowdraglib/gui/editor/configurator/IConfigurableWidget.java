@@ -17,18 +17,6 @@ public interface IConfigurableWidget extends IConfigurable, INBTSerializable<Com
         return (Widget) this;
     }
 
-    default boolean canWidgetDragIn(IConfigurableWidget widget) {
-        return false;
-    }
-
-    default void onWidgetDragIn(IConfigurableWidget widget) {
-
-    }
-
-    default void onWidgetDragOut(IConfigurableWidget widget) {
-
-    }
-
     @Override
     default CompoundTag serializeNBT() {
         CompoundTag tag = new CompoundTag();

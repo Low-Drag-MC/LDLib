@@ -4,7 +4,6 @@ import com.lowdragmc.lowdraglib.gui.editor.Icons;
 import com.lowdragmc.lowdraglib.gui.editor.configurator.IConfigurableWidget;
 import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
-import com.lowdragmc.lowdraglib.gui.texture.ResourceBorderTexture;
 import com.lowdragmc.lowdraglib.gui.util.TreeBuilder;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
@@ -41,11 +40,10 @@ public class MainPanel extends WidgetGroup {
     private double lastDeltaX, lastDeltaY;
     private boolean isDragPosition, isDragSize;
 
-    public MainPanel(Editor editor) {
+    public MainPanel(Editor editor, WidgetGroup root) {
         super(0, 0, editor.getSize().width, editor.getSize().height);
         this.editor = editor;
-        root = new WidgetGroup(30, 30, 200, 200);
-        root.setBackground(ResourceBorderTexture.BORDERED_BACKGROUND);
+        this.root = root;
         addWidget(root);
     }
 

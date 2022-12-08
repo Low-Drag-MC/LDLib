@@ -3,6 +3,7 @@ package com.lowdragmc.lowdraglib.gui.editor.ui;
 import com.lowdragmc.lowdraglib.gui.editor.configurator.ConfiguratorGroup;
 import com.lowdragmc.lowdraglib.gui.editor.configurator.IConfigurable;
 import com.lowdragmc.lowdraglib.gui.editor.configurator.IConfigurableWidget;
+import com.lowdragmc.lowdraglib.gui.editor.configurator.IConfigurableWidgetGroup;
 import com.lowdragmc.lowdraglib.gui.texture.ColorBorderTexture;
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.texture.WidgetDraggingTexture;
@@ -32,7 +33,7 @@ public record UIWrapper(@Getter MainPanel panel, @Getter IConfigurableWidget inn
     }
 
     public boolean checkAcceptable(UIWrapper uiWrapper) {
-        return inner.canWidgetDragIn(uiWrapper.inner);
+        return inner instanceof IConfigurableWidgetGroup group && group.canWidgetDragIn(uiWrapper.inner);
     }
 
     @OnlyIn(Dist.CLIENT)
@@ -50,7 +51,9 @@ public record UIWrapper(@Getter MainPanel panel, @Getter IConfigurableWidget inn
             }
             var dragging = panel.getGui().getModularUIGui().getDraggingElement();
             boolean drawDragging = false;
-            if (dragging instanceof UIWrapper[] uiWrappers && Arrays.stream(uiWrappers).allMatch(this::checkAcceptable)) { // can accept
+            if (dragging instanceof WidgetPanel.IWidgetPanelDragging widgetPanelDragging && checkAcceptable(new UIWrapper(panel, widgetPanelDragging.get()))) {
+                drawDragging = true;
+            } else if (dragging instanceof UIWrapper[] uiWrappers && Arrays.stream(uiWrappers).allMatch(this::checkAcceptable)) { // can accept
                 drawDragging = true;
             } else if (dragging instanceof IGuiTexture) {
                 drawDragging = true;
@@ -71,9 +74,25 @@ public record UIWrapper(@Getter MainPanel panel, @Getter IConfigurableWidget inn
         if (isHover()) {
             var dragging = panel.getGui().getModularUIGui().getDraggingElement();
 
-            if (dragging instanceof UIWrapper[] uiWrappers && Arrays.stream(uiWrappers).allMatch(this::checkAcceptable)) {
-                for (UIWrapper uiWrapper : uiWrappers) {
+            if (dragging instanceof WidgetPanel.IWidgetPanelDragging widgetPanelDragging) {
+                UIWrapper uiWrapper = new UIWrapper(panel, widgetPanelDragging.get());
+                if (inner instanceof IConfigurableWidgetGroup group && checkAcceptable(uiWrapper)) {
+                    var parent = uiWrapper.inner.widget().getParent(); // remove from original parent
 
+                    if (parent != null) {
+                        parent.onWidgetDragOut(uiWrapper.inner);
+                    }
+
+                    // accept it with correct position
+                    Position position = new Position((int) mouseX, (int) mouseY).subtract(group.widget().getPosition());
+                    uiWrapper.inner.widget().setSelfPosition(new Position(
+                            position.x - uiWrapper.inner.widget().getSize().width / 2,
+                            position.y - uiWrapper.inner.widget().getSize().height / 2));
+                    group.onWidgetDragIn(uiWrapper.inner);
+                    return true;
+                }
+            } else if (inner instanceof IConfigurableWidgetGroup group && dragging instanceof UIWrapper[] uiWrappers && Arrays.stream(uiWrappers).allMatch(this::checkAcceptable)) {
+                for (UIWrapper uiWrapper : uiWrappers) {
                     var parent = uiWrapper.inner.widget().getParent(); // remove from original parent
 
                     if (parent != null) {
@@ -85,7 +104,7 @@ public record UIWrapper(@Getter MainPanel panel, @Getter IConfigurableWidget inn
                     uiWrapper.inner.widget().setSelfPosition(new Position(
                             position.x - uiWrapper.inner.widget().getSize().width / 2,
                             position.y - uiWrapper.inner.widget().getSize().height / 2));
-                    inner.onWidgetDragIn(uiWrapper.inner);
+                    group.onWidgetDragIn(uiWrapper.inner);
                 }
 
                 return true;
