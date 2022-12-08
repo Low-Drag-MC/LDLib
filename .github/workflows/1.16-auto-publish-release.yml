@@ -3,7 +3,7 @@ name: 1.16 Auto Build Release Publish
 on:
   push:
     branches:
-      - 'main'
+      - '1.16'
     paths:
       - 'gradle.properties'
 
