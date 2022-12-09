@@ -30,7 +30,7 @@ import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-@RegisterUI(name = "group", group = "advanced")
+@RegisterUI(name = "group", group = "group")
 public class WidgetGroup extends Widget implements IGhostIngredientTarget, IIngredientSlot, IConfigurableWidgetGroup {
 
     public final List<Widget> widgets = new ArrayList<>();
@@ -154,8 +154,6 @@ public class WidgetGroup extends Widget implements IGhostIngredientTarget, IIngr
             Size dynamicSize = computeDynamicSize();
             if (!currentSize.equals(dynamicSize)) {
                 setSize(dynamicSize);
-                if (uiAccess != null)
-                    uiAccess.notifySizeChange();
                 return true;
             }
         }
@@ -200,13 +198,13 @@ public class WidgetGroup extends Widget implements IGhostIngredientTarget, IIngr
             throw new IllegalArgumentException("Already added");
         }
         this.widgets.add(index, widget);
+        if (isClientSideWidget) {
+            widget.setClientSideWidget();
+        }
         widget.setUiAccess(groupUIAccess);
         widget.setGui(gui);
         widget.setParent(this);
         widget.setParentPosition(getPosition());
-        if (isClientSideWidget) {
-            widget.setClientSideWidget();
-        }
         if (isInitialized() && !widget.isInitialized()) {
             widget.initWidget();
             if (!isRemote() && !widget.isClientSideWidget) {
@@ -217,9 +215,6 @@ public class WidgetGroup extends Widget implements IGhostIngredientTarget, IIngr
             }
         }
         recomputeSize();
-        if (uiAccess != null && !isClientSideWidget) {
-            uiAccess.notifyWidgetChange();
-        }
         return this;
     }
 
@@ -260,9 +255,6 @@ public class WidgetGroup extends Widget implements IGhostIngredientTarget, IIngr
         widget.setGui(null);
         widget.setParentPosition(Position.ORIGIN);
         recomputeSize();
-        if (uiAccess != null && !isClientSideWidget) {
-            this.uiAccess.notifyWidgetChange();
-        }
     }
 
     public void clearAllWidgets() {
@@ -283,9 +275,6 @@ public class WidgetGroup extends Widget implements IGhostIngredientTarget, IIngr
             }
         }
         recomputeSize();
-        if (uiAccess != null) {
-            this.uiAccess.notifyWidgetChange();
-        }
     }
 
 
@@ -296,15 +285,6 @@ public class WidgetGroup extends Widget implements IGhostIngredientTarget, IIngr
             widget.setGui(gui);
             widget.initWidget();
         }
-    }
-
-    @Override
-    public List<SlotWidget> getNativeWidgets() {
-        ArrayList<SlotWidget> nativeWidgets = new ArrayList<>();
-        for (Widget widget : widgets) {
-            nativeWidgets.addAll(widget.getNativeWidgets());
-        }
-        return nativeWidgets;
     }
 
     @Override
@@ -561,15 +541,6 @@ public class WidgetGroup extends Widget implements IGhostIngredientTarget, IIngr
     private class WidgetGroupUIAccess implements WidgetUIAccess {
 
         @Override
-        public void notifySizeChange() {
-            WidgetUIAccess uiAccess = WidgetGroup.this.uiAccess;
-            recomputeSize();
-            if (uiAccess != null) {
-                uiAccess.notifySizeChange();
-            }
-        }
-
-        @Override
         public boolean attemptMergeStack(ItemStack itemStack, boolean fromContainer, boolean simulate) {
             WidgetUIAccess uiAccess = WidgetGroup.this.uiAccess;
             if (uiAccess != null) {
@@ -578,14 +549,14 @@ public class WidgetGroup extends Widget implements IGhostIngredientTarget, IIngr
             return false;
         }
 
-        @Override
-        public void notifyWidgetChange() {
-            WidgetUIAccess uiAccess = WidgetGroup.this.uiAccess;
-            if (uiAccess != null) {
-                uiAccess.notifyWidgetChange();
-            }
-            recomputeSize();
-        }
+//        @Override
+//        public void notifyWidgetChange() {
+//            WidgetUIAccess uiAccess = WidgetGroup.this.uiAccess;
+//            if (uiAccess != null) {
+//                uiAccess.notifyWidgetChange();
+//            }
+//            recomputeSize();
+//        }
 
         @Override
         public void writeClientAction(Widget widget, int updateId, Consumer<FriendlyByteBuf> dataWriter) {

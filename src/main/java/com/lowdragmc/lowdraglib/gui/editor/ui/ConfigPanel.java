@@ -19,23 +19,29 @@ import java.util.*;
  */
 public class ConfigPanel extends WidgetGroup {
     public static final int WIDTH = 202;
-    public enum Tab {
-        WIDGET(Icons.WIDGET_TAB),
-        RESOURCE(Icons.RESOURCE_TAB);
+    public static class Tab {
+        public static List<Tab> TABS = new ArrayList<>();
+        public static final Tab WIDGET = registerTab(Icons.WIDGET_SETTING);
+        public static final Tab RESOURCE = registerTab(Icons.RESOURCE_SETTING);
 
-        final ResourceTexture icon;
+        public final ResourceTexture icon;
 
-        Tab(ResourceTexture icon) {
+        private Tab(ResourceTexture icon) {
             this.icon = icon;
+            TABS.add(this);
+        }
+
+        public static Tab registerTab(ResourceTexture icon) {
+            return new Tab(icon);
         }
     }
 
     @Getter
     protected final Editor editor;
     @Getter
-    protected final EnumMap<Tab, IConfigurable> focus = new EnumMap<>(Tab.class);
-    protected final EnumMap<Tab, DraggableScrollableWidgetGroup> configuratorGroup = new EnumMap<>(Tab.class);
-    protected final EnumMap<Tab, List<Configurator>> configurators = new EnumMap<>(Tab.class);
+    protected final Map<Tab, IConfigurable> focus = new HashMap<>(Tab.TABS.size());
+    protected final Map<Tab, DraggableScrollableWidgetGroup> configuratorGroup = new HashMap<>(Tab.TABS.size());
+    protected final Map<Tab, List<Configurator>> configurators = new HashMap<>(Tab.TABS.size());
 
     protected TabContainer tabContainer;
 
@@ -50,12 +56,12 @@ public class ConfigPanel extends WidgetGroup {
     public void initWidget() {
         this.setBackground(ColorPattern.T_BLACK.rectTexture());
         addWidget(new ImageWidget(0, 10, WIDTH, 10, new TextTexture("ldlib.gui.editor.configurator").setWidth(202)));
-        addWidget(new ImageWidget(-20, 30, 20, Tab.values().length * 20, ColorPattern.T_BLACK.rectTexture().setLeftRadius(8)));
+        addWidget(new ImageWidget(-20, 30, 20, Tab.TABS.size() * 20, ColorPattern.T_BLACK.rectTexture().setLeftRadius(8)));
 
         addWidget(tabContainer = new TabContainer(0, 0, WIDTH, editor.getSize().height));
         int y = 34;
 
-        for (Tab tab : Tab.values()) {
+        for (Tab tab : Tab.TABS) {
             tabContainer.addTab(new TabButton(-16, y, 12, 12).setTexture(
                             tab.icon,
                             tab.icon.copy().setColor(ColorPattern.T_GREEN.color)

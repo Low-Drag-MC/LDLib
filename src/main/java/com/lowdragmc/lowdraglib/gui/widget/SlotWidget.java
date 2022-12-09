@@ -1,9 +1,14 @@
 package com.lowdragmc.lowdraglib.gui.widget;
 
 import com.lowdragmc.lowdraglib.LDLMod;
+import com.lowdragmc.lowdraglib.gui.editor.annotation.Configurable;
+import com.lowdragmc.lowdraglib.gui.editor.annotation.RegisterUI;
+import com.lowdragmc.lowdraglib.gui.editor.configurator.IConfigurableWidget;
 import com.lowdragmc.lowdraglib.gui.ingredient.IRecipeIngredientSlot;
+import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
 import com.lowdragmc.lowdraglib.gui.modular.ModularUIGuiContainer;
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
+import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
 import com.lowdragmc.lowdraglib.gui.util.DrawerHelper;
 import com.lowdragmc.lowdraglib.jei.IngredientIO;
 import com.lowdragmc.lowdraglib.utils.Position;
@@ -28,37 +33,54 @@ import net.minecraftforge.items.SlotItemHandler;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
-public class SlotWidget extends Widget implements IRecipeIngredientSlot {
+@RegisterUI(name = "item_slot", group = "container")
+public class SlotWidget extends Widget implements IRecipeIngredientSlot, IConfigurableWidget {
 
-    protected final Slot slotReference;
-    protected final boolean canTakeItems;
-    protected final boolean canPutItems;
+    @Nullable
+    protected Slot slotReference;
+    @Configurable
+    protected boolean canTakeItems;
+    @Configurable
+    protected boolean canPutItems;
     public boolean isPlayerContainer;
     public boolean isPlayerHotBar;
-    public boolean drawOverlay = true;
+    @Configurable
+    public boolean drawHoverOverlay = true;
+    @Configurable
     public boolean drawHoverTips = true;
+
+    @Configurable
+    protected IGuiTexture overlay;
 
     protected Runnable changeListener;
     protected BiConsumer<SlotWidget, List<Component>> onAddedTooltips;
     protected Function<ItemStack, ItemStack> itemHook;
     protected IngredientIO ingredientIO = IngredientIO.RENDER_ONLY;
 
+    public SlotWidget() {
+        super(new Position(0, 0), new Size(18, 18));
+        setBackgroundTexture(new ResourceTexture("ldlib:textures/gui/slot.png"));
+        this.canTakeItems = true;
+        this.canPutItems = true;
+    }
+
     public SlotWidget(Container inventory, int slotIndex, int xPosition, int yPosition, boolean canTakeItems, boolean canPutItems) {
         super(new Position(xPosition, yPosition), new Size(18, 18));
         this.canTakeItems = canTakeItems;
         this.canPutItems = canPutItems;
-        this.slotReference = createSlot(inventory, slotIndex);
+        setContainerSlot(inventory, slotIndex);
     }
 
     public SlotWidget(IItemHandler itemHandler, int slotIndex, int xPosition, int yPosition, boolean canTakeItems, boolean canPutItems) {
         super(new Position(xPosition, yPosition), new Size(18, 18));
         this.canTakeItems = canTakeItems;
         this.canPutItems = canPutItems;
-        this.slotReference = createSlot(itemHandler, slotIndex);
+        setHandlerSlot(itemHandler, slotIndex);
     }
 
     public SlotWidget setItemHook(Function<ItemStack, ItemStack> itemHook) {
@@ -90,21 +112,57 @@ public class SlotWidget extends Widget implements IRecipeIngredientSlot {
     }
 
     public SlotWidget setDrawOverlay(boolean drawOverlay) {
-        this.drawOverlay = drawOverlay;
+        this.drawHoverOverlay = drawOverlay;
         return this;
+    }
+
+    public void setContainerSlot(Container inventory, int slotIndex) {
+        updateSlot(createSlot(inventory, slotIndex));
+    }
+
+    public void setHandlerSlot(IItemHandler itemHandler, int slotIndex) {
+        updateSlot(createSlot(itemHandler, slotIndex));
+    }
+
+    protected void updateSlot(Slot slot) {
+        if (this.slotReference != null && this.gui != null && !isClientSideWidget) {
+            getGui().removeNativeSlot(this.slotReference);
+        }
+        this.slotReference = slot;
+        if (this.gui != null && !isClientSideWidget) {
+            getGui().addNativeSlot(this.slotReference, this);
+        }
+    }
+
+    @Override
+    public final void setSize(Size size) {
+        // you cant modify size.
+    }
+
+    @Override
+    public void setGui(ModularUI gui) {
+        if (!isClientSideWidget && this.gui != gui) {
+            if (this.gui != null && slotReference != null) {
+                this.gui.removeNativeSlot(slotReference);
+            }
+            if (gui != null && slotReference != null) {
+                gui.addNativeSlot(slotReference, this);
+            }
+        }
+        super.setGui(gui);
     }
 
     @Override
     @OnlyIn(Dist.CLIENT)
     public void drawInForeground(@Nonnull PoseStack mStack, int mouseX, int mouseY, float partialTicks) {
-        if (drawHoverTips && isMouseOverElement(mouseX, mouseY) && isActive()) {
+        if (slotReference != null && drawHoverTips && isMouseOverElement(mouseX, mouseY) && isActive()) {
             ItemStack stack = slotReference.getItem();
             if (!stack.isEmpty() && gui != null) {
                 gui.getModularUIGui().setHoverTooltip(getToolTips(gui.getModularUIGui().getTooltipFromItem(stack)), stack, null, stack.getTooltipImage().orElse(null));
                 super.drawInForeground(mStack, mouseX, mouseY, partialTicks);
             }
         }
-        if (!drawOverlay) return;
+        if (!drawHoverOverlay) return;
         if (isActive()) {
             if (isMouseOverElement(mouseX, mouseY)) {
                 RenderSystem.colorMask(true, true, true, false);
@@ -123,29 +181,34 @@ public class SlotWidget extends Widget implements IRecipeIngredientSlot {
     public void drawInBackground(@Nonnull PoseStack mStack, int mouseX, int mouseY, float partialTicks) {
         super.drawInBackground(mStack, mouseX, mouseY, partialTicks);
         Position pos = getPosition();
-        ItemStack itemStack = getRealStack(slotReference.getItem());
-        ModularUIGuiContainer modularUIGui = gui == null ? null : gui.getModularUIGui();
-        if (itemStack.isEmpty() && modularUIGui!= null && modularUIGui.getQuickCrafting() && modularUIGui.getQuickCraftSlots().contains(slotReference)) { // draw split
-            int splitSize = modularUIGui.getQuickCraftSlots().size();
-            itemStack = gui.getModularUIContainer().getCarried();
-            if (!itemStack.isEmpty() && splitSize > 1 && AbstractContainerMenu.canItemQuickReplace(slotReference, itemStack, true)) {
-                itemStack = itemStack.copy();
-                AbstractContainerMenu.getQuickCraftSlotCount(modularUIGui.getQuickCraftSlots(), modularUIGui.dragSplittingLimit, itemStack, slotReference.getItem().isEmpty() ? 0 : slotReference.getItem().getCount());
-                int k = Math.min(itemStack.getMaxStackSize(), slotReference.getMaxStackSize(itemStack));
-                if (itemStack.getCount() > k) {
-                    itemStack.setCount(k);
+        if (slotReference != null)  {
+            ItemStack itemStack = getRealStack(slotReference.getItem());
+            ModularUIGuiContainer modularUIGui = gui == null ? null : gui.getModularUIGui();
+            if (itemStack.isEmpty() && modularUIGui!= null && modularUIGui.getQuickCrafting() && modularUIGui.getQuickCraftSlots().contains(slotReference)) { // draw split
+                int splitSize = modularUIGui.getQuickCraftSlots().size();
+                itemStack = gui.getModularUIContainer().getCarried();
+                if (!itemStack.isEmpty() && splitSize > 1 && AbstractContainerMenu.canItemQuickReplace(slotReference, itemStack, true)) {
+                    itemStack = itemStack.copy();
+                    AbstractContainerMenu.getQuickCraftSlotCount(modularUIGui.getQuickCraftSlots(), modularUIGui.dragSplittingLimit, itemStack, slotReference.getItem().isEmpty() ? 0 : slotReference.getItem().getCount());
+                    int k = Math.min(itemStack.getMaxStackSize(), slotReference.getMaxStackSize(itemStack));
+                    if (itemStack.getCount() > k) {
+                        itemStack.setCount(k);
+                    }
                 }
             }
+            if (!itemStack.isEmpty()) {
+                DrawerHelper.drawItemStack(mStack, itemStack, pos.x+ 1, pos.y + 1, -1, null);
+            }
         }
-        if (!itemStack.isEmpty()) {
-            DrawerHelper.drawItemStack(mStack, itemStack, pos.x+ 1, pos.y + 1, -1, null);
+        if (overlay != null) {
+            overlay.draw(mStack, mouseX, mouseY, pos.x, pos.y, 18, 18);
         }
     }
 
     @Override
     @OnlyIn(Dist.CLIENT)
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if (isMouseOverElement(mouseX, mouseY) && gui != null) {
+        if (slotReference != null && isMouseOverElement(mouseX, mouseY) && gui != null) {
             var stack = slotReference.getItem();
             if (!(canPutItems && stack.isEmpty() || canTakeItems && !stack.isEmpty())) return false;
             ModularUIGuiContainer modularUIGui = gui.getModularUIGui();
@@ -193,8 +256,10 @@ public class SlotWidget extends Widget implements IRecipeIngredientSlot {
     protected void onPositionUpdate() {
         if (gui != null) {
             Position position = getPosition();
-            slotReference.x = position.x + 1 - gui.getGuiLeft();
-            slotReference.y = position.y + 1 - gui.getGuiTop();
+            if (slotReference != null) {
+                slotReference.x = position.x + 1 - gui.getGuiLeft();
+                slotReference.y = position.y + 1 - gui.getGuiTop();
+            }
         }
     }
 
@@ -241,6 +306,7 @@ public class SlotWidget extends Widget implements IRecipeIngredientSlot {
         return null;
     }
 
+    @Nullable
     public final Slot getHandle() {
         return slotReference;
     }
@@ -260,6 +326,7 @@ public class SlotWidget extends Widget implements IRecipeIngredientSlot {
 
     @Override
     public Object getJEIIngredient() {
+        if (slotReference == null) return null;
         if (LDLMod.isReiLoaded()) {
             return EntryStacks.of(getRealStack(getHandle().getItem()));
         }

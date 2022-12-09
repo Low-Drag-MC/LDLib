@@ -1,9 +1,13 @@
 package com.lowdragmc.lowdraglib.gui.widget;
 
 import com.lowdragmc.lowdraglib.LDLMod;
+import com.lowdragmc.lowdraglib.gui.editor.annotation.Configurable;
+import com.lowdragmc.lowdraglib.gui.editor.annotation.RegisterUI;
+import com.lowdragmc.lowdraglib.gui.editor.configurator.IConfigurableWidget;
 import com.lowdragmc.lowdraglib.gui.ingredient.IRecipeIngredientSlot;
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.texture.ProgressTexture;
+import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
 import com.lowdragmc.lowdraglib.gui.util.DrawerHelper;
 import com.lowdragmc.lowdraglib.gui.util.TextFormattingUtil;
 import com.lowdragmc.lowdraglib.jei.IngredientIO;
@@ -12,8 +16,9 @@ import com.lowdragmc.lowdraglib.utils.Position;
 import com.lowdragmc.lowdraglib.utils.Size;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
-import dev.architectury.hooks.fluid.FluidStackHooks;
 import dev.architectury.hooks.fluid.forge.FluidStackHooksForge;
+import lombok.Getter;
+import lombok.Setter;
 import me.shedaniel.rei.api.common.util.EntryStacks;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -35,36 +40,56 @@ import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiConsumer;
 
-public class TankWidget extends Widget implements IRecipeIngredientSlot {
+@RegisterUI(name = "fluid_slot", group = "container")
+public class TankWidget extends Widget implements IRecipeIngredientSlot, IConfigurableWidget {
 
-    public final IFluidTank fluidTank;
-
+    @Nullable
+    @Getter
+    @Setter
+    protected IFluidTank fluidTank;
+    @Configurable
     protected boolean showAmount;
-    protected boolean allowClickFilling;
-    protected boolean allowClickEmptying;
+    @Configurable
+    protected boolean allowClickFilled;
+    @Configurable
+    protected boolean allowClickDrained;
+    @Configurable
     protected boolean drawHoverTips;
+    @Configurable
+    protected ProgressTexture.FillDirection fillDirection = ProgressTexture.FillDirection.ALWAYS_FULL;
+
+    @Configurable
     protected IGuiTexture overlay;
 
     protected FluidStack lastFluidInTank;
     protected int lastTankCapacity;
     protected BiConsumer<TankWidget, List<Component>> onAddedTooltips;
     protected IngredientIO ingredientIO = IngredientIO.RENDER_ONLY;
-    protected ProgressTexture.FillDirection fillDirection = ProgressTexture.FillDirection.ALWAYS_FULL;
+
+    public TankWidget() {
+        super(new Position(0, 0), new Size(18, 18));
+        setBackground(new ResourceTexture("ldlib:textures/gui/fluid_slot.png"));
+        this.showAmount = true;
+        this.allowClickFilled = true;
+        this.allowClickDrained = true;
+        this.drawHoverTips = true;
+    }
 
     public TankWidget(IFluidTank fluidTank, int x, int y, boolean allowClickContainerFilling, boolean allowClickContainerEmptying) {
         this(fluidTank, x, y, 18, 18, allowClickContainerFilling, allowClickContainerEmptying);
     }
 
-    public TankWidget(IFluidTank fluidTank, int x, int y, int width, int height, boolean allowClickContainerFilling, boolean allowClickContainerEmptying) {
+    public TankWidget(@Nullable IFluidTank fluidTank, int x, int y, int width, int height, boolean allowClickContainerFilling, boolean allowClickContainerEmptying) {
         super(new Position(x, y), new Size(width, height));
         this.fluidTank = fluidTank;
         this.showAmount = true;
-        this.allowClickFilling = allowClickContainerFilling;
-        this.allowClickEmptying = allowClickContainerEmptying;
+        this.allowClickFilled = allowClickContainerFilling;
+        this.allowClickDrained = allowClickContainerEmptying;
         this.drawHoverTips = true;
     }
 
@@ -112,8 +137,8 @@ public class TankWidget extends Widget implements IRecipeIngredientSlot {
     }
 
     public TankWidget setContainerClicking(boolean allowClickContainerFilling, boolean allowClickContainerEmptying) {
-        this.allowClickFilling = allowClickContainerFilling;
-        this.allowClickEmptying = allowClickContainerEmptying;
+        this.allowClickFilled = allowClickContainerFilling;
+        this.allowClickDrained = allowClickContainerEmptying;
         return this;
     }
 
@@ -146,7 +171,7 @@ public class TankWidget extends Widget implements IRecipeIngredientSlot {
     @OnlyIn(Dist.CLIENT)
     public void drawInBackground(@Nonnull PoseStack matrixStack, int mouseX, int mouseY, float partialTicks) {
         super.drawInBackground(matrixStack, mouseX, mouseY, partialTicks);
-        if (isClientSideWidget) {
+        if (isClientSideWidget && fluidTank != null) {
             FluidStack fluidStack = fluidTank.getFluid();
             if (fluidTank.getCapacity() != lastTankCapacity) {
                 this.lastTankCapacity = fluidTank.getCapacity();
@@ -216,28 +241,32 @@ public class TankWidget extends Widget implements IRecipeIngredientSlot {
 
     @Override
     public void detectAndSendChanges() {
-        FluidStack fluidStack = fluidTank.getFluid();
-        if (fluidTank.getCapacity() != lastTankCapacity) {
-            this.lastTankCapacity = fluidTank.getCapacity();
-            writeUpdateInfo(0, buffer -> buffer.writeVarInt(lastTankCapacity));
-        }
-        if (!fluidStack.isFluidEqual(lastFluidInTank)) {
-            this.lastFluidInTank = fluidStack.copy();
-            CompoundTag fluidStackTag = fluidStack.writeToNBT(new CompoundTag());
-            writeUpdateInfo(2, buffer -> buffer.writeNbt(fluidStackTag));
-        } else if (fluidStack.getAmount() != lastFluidInTank.getAmount()) {
-            this.lastFluidInTank.setAmount(fluidStack.getAmount());
-            writeUpdateInfo(3, buffer -> buffer.writeVarInt(lastFluidInTank.getAmount()));
+        if (fluidTank != null) {
+            FluidStack fluidStack = fluidTank.getFluid();
+            if (fluidTank.getCapacity() != lastTankCapacity) {
+                this.lastTankCapacity = fluidTank.getCapacity();
+                writeUpdateInfo(0, buffer -> buffer.writeVarInt(lastTankCapacity));
+            }
+            if (!fluidStack.isFluidEqual(lastFluidInTank)) {
+                this.lastFluidInTank = fluidStack.copy();
+                CompoundTag fluidStackTag = fluidStack.writeToNBT(new CompoundTag());
+                writeUpdateInfo(2, buffer -> buffer.writeNbt(fluidStackTag));
+            } else if (fluidStack.getAmount() != lastFluidInTank.getAmount()) {
+                this.lastFluidInTank.setAmount(fluidStack.getAmount());
+                writeUpdateInfo(3, buffer -> buffer.writeVarInt(lastFluidInTank.getAmount()));
+            }
         }
     }
 
     @Override
     public void writeInitialData(FriendlyByteBuf buffer) {
-        this.lastTankCapacity = fluidTank.getCapacity();
-        buffer.writeVarInt(lastTankCapacity);
-        FluidStack fluidStack = fluidTank.getFluid();
-        this.lastFluidInTank = fluidStack.copy();
-        buffer.writeNbt(fluidStack.writeToNBT(new CompoundTag()));
+        if (fluidTank != null) {
+            this.lastTankCapacity = fluidTank.getCapacity();
+            buffer.writeVarInt(lastTankCapacity);
+            FluidStack fluidStack = fluidTank.getFluid();
+            this.lastFluidInTank = fluidStack.copy();
+            buffer.writeNbt(fluidStack.writeToNBT(new CompoundTag()));
+        }
     }
 
     @Override
@@ -278,12 +307,13 @@ public class TankWidget extends Widget implements IRecipeIngredientSlot {
     }
 
     private int tryClickContainer(boolean isShiftKeyDown) {
+        if (fluidTank == null) return -1;
         Player player = gui.entityPlayer;
         ItemStack currentStack = gui.getModularUIContainer().getCarried();
         if (!currentStack.getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY).isPresent()) return -1;
         int maxAttempts = isShiftKeyDown ? currentStack.getCount() : 1;
 
-        if (allowClickFilling && fluidTank.getFluidAmount() > 0) {
+        if (allowClickFilled && fluidTank.getFluidAmount() > 0) {
             boolean performedFill = false;
             FluidStack initialFluid = fluidTank.getFluid();
             for (int i = 0; i < maxAttempts; i++) {
@@ -300,7 +330,7 @@ public class TankWidget extends Widget implements IRecipeIngredientSlot {
             }
         }
 
-        if (allowClickEmptying) {
+        if (allowClickDrained) {
             boolean performedEmptying = false;
             for (int i = 0; i < maxAttempts; i++) {
                 FluidActionResult result = FluidUtils.tryEmptyContainer(currentStack, (IFluidHandler) fluidTank, Integer.MAX_VALUE, null, false);
@@ -322,7 +352,7 @@ public class TankWidget extends Widget implements IRecipeIngredientSlot {
 
     @OnlyIn(Dist.CLIENT)
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if ((allowClickEmptying || allowClickFilling) && isMouseOverElement(mouseX, mouseY)) {
+        if ((allowClickDrained || allowClickFilled) && isMouseOverElement(mouseX, mouseY)) {
             ItemStack currentStack = gui.getModularUIContainer().getCarried();
             if (button == 0 && currentStack.getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY).isPresent()) {
                 boolean isShiftKeyDown = isShiftDown();

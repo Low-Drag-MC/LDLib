@@ -12,10 +12,12 @@ public class Icons {
     public static ResourceTexture UP = new ResourceTexture("ldlib:textures/gui/up.png");
     public static ResourceTexture DOWN = new ResourceTexture("ldlib:textures/gui/down.png");
     public static ResourceTexture RIGHT = new ResourceTexture("ldlib:textures/gui/right.png");
-    public static ResourceTexture RESOURCE_TAB = new ResourceTexture("ldlib:textures/gui/resource_tab.png");
-    public static ResourceTexture WIDGET_TAB = new ResourceTexture("ldlib:textures/gui/widget_tab.png");
-    public static ResourceTexture BASIC_WIDGET_TAB = new ResourceTexture("ldlib:textures/gui/basic_widget_tab.png");
-    public static ResourceTexture ADVANCED_WIDGET_TAB = new ResourceTexture("ldlib:textures/gui/advanced_widget_tab.png");
+    public static ResourceTexture RESOURCE = icon("resource");
+    public static ResourceTexture RESOURCE_SETTING = icon("resource_setting");
+    public static ResourceTexture WIDGET_SETTING = icon("widget_setting");
+    public static ResourceTexture WIDGET_BASIC = icon("widget_basic");
+    public static ResourceTexture WIDGET_GROUP = icon("widget_group");
+    public static ResourceTexture WIDGET_CONTAINER = icon("widget_container");
     public static ResourceTexture ADD = icon("add");
     public static ResourceTexture SAVE = icon("save");
     public static ResourceTexture HELP = icon("help");
@@ -27,6 +29,17 @@ public class Icons {
     public static ResourceTexture ADD_FILE = icon("add_file");
     public static ResourceTexture EDIT_FILE = icon("edit_file");
     public static ResourceTexture REMOVE_FILE = icon("remove_file");
+
+    //align
+    public static ResourceTexture ALIGN_H_C = icon("align_horizontal_center");
+    public static ResourceTexture ALIGN_H_D = icon("align_horizontal_distribute");
+    public static ResourceTexture ALIGN_H_L = icon("align_horizontal_left");
+    public static ResourceTexture ALIGN_H_R = icon("align_horizontal_right");
+    public static ResourceTexture ALIGN_V_C = icon("align_vertical_center");
+    public static ResourceTexture ALIGN_V_D = icon("align_vertical_distribute");
+    public static ResourceTexture ALIGN_V_T = icon("align_vertical_top");
+    public static ResourceTexture ALIGN_V_B = icon("align_vertical_bottom");
+
 
     private static ResourceTexture icon(String name) {
         return new ResourceTexture("ldlib:textures/gui/icon/%s.png".formatted(name));

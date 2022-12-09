@@ -121,7 +121,7 @@ public class ArrayConfiguratorGroup<T> extends ConfiguratorGroup{
     public void init(int width) {
         super.init(width);
         if (addDefault != null) {
-            this.addWidget(new ButtonWidget(width - (tips.length > 0 ? 24 : 12), 3, 9, 9,
+            this.addWidget(new ButtonWidget(width - (tips.length > 0 ? 24 : 12), 2, 9, 9,
                     Icons.ADD,
                     cd -> addMask = true).setHoverTooltips("ldlib.gui.editor.tips.add_item"));
         }
@@ -155,7 +155,7 @@ public class ArrayConfiguratorGroup<T> extends ConfiguratorGroup{
             this.object = object;
             inner = provider.apply(this::getter, this::setter);
             this.addWidget(inner);
-            this.addWidget(new ButtonWidget(2, 3, 9, 9,
+            this.addWidget(new ButtonWidget(2, 2, 9, 9,
                     Icons.REMOVE,
                     cd -> removeMask = this)
                     .setHoverTooltips("ldlib.gui.editor.tips.remove_item"));

@@ -22,7 +22,7 @@ import java.util.Arrays;
  * @date 2022/12/6
  * @implNote UIWrapper
  */
-public record UIWrapper(@Getter MainPanel panel, @Getter IConfigurableWidget inner) implements IConfigurable {
+public record UIWrapper(MainPanel panel, IConfigurableWidget inner) implements IConfigurable {
 
     public boolean isSelected() {
         return panel.getSelectedUIs().contains(this);

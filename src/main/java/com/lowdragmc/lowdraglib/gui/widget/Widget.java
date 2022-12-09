@@ -25,7 +25,6 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-import org.apache.commons.lang3.function.TriFunction;
 import org.lwjgl.glfw.GLFW;
 
 import javax.annotation.Nonnull;
@@ -39,7 +38,7 @@ import java.util.function.*;
  * It's information is also synced to client
  */
 @SuppressWarnings("UnusedReturnValue")
-@Configurable(name = "ldlib.gui.editor.group.basic_info", collapse = false)
+@Configurable(name = "ldlib.gui.editor.group.basic_info")
 public class Widget {
 
     protected ModularUI gui;
@@ -473,13 +472,6 @@ public class Widget {
     }
 
     public void handleClientAction(int id, FriendlyByteBuf buffer) {
-    }
-
-    public List<SlotWidget> getNativeWidgets() {
-        if (this instanceof SlotWidget) {
-            return Collections.singletonList((SlotWidget) this);
-        }
-        return Collections.emptyList();
     }
 
     /**

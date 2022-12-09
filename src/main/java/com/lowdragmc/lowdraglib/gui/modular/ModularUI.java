@@ -1,16 +1,22 @@
 package com.lowdragmc.lowdraglib.gui.modular;
 
 import com.google.common.base.Preconditions;
+import com.lowdragmc.lowdraglib.LDLMod;
+import com.lowdragmc.lowdraglib.gui.widget.SlotWidget;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 import com.lowdragmc.lowdraglib.utils.Position;
 import com.lowdragmc.lowdraglib.utils.Size;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 import java.awt.Rectangle;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 
 /**
@@ -20,8 +26,8 @@ import java.util.List;
  */
 public final class ModularUI {
 
+    private final HashMap<Slot, SlotWidget> slotMap = new LinkedHashMap<>();
     public final WidgetGroup mainGroup;
-
     private int screenWidth, screenHeight;
     private int width, height;
     private boolean fullScreen;
@@ -51,12 +57,42 @@ public final class ModularUI {
         fullScreen = true;
     }
 
+    public HashMap<Slot, SlotWidget> getSlotMap() {
+        return slotMap;
+    }
+
     public ModularUIContainer getModularUIContainer() {
         return container;
     }
 
+    //WARNING! WIDGET CHANGES SHOULD BE *STRICTLY* SYNCHRONIZED BETWEEN SERVER AND CLIENT,
+    //OTHERWISE ID MISMATCH CAN HAPPEN BETWEEN ASSIGNED SLOTS!
+    public void addNativeSlot(Slot slotHandle, SlotWidget slotWidget) {
+        if (this.slotMap.containsKey(slotHandle)) {
+            LDLMod.LOGGER.error("duplicated slot {}, {}", slotHandle, slotWidget);
+        }
+        this.slotMap.put(slotHandle, slotWidget);
+        if (container != null) {
+            container.addSlot(slotHandle);
+        }
+    }
+
+    //WARNING! WIDGET CHANGES SHOULD BE *STRICTLY* SYNCHRONIZED BETWEEN SERVER AND CLIENT,
+    //OTHERWISE ID MISMATCH CAN HAPPEN BETWEEN ASSIGNED SLOTS!
+    public void removeNativeSlot(Slot slotHandle) {
+        if (this.slotMap.containsKey(slotHandle)) {
+            this.slotMap.remove(slotHandle);
+            if (container != null) {
+                container.removeSlot(slotHandle);
+            }
+        }
+    }
+
     public void setModularUIContainer(ModularUIContainer container) {
         this.container = container;
+        for (Slot slot : slotMap.keySet()) {
+            this.container.addSlot(slot);
+        }
     }
 
 
@@ -76,7 +112,6 @@ public final class ModularUI {
     @OnlyIn(Dist.CLIENT)
     public void setModularUIGui(ModularUIGuiContainer modularUIGuiContainer) {
         this.guiContainer = modularUIGuiContainer;
-        setModularUIContainer(modularUIGuiContainer.getMenu());
     }
 
     public List<Widget> getFlatVisibleWidgetCollection() {

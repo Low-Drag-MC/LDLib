@@ -16,6 +16,7 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -118,7 +119,117 @@ public class MainPanel extends WidgetGroup {
 
     protected TreeBuilder.Menu createMenu() {
         return TreeBuilder.Menu.start()
-                .leaf(Icons.DELETE, "ldlib.gui.editor.menu.remove", this::removeSelected);
+                .leaf(Icons.DELETE, "ldlib.gui.editor.menu.remove", this::removeSelected)
+                .branch("ldlib.gui.editor.menu.align", menu -> {
+                    menu.leaf(Icons.ALIGN_H_C, "ldlib.gui.editor.menu.align.hc", this::alignHC)
+                            .leaf(Icons.ALIGN_H_D, "ldlib.gui.editor.menu.align.hd", this::alignHD)
+                            .leaf(Icons.ALIGN_H_L, "ldlib.gui.editor.menu.align.hl", this::alignHL)
+                            .leaf(Icons.ALIGN_H_R, "ldlib.gui.editor.menu.align.hr", this::alignHR)
+                            .leaf(Icons.ALIGN_V_C, "ldlib.gui.editor.menu.align.vc", this::alignVC)
+                            .leaf(Icons.ALIGN_V_D, "ldlib.gui.editor.menu.align.vd", this::alignVD)
+                            .leaf(Icons.ALIGN_V_T, "ldlib.gui.editor.menu.align.vt", this::alignVT)
+                            .leaf(Icons.ALIGN_V_B, "ldlib.gui.editor.menu.align.vb", this::alignVB);
+                });
+    }
+
+    private void alignVB() {
+        if (selectedUIs.size() > 0) {
+            int max = Integer.MIN_VALUE;
+            for (UIWrapper ui : selectedUIs) {
+                max = Math.max(max, ui.inner().widget().getRect().down);
+            }
+            for (UIWrapper ui : selectedUIs) {
+                ui.inner().widget().addSelfPosition(0, max - ui.inner().widget().getRect().down);
+            }
+        }
+    }
+
+    private void alignVT() {
+        if (selectedUIs.size() > 0) {
+            int min = Integer.MAX_VALUE;
+            for (UIWrapper ui : selectedUIs) {
+                min = Math.min(min, ui.inner().widget().getRect().up);
+            }
+            for (UIWrapper ui : selectedUIs) {
+                ui.inner().widget().addSelfPosition(0, min - ui.inner().widget().getRect().up);
+            }
+        }
+    }
+
+    private void alignVD() {
+        if (selectedUIs.size() > 2) {
+            var uis = selectedUIs.stream().map(ui -> ui.inner().widget()).sorted(Comparator.comparingInt(w -> w.getRect().getHeightCenter())).toList();
+            int min = uis.get(0).getRect().getHeightCenter(), max = uis.get(uis.size() - 1).getRect().getHeightCenter();
+            for (int i = 0; i < uis.size(); i++) {
+                int centerY = min + (max - min) * i / (selectedUIs.size() - 1);
+                var ui = uis.get(i);
+                ui.addSelfPosition(0, centerY - ui.getRect().getHeightCenter());
+            }
+        }
+    }
+
+    private void alignVC() {
+        if (selectedUIs.size() > 0) {
+            int min = Integer.MAX_VALUE, max = Integer.MIN_VALUE;
+            for (UIWrapper ui : selectedUIs) {
+                min = Math.min(min, ui.inner().widget().getRect().up);
+                max = Math.max(max, ui.inner().widget().getRect().down);
+            }
+            int mid = (min + max) / 2;
+            for (UIWrapper ui : selectedUIs) {
+                ui.inner().widget().addSelfPosition(0, mid - ui.inner().widget().getRect().getHeightCenter());
+            }
+        }
+    }
+
+    private void alignHR() {
+        if (selectedUIs.size() > 0) {
+            int max = Integer.MIN_VALUE;
+            for (UIWrapper ui : selectedUIs) {
+                max = Math.max(max, ui.inner().widget().getRect().right);
+            }
+            for (UIWrapper ui : selectedUIs) {
+                ui.inner().widget().addSelfPosition(max - ui.inner().widget().getRect().right, 0);
+            }
+        }
+    }
+
+    private void alignHL() {
+        if (selectedUIs.size() > 0) {
+            int min = Integer.MAX_VALUE;
+            for (UIWrapper ui : selectedUIs) {
+                min = Math.min(min, ui.inner().widget().getRect().left);
+            }
+            for (UIWrapper ui : selectedUIs) {
+                ui.inner().widget().addSelfPosition(min - ui.inner().widget().getRect().left, 0);
+            }
+        }
+    }
+
+    private void alignHD() {
+        if (selectedUIs.size() > 2) {
+            var uis = selectedUIs.stream().map(ui -> ui.inner().widget()).sorted(Comparator.comparingInt(w -> w.getRect().getWidthCenter())).toList();
+            int min = uis.get(0).getRect().getWidthCenter(), max = uis.get(uis.size() - 1).getRect().getWidthCenter();
+            for (int i = 0; i < uis.size(); i++) {
+                int centerX = min + (max - min) * i / (selectedUIs.size() - 1);
+                var ui = uis.get(i);
+                ui.addSelfPosition(centerX - ui.getRect().getWidthCenter(), 0);
+            }
+        }
+    }
+
+    private void alignHC() {
+        if (selectedUIs.size() > 0) {
+            int min = Integer.MAX_VALUE, max = Integer.MIN_VALUE;
+            for (UIWrapper ui : selectedUIs) {
+                min = Math.min(min, ui.inner().widget().getRect().left);
+                max = Math.max(max, ui.inner().widget().getRect().right);
+            }
+            int mid = (min + max) / 2;
+            for (UIWrapper ui : selectedUIs) {
+                ui.inner().widget().addSelfPosition(mid - ui.inner().widget().getRect().getWidthCenter(), 0);
+            }
+        }
     }
 
     @Override

@@ -2,15 +2,12 @@ package com.lowdragmc.lowdraglib.gui.editor.configurator;
 
 import com.lowdragmc.lowdraglib.gui.editor.Icons;
 import com.lowdragmc.lowdraglib.gui.editor.ui.ConfigPanel;
-import com.lowdragmc.lowdraglib.gui.texture.*;
 import com.lowdragmc.lowdraglib.gui.widget.ImageWidget;
 import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 import com.lowdragmc.lowdraglib.utils.LocalizationUtils;
 import com.lowdragmc.lowdraglib.utils.Size;
-import lombok.Setter;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.resources.language.I18n;
 
 /**
  * @author KilaBash
@@ -66,7 +63,7 @@ public class Configurator extends WidgetGroup {
         this.width = width;
         setSize(new Size(width, getSize().height));
         if (tips.length > 0) {
-            this.addWidget(new ImageWidget(width - 12, 3, 9, 9, Icons.HELP).setHoverTooltips(tips));
+            this.addWidget(new ImageWidget(width - 12, 2, 9, 9, Icons.HELP).setHoverTooltips(tips));
         }
     }
 

@@ -59,6 +59,15 @@
   "ldlib.gui.editor.menu.export": "Export",
   "ldlib.gui.editor.menu.project": "Project",
   "ldlib.gui.editor.menu.resource": "Resource",
+  "ldlib.gui.editor.menu.align": "align",
+  "ldlib.gui.editor.menu.align.hc": "horizontal center",
+  "ldlib.gui.editor.menu.align.hd": "horizontal distribute",
+  "ldlib.gui.editor.menu.align.hl": "horizontal left",
+  "ldlib.gui.editor.menu.align.hr": "horizontal right",
+  "ldlib.gui.editor.menu.align.vc": "vertical center",
+  "ldlib.gui.editor.menu.align.vd": "vertical distribute",
+  "ldlib.gui.editor.menu.align.vt": "vertical top",
+  "ldlib.gui.editor.menu.align.vb": "vertical bottom",
 
   "ldlib.gui.editor.tips.id": "Widget id, it doesn't have to be unique，and can be empty.",
   "ldlib.gui.editor.tips.pos": "Relative to the parent widget.",
@@ -102,5 +111,9 @@
   "ldlib.gui.editor.register.widget.text_box": "Text Box Widget",
   "ldlib.gui.editor.register.widget.text_field": "Text Field Widget",
   "ldlib.gui.editor.register.widget.group": "Group",
-  "ldlib.gui.editor.register.widget.draggable_scrollable_group": "Scrollable Group"
+  "ldlib.gui.editor.register.widget.draggable_scrollable_group": "Scrollable Group",
+  "ldlib.gui.editor.register.widget.item_slot": "Item Slot",
+  "ldlib.gui.editor.register.widget.fluid_slot": "Fluid Slot",
+  "ldlib.gui.editor.register.widget.phantom_item_slot": "Phantom Item Slot",
+  "ldlib.gui.editor.register.widget.phantom_fluid_slot": "Phantom Fluid Slot"
 }

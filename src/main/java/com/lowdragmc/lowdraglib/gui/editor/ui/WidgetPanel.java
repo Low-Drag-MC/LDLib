@@ -17,7 +17,7 @@ import lombok.Getter;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
-import java.util.EnumMap;
+import java.util.*;
 import java.util.function.Supplier;
 
 /**
@@ -28,20 +28,29 @@ import java.util.function.Supplier;
 public class WidgetPanel extends WidgetGroup {
     public static final int WIDTH = 100;
 
-    public enum Tab {
-        BASIC(Icons.BASIC_WIDGET_TAB),
-        ADVANCED(Icons.ADVANCED_WIDGET_TAB);
+    public static class Tab {
+        public static List<Tab> TABS = new ArrayList<>();
+        public static final Tab BASIC = registerTab("basic", Icons.WIDGET_BASIC);
+        public static final Tab GROUP = registerTab("group", Icons.WIDGET_GROUP);
+        public static final Tab CONTAINER = registerTab("container", Icons.WIDGET_CONTAINER);
 
-        final ResourceTexture icon;
+        public final String groupName;
+        public final ResourceTexture icon;
 
-        Tab(ResourceTexture icon) {
+        private Tab(String groupName, ResourceTexture icon) {
+            this.groupName = groupName;
             this.icon = icon;
+            TABS.add(this);
+        }
+
+        public static Tab registerTab(String groupName, ResourceTexture icon) {
+            return new Tab(groupName, icon);
         }
     }
 
     @Getter
     protected final Editor editor;
-    protected final EnumMap<Tab, DraggableScrollableWidgetGroup> widgetGroup = new EnumMap<>(Tab.class);
+    protected final Map<Tab, DraggableScrollableWidgetGroup> widgetGroup = new HashMap<>(Tab.TABS.size());
     protected ButtonWidget buttonHide;
     protected TabContainer tabContainer;
 
@@ -61,13 +70,13 @@ public class WidgetPanel extends WidgetGroup {
         this.setBackground(ColorPattern.BLACK.rectTexture());
 
         addWidget(new LabelWidget(3, 3, "ldlib.gui.editor.group.widgets"));
-        addWidget(new ImageWidget(WIDTH, 15, 20, Tab.values().length * 20, ColorPattern.BLACK.rectTexture().setRightRadius(8)));
+        addWidget(new ImageWidget(WIDTH, 15, 20, Tab.TABS.size() * 20, ColorPattern.BLACK.rectTexture().setRightRadius(8)));
 
         addWidget(tabContainer = new TabContainer(0, 15, WIDTH, size.height - 15));
         tabContainer.setBackground(ColorPattern.T_GRAY.borderTexture(-1));
 
         int y = 4;
-        for (Tab tab : Tab.values()) {
+        for (Tab tab : Tab.TABS) {
             initWidgets(tab, y);
             y += 20;
         }
@@ -104,7 +113,7 @@ public class WidgetPanel extends WidgetGroup {
         int yOffset = 3;
         for (UIDetector.Wrapper<RegisterUI, IConfigurableWidget> wrapper : UIDetector.REGISTER_WIDGETS) {
             String group = wrapper.annotation().group().isEmpty() ? "basic" : wrapper.annotation().group();
-            if (group.equals(tab.name().toLowerCase())) {
+            if (group.equals(tab.groupName)) {
                 var widget = wrapper.creator().get();
                 var size = widget.widget().getSize();
                 widget.widget().setSelfPosition(new Position((WIDTH - 2 - size.width) / 2, (65 - size.height) / 2 + 14));

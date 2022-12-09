@@ -113,6 +113,11 @@ public class SelectorWidget extends WidgetGroup {
     }
 
     @Override
+    public boolean isMouseOverElement(double mouseX, double mouseY) {
+        return super.isMouseOverElement(mouseX, mouseY) || (isShow && popUp.isMouseOverElement(mouseX, mouseY));
+    }
+
+    @Override
     public void onFocusChanged(@Nullable Widget lastFocus, Widget focus) {
         if (lastFocus != null && !lastFocus.isParent(this) && focus != this) {
             setShow(false);

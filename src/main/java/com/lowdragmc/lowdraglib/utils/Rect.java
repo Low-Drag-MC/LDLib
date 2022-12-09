@@ -125,6 +125,14 @@ public class Rect {
 		return down - up;
 	}
 
+	public int getWidthCenter() {
+		return (right + left) / 2;
+	}
+
+	public int getHeightCenter() {
+		return (down + up) / 2;
+	}
+
 	public Rect withLeft(int left) {
 		return new Rect(left, right, up, down);
 	}

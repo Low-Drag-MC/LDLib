@@ -26,9 +26,12 @@ public class TexturesResource extends Resource<IGuiTexture> {
 
     public final static String RESOURCE_NAME = "ldlib.gui.editor.group.textures";
 
+    public TexturesResource() {
+        data.put("empty", IGuiTexture.EMPTY);
+    }
+
     @Override
     public void buildDefault() {
-        data.put("empty", IGuiTexture.EMPTY);
         data.put("border background", ResourceBorderTexture.BORDERED_BACKGROUND);
         for (var wrapper : UIDetector.REGISTER_TEXTURES) {
             data.put("ldlib.gui.editor.register.texture." + wrapper.annotation().name(), wrapper.creator().get());
@@ -69,5 +72,14 @@ public class TexturesResource extends Resource<IGuiTexture> {
             return value;
         }
         return null;
+    }
+
+    @Override
+    public void deserializeNBT(CompoundTag nbt) {
+        data.clear();
+        data.put("empty", IGuiTexture.EMPTY);
+        for (String key : nbt.getAllKeys()) {
+            data.put(key, deserialize(nbt.get(key)));
+        }
     }
 }
