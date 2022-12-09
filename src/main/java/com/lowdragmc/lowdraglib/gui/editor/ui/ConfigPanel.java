@@ -90,6 +90,7 @@ public class ConfigPanel extends WidgetGroup {
             configuratorGroup.get(tab).addWidget(configurator);
         }
         computeLayout(tab);
+        configuratorGroup.get(tab).setScrollYOffset(0);
     }
 
     public void switchTag(Tab tab) {

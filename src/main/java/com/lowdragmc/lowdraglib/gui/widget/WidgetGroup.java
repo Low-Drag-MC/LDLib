@@ -2,14 +2,14 @@ package com.lowdragmc.lowdraglib.gui.widget;
 
 import com.lowdragmc.lowdraglib.gui.animation.Animation;
 import com.lowdragmc.lowdraglib.gui.editor.annotation.RegisterUI;
-import com.lowdragmc.lowdraglib.gui.editor.configurator.IConfigurableWidget;
-import com.lowdragmc.lowdraglib.gui.editor.configurator.IConfigurableWidgetGroup;
+import com.lowdragmc.lowdraglib.gui.editor.configurator.*;
 import com.lowdragmc.lowdraglib.gui.editor.runtime.UIDetector;
 import com.lowdragmc.lowdraglib.gui.ingredient.IGhostIngredientTarget;
 import com.lowdragmc.lowdraglib.gui.ingredient.IIngredientSlot;
 import com.lowdragmc.lowdraglib.gui.ingredient.Target;
 import com.lowdragmc.lowdraglib.gui.modular.WidgetUIAccess;
 import com.lowdragmc.lowdraglib.gui.texture.ResourceBorderTexture;
+import com.lowdragmc.lowdraglib.gui.texture.WidgetTexture;
 import com.lowdragmc.lowdraglib.utils.Position;
 import com.lowdragmc.lowdraglib.utils.Size;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -619,6 +619,27 @@ public class WidgetGroup extends Widget implements IGhostIngredientTarget, IIngr
     }
 
     // *********** IConfigurableWidget ************* //
+
+    @Override
+    public void buildConfigurator(ConfiguratorGroup father) {
+        IConfigurableWidgetGroup.super.buildConfigurator(father);
+        addWidgetsConfigurator(father);
+    }
+
+    protected void addWidgetsConfigurator(ConfiguratorGroup father) {
+        var arrayGroup = new ArrayConfiguratorGroup<>("children", true, () -> widgets,
+                (getter, setter) -> {
+            var child = getter.get();
+            return new WrapperConfigurator(child.id, new ImageWidget(0, 0, 50, 50, new WidgetTexture(child)));
+                }, true);
+        arrayGroup.setCanAdd(false);
+        arrayGroup.setOnRemove(this::removeWidget);
+        arrayGroup.setOnReorder((index, widget) -> {
+            removeWidget(widget);
+            addWidget(index, widget);
+        });
+        father.addConfigurators(arrayGroup);
+    }
 
     @Override
     public boolean canWidgetDragIn(IConfigurableWidget widget) {

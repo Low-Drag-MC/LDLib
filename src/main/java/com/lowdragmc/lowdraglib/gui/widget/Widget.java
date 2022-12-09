@@ -25,15 +25,13 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import org.apache.commons.lang3.function.TriFunction;
 import org.lwjgl.glfw.GLFW;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.function.Supplier;
+import java.util.function.*;
 
 /**
  * Widget is functional element of ModularUI
@@ -69,7 +67,7 @@ public class Widget {
     protected boolean initialized;
     protected boolean tryToDrag = false;
     protected Supplier<Object> draggingProvider;
-    protected Function<Object, IGuiTexture> draggingRenderer;
+    protected BiFunction<Object, Position, IGuiTexture> draggingRenderer;
     protected Predicate<Object> draggingAccept = o -> false;
     protected Consumer<Object> draggingIn;
     protected Consumer<Object> draggingOut;
@@ -131,9 +129,9 @@ public class Widget {
     }
 
     @SuppressWarnings("unchecked")
-    public <T> Widget setDraggingProvider(Supplier<T> draggingProvider, Function<T, IGuiTexture> draggingRenderer) {
+    public <T> Widget setDraggingProvider(Supplier<T> draggingProvider, BiFunction<T, Position, IGuiTexture> draggingRenderer) {
         this.draggingProvider = (Supplier<Object>) draggingProvider;
-        this.draggingRenderer = (Function<Object, IGuiTexture>) draggingRenderer;
+        this.draggingRenderer = (BiFunction<Object, Position, IGuiTexture>) draggingRenderer;
         return this;
     }
 
@@ -322,7 +320,7 @@ public class Widget {
      */
     @OnlyIn(Dist.CLIENT)
     public void drawInForeground(@Nonnull PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
-        if (tooltipTexts != null && isMouseOverElement(mouseX, mouseY) && tooltipTexts.size() > 0 && gui != null &&  gui.getModularUIGui() != null) {
+        if (tooltipTexts.size() > 0 && isMouseOverElement(mouseX, mouseY) && getHoverElement(mouseX, mouseY) == this && gui != null && gui.getModularUIGui() != null) {
             gui.getModularUIGui().setHoverTooltip(tooltipTexts, ItemStack.EMPTY, null, null);
         }
     }
@@ -375,7 +373,7 @@ public class Widget {
         if (!isMouseOverElement(mouseX, mouseY) && tryToDrag && draggingProvider != null && draggingRenderer != null) {
             var element = draggingProvider.get();
             if (element != null) {
-                getGui().getModularUIGui().setDraggingElement(element, draggingRenderer.apply(element));
+                getGui().getModularUIGui().setDraggingElement(element, draggingRenderer.apply(element, new Position((int) mouseX, (int) mouseY)));
             }
         }
         if (isMouseOverElement(mouseX, mouseY) && draggingAccept.test(getGui().getModularUIGui().getDraggingElement())) {

@@ -20,14 +20,24 @@ import java.util.HashMap;
  */
 public interface IConfigurable {
 
+    /**
+     * Add configurators into given group
+     * @param father father group
+     */
     default void buildConfigurator(ConfiguratorGroup father) {
         ConfiguratorParser.createConfigurators(father, new HashMap<>(), getClass(), this);
     }
 
+    /**
+     * Whether element is registered
+     */
     default boolean isRegisterUI() {
         return getClass().isAnnotationPresent(RegisterUI.class);
     }
 
+    /**
+     * Get register annotation
+     */
     default RegisterUI getRegisterUI() {
         return getClass().getAnnotation(RegisterUI.class);
     }

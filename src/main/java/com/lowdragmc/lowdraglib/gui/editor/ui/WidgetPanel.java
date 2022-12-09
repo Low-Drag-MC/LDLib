@@ -8,7 +8,7 @@ import com.lowdragmc.lowdraglib.gui.editor.configurator.IConfigurableWidget;
 import com.lowdragmc.lowdraglib.gui.editor.runtime.UIDetector;
 import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
 import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
-import com.lowdragmc.lowdraglib.gui.texture.WidgetDraggingTexture;
+import com.lowdragmc.lowdraglib.gui.texture.WidgetTexture;
 import com.lowdragmc.lowdraglib.gui.widget.*;
 import com.lowdragmc.lowdraglib.utils.Position;
 import com.lowdragmc.lowdraglib.utils.Size;
@@ -120,7 +120,7 @@ public class WidgetPanel extends WidgetGroup {
                     public IConfigurableWidget get() {
                         return configurableWidget;
                     }
-                }, w -> new WidgetDraggingTexture(w.get().widget()));
+                }, (w, p) -> new WidgetTexture(w.get().widget()).setDragging(true));
                 container.addWidget(selectableWidgetGroup);
 
                 yOffset += 65 + 14 + 3;

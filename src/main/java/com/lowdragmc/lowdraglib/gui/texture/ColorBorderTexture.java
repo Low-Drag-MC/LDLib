@@ -178,7 +178,7 @@ public class ColorBorderTexture extends TransformTexture{
     protected void drawInternal(PoseStack stack, int mouseX, int mouseY, float x, float y, int width, int height) {
         if (radiusLTInner > 0 || radiusLBInner > 0 || radiusRTInner > 0 ||radiusRBInner > 0 ||
                 radiusLTOuter > 0 || radiusLBOuter > 0 || radiusRTOuter > 0 ||radiusRBOuter > 0) {
-            int radius = Math.min(width, height) / 2;
+            float radius = Math.min(width, height) / 2f;
             DrawerHelper.drawFrameRoundBox(stack, Rect.ofRelative((int) x, width, (int) y, height),
                     border,
                     new Vector4f(Math.min(radius, radiusRTInner), Math.min(radiusRBInner, radius), Math.min(radius, radiusLTInner), Math.min(radius, radiusLBInner)),

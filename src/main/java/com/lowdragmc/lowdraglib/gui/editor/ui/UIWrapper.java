@@ -6,7 +6,7 @@ import com.lowdragmc.lowdraglib.gui.editor.configurator.IConfigurableWidget;
 import com.lowdragmc.lowdraglib.gui.editor.configurator.IConfigurableWidgetGroup;
 import com.lowdragmc.lowdraglib.gui.texture.ColorBorderTexture;
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
-import com.lowdragmc.lowdraglib.gui.texture.WidgetDraggingTexture;
+import com.lowdragmc.lowdraglib.gui.texture.WidgetTexture;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import com.lowdragmc.lowdraglib.utils.Position;
 import com.lowdragmc.lowdraglib.utils.Size;
@@ -151,6 +151,6 @@ public record UIWrapper(@Getter MainPanel panel, @Getter IConfigurableWidget inn
     }
 
     public IGuiTexture toDraggingTexture(int mouseX, int mouseY) {
-        return new WidgetDraggingTexture(mouseX, mouseY, inner.widget());
+        return new WidgetTexture(mouseX, mouseY, inner.widget());
     }
 }

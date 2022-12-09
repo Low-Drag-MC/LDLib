@@ -14,14 +14,23 @@ public interface IConfigurableWidgetGroup extends IConfigurableWidget {
         return (WidgetGroup) this;
     }
 
+    /**
+     * Whether widget given be accepted via dragging
+     */
     default boolean canWidgetDragIn(IConfigurableWidget widget) {
         return false;
     }
 
+    /**
+     * Accept given widget
+     */
     default void onWidgetDragIn(IConfigurableWidget widget) {
 
     }
 
+    /**
+     * Child dragged out
+     */
     default void onWidgetDragOut(IConfigurableWidget widget) {
 
     }

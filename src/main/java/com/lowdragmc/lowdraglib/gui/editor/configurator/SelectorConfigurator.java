@@ -54,7 +54,7 @@ public class SelectorConfigurator<T> extends ValueConfigurator<T>{
                     updateValue();
                 })
                 .setButtonBackground(ColorPattern.T_GRAY.rectTexture().setRadius(5))
-                .setBackground(ColorPattern.T_BLACK.rectTexture())
+                .setBackground(ColorPattern.BLACK.rectTexture())
                 .setValue(mapping.apply(value))
         );
     }

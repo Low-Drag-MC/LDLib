@@ -89,7 +89,7 @@ public class ResourceContainer<T, C extends Widget> extends WidgetGroup {
             widgets.put(entry.getKey(), widget);
             Size size = widget.getSize();
             SelectableWidgetGroup selectableWidgetGroup = new SelectableWidgetGroup(0, 0, size.width, size.height + 14);
-            selectableWidgetGroup.setDraggingProvider(draggingMapping == null ? entry::getValue : () -> draggingMapping.apply(entry.getKey()), draggingRenderer);
+            selectableWidgetGroup.setDraggingProvider(draggingMapping == null ? entry::getValue : () -> draggingMapping.apply(entry.getKey()), (c, p) -> draggingRenderer.apply(c));
             selectableWidgetGroup.addWidget(widget);
             selectableWidgetGroup.addWidget(new ImageWidget(0, size.height + 3, size.width, 10, new TextTexture(entry.getKey()).setWidth(size.width).setType(TextTexture.TextType.ROLL)));
             selectableWidgetGroup.setOnSelected(s -> selected = entry.getKey());

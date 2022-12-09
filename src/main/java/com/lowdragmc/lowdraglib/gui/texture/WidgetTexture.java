@@ -2,6 +2,7 @@ package com.lowdragmc.lowdraglib.gui.texture;
 
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.math.Quaternion;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -11,34 +12,58 @@ import net.minecraftforge.api.distmarker.OnlyIn;
  * @date 2022/12/3
  * @implNote WidgetDraggingTexture
  */
-public class WidgetDraggingTexture extends TransformTexture{
+public class WidgetTexture extends TransformTexture{
     private final Widget widget;
     private final int centerX;
     private final int centerY;
+    private boolean isDragging;
 
-    public WidgetDraggingTexture(Widget widget) {
+    public WidgetTexture(Widget widget) {
         this.widget = widget;
         this.centerX = widget.getPosition().x + widget.getSize().width / 2;
         this.centerY = widget.getPosition().y + widget.getSize().height / 2;
     }
 
-    public WidgetDraggingTexture(int mouseX, int mouseY, Widget widget) {
+    public WidgetTexture(int mouseX, int mouseY, Widget widget) {
         this.widget = widget;
         this.centerX = mouseX;
         this.centerY = mouseY;
+        this.isDragging = true;
+    }
+
+    public WidgetTexture setDragging(boolean dragging) {
+        isDragging = dragging;
+        return this;
     }
 
     @Override
     @OnlyIn(Dist.CLIENT)
     protected void drawInternal(PoseStack stack, int mouseX, int mouseY, float x, float y, int width, int height) {
-        int xOffset = mouseX - this.centerX;
-        int yOffset = mouseY - this.centerY;
+        int xOffset;
+        int yOffset;
+        float scale  = 1;
+        if (isDragging) {
+            xOffset = mouseX - this.centerX;
+            yOffset = mouseY - this.centerY;
+        } else {
+            xOffset = (int) (x + width / 2 - this.centerX);
+            yOffset = (int) (y + height / 2 - this.centerY);
+            float scaleW = width * 1f / widget.getSize().width;
+            float scaleH = height * 1f / widget.getSize().height;
+            scale = Math.max(scaleW, scaleH);
+        }
         float particleTick = Minecraft.getInstance().getFrameTime();
         stack.pushPose();
+
+        stack.translate(x + width / 2f, y + height / 2f, 0);
+        stack.scale(scale, scale, 1);
+        stack.translate(-x + -width / 2f, -y + -height / 2f, 0);
+
         stack.translate(xOffset, yOffset, 0 );
         widget.drawInBackground(stack, this.centerX, this.centerY, particleTick);
         widget.drawInForeground(stack, this.centerX, this.centerY, particleTick);
         stack.popPose();
+
     }
 
 }

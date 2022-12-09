@@ -92,7 +92,7 @@ public class ColorRectTexture extends TransformTexture{
     @Override
     protected void drawInternal(PoseStack stack, int mouseX, int mouseY, float x, float y, int width, int height) {
         if (radiusLT > 0 || radiusLB > 0 || radiusRT > 0 || radiusRB > 0) {
-            int radius = Math.min(width, height) / 2;
+            float radius = Math.min(width, height) / 2f;
             DrawerHelper.drawRoundBox(stack, Rect.ofRelative((int) x, width, (int) y, height),
                     new Vector4f(Math.min(radius, radiusRT), Math.min(radiusRB, radius), Math.min(radius, radiusLT), Math.min(radius, radiusLB)), color);
         } else {
