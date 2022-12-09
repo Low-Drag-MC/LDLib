@@ -12,6 +12,7 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import org.jetbrains.annotations.Nullable;
 
 import java.awt.Rectangle;
 import java.util.ArrayList;
@@ -59,6 +60,15 @@ public final class ModularUI {
 
     public HashMap<Slot, SlotWidget> getSlotMap() {
         return slotMap;
+    }
+
+    @Nullable
+    public Widget getFirstWidgetById(String id) {
+        return mainGroup.getFirstWidgetById(id);
+    }
+
+    public List<Widget> getWidgetsById(String id) {
+        return mainGroup.getWidgetsById(id);
     }
 
     public ModularUIContainer getModularUIContainer() {

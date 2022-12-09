@@ -104,16 +104,17 @@
   "ldlib.gui.editor.register.texture.group_texture": "Group Texture",
   "ldlib.gui.editor.register.texture.round_box_texture": "Round Box Texture",
 
-  "ldlib.gui.editor.register.widget.image": "Image Widget",
-  "ldlib.gui.editor.register.widget.button": "Button Widget",
-  "ldlib.gui.editor.register.widget.switch": "Switch Widget",
-  "ldlib.gui.editor.register.widget.label": "Label Widget",
-  "ldlib.gui.editor.register.widget.text_box": "Text Box Widget",
-  "ldlib.gui.editor.register.widget.text_field": "Text Field Widget",
+  "ldlib.gui.editor.register.widget.image": "Image",
+  "ldlib.gui.editor.register.widget.button": "Button",
+  "ldlib.gui.editor.register.widget.switch": "Switch",
+  "ldlib.gui.editor.register.widget.label": "Label",
+  "ldlib.gui.editor.register.widget.text_box": "Text Box",
+  "ldlib.gui.editor.register.widget.text_field": "Text Field",
   "ldlib.gui.editor.register.widget.group": "Group",
   "ldlib.gui.editor.register.widget.draggable_scrollable_group": "Scrollable Group",
   "ldlib.gui.editor.register.widget.item_slot": "Item Slot",
   "ldlib.gui.editor.register.widget.fluid_slot": "Fluid Slot",
   "ldlib.gui.editor.register.widget.phantom_item_slot": "Phantom Item Slot",
-  "ldlib.gui.editor.register.widget.phantom_fluid_slot": "Phantom Fluid Slot"
+  "ldlib.gui.editor.register.widget.phantom_fluid_slot": "Phantom Fluid Slot",
+  "ldlib.gui.editor.register.widget.selector": "Selector"
 }

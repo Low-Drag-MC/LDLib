@@ -148,6 +148,30 @@ public class WidgetGroup extends Widget implements IGhostIngredientTarget, IIngr
 
     }
 
+    @Nullable
+    public Widget getFirstWidgetById(String id) {
+        List<Widget> list = new ArrayList<>();
+        getWidgetsById(list, id);
+        return list.isEmpty() ? null : list.get(0);
+    }
+
+    public List<Widget> getWidgetsById(String id) {
+        List<Widget> list = new ArrayList<>();
+        getWidgetsById(list, id);
+        return list;
+    }
+
+    private void getWidgetsById(List<Widget> list, String id) {
+        for (Widget widget : widgets) {
+            if (widget.id.equals(id)) {
+                list.add(widget);
+            }
+            if (widget instanceof WidgetGroup widgetGroup) {
+                widgetGroup.getWidgetsById(list, id);
+            }
+        }
+    }
+
     protected boolean recomputeSize() {
         if (isDynamicSized) {
             Size currentSize = getSize();
@@ -548,15 +572,6 @@ public class WidgetGroup extends Widget implements IGhostIngredientTarget, IIngr
             }
             return false;
         }
-
-//        @Override
-//        public void notifyWidgetChange() {
-//            WidgetUIAccess uiAccess = WidgetGroup.this.uiAccess;
-//            if (uiAccess != null) {
-//                uiAccess.notifyWidgetChange();
-//            }
-//            recomputeSize();
-//        }
 
         @Override
         public void writeClientAction(Widget widget, int updateId, Consumer<FriendlyByteBuf> dataWriter) {

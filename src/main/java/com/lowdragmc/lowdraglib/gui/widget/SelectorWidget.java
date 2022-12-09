@@ -1,5 +1,9 @@
 package com.lowdragmc.lowdraglib.gui.widget;
 
+import com.lowdragmc.lowdraglib.gui.editor.ColorPattern;
+import com.lowdragmc.lowdraglib.gui.editor.annotation.*;
+import com.lowdragmc.lowdraglib.gui.editor.configurator.ConfiguratorGroup;
+import com.lowdragmc.lowdraglib.gui.editor.configurator.IConfigurableWidget;
 import com.lowdragmc.lowdraglib.gui.modular.ModularUIGuiContainer;
 import com.lowdragmc.lowdraglib.gui.texture.ColorRectTexture;
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
@@ -17,35 +21,61 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
+@RegisterUI(name = "selector", group = "basic")
 public class SelectorWidget extends WidgetGroup {
-    protected ButtonWidget button;
+    protected List<SelectableWidgetGroup> selectables;
+    @Configurable
     protected List<String> candidates;
-    protected List<SelectableWidgetGroup> selects;
-    protected String currentString;
+    @Configurable
+    protected String currentValue;
+    @Configurable
+    @NumberRange(range = {1, 20})
+    protected int maxCount = 5;
+    @Configurable
+    @NumberColor
+    protected int fontColor = -1;
+    @Configurable
+    protected boolean showUp;
     protected boolean isShow;
+    protected IGuiTexture popUpTexture = new ColorRectTexture(0xAA000000);
     private Consumer<String> onChanged;
     public final TextTexture textTexture;
-    public final DraggableScrollableWidgetGroup popUp;
+    protected final DraggableScrollableWidgetGroup popUp;
+    protected final ButtonWidget button;
+
+    public SelectorWidget() {
+        this(0, 0, 60, 15, new ArrayList<>(List.of("A", "B", "C", "D", "E", "F", "G")), -1);
+        setButtonBackground(ColorPattern.BLACK.rectTexture().setRadius(7.5f));
+        setValue("D");
+    }
 
     public SelectorWidget(int x, int y, int width, int height, List<String> candidates, int fontColor) {
         super(new Position(x, y), new Size(width, height));
-        this.button = new ButtonWidget(0,0, width, height, d -> {
+        this.button = new ButtonWidget(0,0, width, height, textTexture = new TextTexture("", fontColor).setWidth(width).setType(TextTexture.TextType.ROLL), d -> {
             if (d.isRemote) setShow(!isShow);
         });
         this.candidates = candidates;
-        this.selects = new ArrayList<>();
+        this.selectables = new ArrayList<>();
         this.addWidget(button);
-        this.addWidget(new ImageWidget(0,0,width, height, textTexture = new TextTexture("", fontColor).setWidth(width).setType(TextTexture.TextType.ROLL)));
-        this.addWidget(popUp = new DraggableScrollableWidgetGroup(0, height, width, Math.min(5, candidates.size()) * 15));
-        popUp.setBackground(new ColorRectTexture(0xAA000000));
-        if (candidates.size() > 5) {
-            popUp.setYScrollBarWidth(4).setYBarStyle(null, new ColorRectTexture(-1));
-        }
+        this.addWidget(popUp = new DraggableScrollableWidgetGroup(0, height, width, 15));
+        popUp.setBackground(popUpTexture);
         popUp.setVisible(false);
         popUp.setActive(false);
-        currentString = "";
-        y = 0;
-        width = candidates.size() > 5 ? width -4 : width;
+        currentValue = "";
+        computeLayout();
+    }
+
+    protected void computeLayout() {
+        int height = Math.min(maxCount, candidates.size()) * 15;
+        popUp.clearAllWidgets();
+        selectables.clear();
+        popUp.setSize(new Size(getSize().width, height));
+        popUp.setSelfPosition(showUp ? new Position(0, -height) : new Position(0, getSize().height));
+        if (candidates.size() > maxCount) {
+            popUp.setYScrollBarWidth(4).setYBarStyle(null, new ColorRectTexture(-1));
+        }
+        int y = 0;
+        int width = candidates.size() > maxCount ? getSize().width -4 : getSize().width;
         for (String candidate : candidates) {
             SelectableWidgetGroup select = new SelectableWidgetGroup(0, y, width, 15);
             select.addWidget(new ImageWidget(0, 0, width, 15, new TextTexture(candidate, fontColor).setWidth(width).setType(TextTexture.TextType.ROLL)));
@@ -60,15 +90,64 @@ public class SelectorWidget extends WidgetGroup {
                 setShow(false);
             });
             popUp.addWidget(select);
-            selects.add(select);
+            selectables.add(select);
             y += 15;
         }
-
+        popUp.setScrollYOffset(0);
     }
 
-    public SelectorWidget setIsUp(boolean isUp) {
-        popUp.setSelfPosition(isUp ? new Position(0, - Math.min(candidates.size(), 5) * 15): new Position(0, getSize().height));
+    @ConfigSetter(field = "maxCount")
+    public SelectorWidget setMaxCount(int maxCount) {
+        this.maxCount = maxCount;
+        computeLayout();
         return this;
+    }
+
+    @ConfigSetter(field = "showUp")
+    public SelectorWidget setIsUp(boolean isUp) {
+        this.showUp = isUp;
+        computeLayout();
+        return this;
+    }
+
+    @ConfigSetter(field = "fontColor")
+    public SelectorWidget setFontColor(int fontColor) {
+        this.fontColor = fontColor;
+        computeLayout();
+        return this;
+    }
+
+    @ConfigSetter(field = "currentValue")
+    public SelectorWidget setValue(String value) {
+        if (!value.equals(currentValue)) {
+            currentValue = value;
+            int index = candidates.indexOf(value);
+            textTexture.updateText(value);
+            for (int i = 0; i < selectables.size(); i++) {
+                selectables.get(i).isSelected = index == i;
+            }
+        }
+        return this;
+    }
+
+
+    public SelectorWidget setButtonBackground(IGuiTexture... guiTexture) {
+        super.setBackground(guiTexture);
+        return this;
+    }
+
+    @ConfigSetter(field = "popUpTexture")
+    public SelectorWidget setBackground(IGuiTexture background) {
+        popUpTexture = background;
+        popUp.setBackground(background);
+        return this;
+    }
+
+    @Override
+    public void setSize(Size size) {
+        super.setSize(size);
+        button.setSize(size);
+        computeLayout();
     }
 
     @OnlyIn(Dist.CLIENT)
@@ -81,20 +160,8 @@ public class SelectorWidget extends WidgetGroup {
         popUp.setActive(isShow);
     }
 
-    public SelectorWidget setValue(String value) {
-        int index = candidates.indexOf(value);
-        if (index >= 0 && !value.equals(currentString)) {
-            currentString = value;
-            textTexture.updateText(value);
-            for (int i = 0; i < selects.size(); i++) {
-                selects.get(i).isSelected = index == i;
-            }
-        }
-        return this;
-    }
-
     public String getValue() {
-        return currentString;
+        return currentValue;
     }
 
     public SelectorWidget setOnChanged(Consumer<String> onChanged) {
@@ -102,19 +169,14 @@ public class SelectorWidget extends WidgetGroup {
         return this;
     }
 
-    public SelectorWidget setButtonBackground(IGuiTexture... guiTexture) {
-        button.setButtonTexture(guiTexture);
-        return this;
-    }
-
-    public SelectorWidget setBackground(IGuiTexture background) {
-        popUp.setBackground(background);
-        return this;
-    }
-
     @Override
     public boolean isMouseOverElement(double mouseX, double mouseY) {
         return super.isMouseOverElement(mouseX, mouseY) || (isShow && popUp.isMouseOverElement(mouseX, mouseY));
+    }
+
+    @Override
+    public @Nullable Widget getHoverElement(double mouseX, double mouseY) {
+        return isMouseOverElement(mouseX, mouseY) ? this : null;
     }
 
     @Override
@@ -180,4 +242,13 @@ public class SelectorWidget extends WidgetGroup {
         }
     }
 
+    @Override
+    public void addWidgetsConfigurator(ConfiguratorGroup father) {
+
+    }
+
+    @Override
+    public boolean canWidgetDragIn(IConfigurableWidget widget) {
+        return false;
+    }
 }
