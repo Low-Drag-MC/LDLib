@@ -5,6 +5,7 @@ import com.lowdragmc.lowdraglib.gui.editor.accessors.IConfiguratorAccessor;
 import com.lowdragmc.lowdraglib.gui.editor.annotation.ConfigAccessor;
 import com.lowdragmc.lowdraglib.gui.editor.annotation.RegisterUI;
 import com.lowdragmc.lowdraglib.gui.editor.configurator.IConfigurableWidget;
+import com.lowdragmc.lowdraglib.gui.editor.data.Project;
 import com.lowdragmc.lowdraglib.gui.editor.data.resource.Resource;
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
@@ -27,10 +28,11 @@ public class UIDetector {
 
     public record Wrapper<A extends Annotation, T>(A annotation, Class<? extends T> clazz, Supplier<T> creator) { }
 
-    public static final List<IConfiguratorAccessor<?>> CONFIGURATOR_ACCESSORS = scanClasses(ConfigAccessor.class, IConfiguratorAccessor.class, c -> true, UIDetector::createNoArgsInstance);
+    public static final List<IConfiguratorAccessor<?>> CONFIGURATOR_ACCESSORS = scanClasses(ConfigAccessor.class, IConfiguratorAccessor.class, UIDetector::checkNoArgsConstructor, UIDetector::createNoArgsInstance);
     public static final List<Wrapper<RegisterUI, IGuiTexture>> REGISTER_TEXTURES = scanClasses(RegisterUI.class, IGuiTexture.class, UIDetector::checkNoArgsConstructor, UIDetector::toUINoArgsBuilder);
     public static final List<Wrapper<RegisterUI, Resource>> REGISTER_RESOURCES = scanClasses(RegisterUI.class, Resource.class, UIDetector::checkNoArgsConstructor, UIDetector::toUINoArgsBuilder);
     public static final List<Wrapper<RegisterUI, IConfigurableWidget>> REGISTER_WIDGETS = scanClasses(RegisterUI.class, IConfigurableWidget.class, UIDetector::checkNoArgsConstructor, UIDetector::toUINoArgsBuilder);
+    public static final List<Project> REGISTER_PROJECTS = scanClasses(RegisterUI.class, Project.class, UIDetector::checkNoArgsConstructor, UIDetector::createNoArgsInstance);
 
     public static void init() {
 

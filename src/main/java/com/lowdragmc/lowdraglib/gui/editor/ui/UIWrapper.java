@@ -4,6 +4,7 @@ import com.lowdragmc.lowdraglib.gui.editor.configurator.ConfiguratorGroup;
 import com.lowdragmc.lowdraglib.gui.editor.configurator.IConfigurable;
 import com.lowdragmc.lowdraglib.gui.editor.configurator.IConfigurableWidget;
 import com.lowdragmc.lowdraglib.gui.editor.configurator.IConfigurableWidgetGroup;
+import com.lowdragmc.lowdraglib.gui.editor.ui.tool.WidgetToolBox;
 import com.lowdragmc.lowdraglib.gui.texture.ColorBorderTexture;
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.texture.WidgetTexture;
@@ -11,7 +12,6 @@ import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import com.lowdragmc.lowdraglib.utils.Position;
 import com.lowdragmc.lowdraglib.utils.Size;
 import com.mojang.blaze3d.vertex.PoseStack;
-import lombok.Getter;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -51,7 +51,7 @@ public record UIWrapper(MainPanel panel, IConfigurableWidget inner) implements I
             }
             var dragging = panel.getGui().getModularUIGui().getDraggingElement();
             boolean drawDragging = false;
-            if (dragging instanceof WidgetPanel.IWidgetPanelDragging widgetPanelDragging && checkAcceptable(new UIWrapper(panel, widgetPanelDragging.get()))) {
+            if (dragging instanceof WidgetToolBox.IWidgetPanelDragging widgetPanelDragging && checkAcceptable(new UIWrapper(panel, widgetPanelDragging.get()))) {
                 drawDragging = true;
             } else if (dragging instanceof UIWrapper[] uiWrappers && Arrays.stream(uiWrappers).allMatch(this::checkAcceptable)) { // can accept
                 drawDragging = true;
@@ -74,7 +74,7 @@ public record UIWrapper(MainPanel panel, IConfigurableWidget inner) implements I
         if (isHover()) {
             var dragging = panel.getGui().getModularUIGui().getDraggingElement();
 
-            if (dragging instanceof WidgetPanel.IWidgetPanelDragging widgetPanelDragging) {
+            if (dragging instanceof WidgetToolBox.IWidgetPanelDragging widgetPanelDragging) {
                 UIWrapper uiWrapper = new UIWrapper(panel, widgetPanelDragging.get());
                 if (inner instanceof IConfigurableWidgetGroup group && checkAcceptable(uiWrapper)) {
                     var parent = uiWrapper.inner.widget().getParent(); // remove from original parent

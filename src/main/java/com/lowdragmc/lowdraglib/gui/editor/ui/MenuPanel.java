@@ -5,6 +5,7 @@ import com.lowdragmc.lowdraglib.gui.editor.ColorPattern;
 import com.lowdragmc.lowdraglib.gui.editor.Icons;
 import com.lowdragmc.lowdraglib.gui.editor.data.Project;
 import com.lowdragmc.lowdraglib.gui.editor.data.Resources;
+import com.lowdragmc.lowdraglib.gui.editor.runtime.UIDetector;
 import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
 import com.lowdragmc.lowdraglib.gui.texture.TextTexture;
 import com.lowdragmc.lowdraglib.gui.util.TreeBuilder;
@@ -19,6 +20,7 @@ import net.minecraft.nbt.NbtIo;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.stream.Collectors;
 
 /**
  * @author KilaBash
@@ -55,9 +57,7 @@ public class MenuPanel extends WidgetGroup {
 
     protected TreeBuilder.Menu getFileMenu() {
         return TreeBuilder.Menu.start()
-                .branch("ldlib.gui.editor.menu.new", menu -> {
-                    menu.leaf("ldlib.gui.editor.menu.project", this::newProject);
-                })
+                .branch("ldlib.gui.editor.menu.new", this::newProject)
                 .crossLine()
                 .leaf(Icons.OPEN_FILE, "ldlib.gui.editor.menu.open", this::openProject)
                 .leaf(Icons.SAVE, "ldlib.gui.editor.menu.save", this::saveProject)
@@ -91,6 +91,7 @@ public class MenuPanel extends WidgetGroup {
     }
 
     private void importResource() {
+        if (editor.getCurrentProject() == null) return;
         File path = new File(LDLMod.location, "ui_editor");
         DialogWidget.showFileDialog(editor, "ldlib.gui.editor.tips.load_resource", path, true,
                 DialogWidget.suffixFilter(".resource"), r -> {
@@ -107,42 +108,45 @@ public class MenuPanel extends WidgetGroup {
                 });
     }
 
-    private void newProject() {
-        editor.loadProject(Project.newEmptyProject());
+    private void newProject(TreeBuilder.Menu menu) {
+        for (var project : UIDetector.REGISTER_PROJECTS) {
+            String name = "ldlib.gui.editor.menu.project." + project.getSuffix();
+            menu = menu.leaf(name, () -> editor.loadProject(project.newEmptyProject()));
+        }
     }
 
     private void saveProject() {
         var project = editor.getCurrentProject();
         if (project != null) {
-            File path = new File(LDLMod.location, "ui_editor");
-            DialogWidget.showFileDialog(editor, "ldlib.gui.editor.tips.save_resource", path, false,
-                    DialogWidget.suffixFilter(".ui"), r -> {
-                        if (r != null && !r.isDirectory()) {
-                            if (!r.getName().endsWith(".ui")) {
-                                r = new File(r.getParentFile(), r.getName() + ".ui");
-                            }
-                            try {
-                                NbtIo.write(project.serializeNBT(), r);
-                            } catch (IOException ignored) {
-                                // TODO
-                            }
-                        }
-                    });
+            project.saveProject(editor);
         }
     }
 
     private void openProject() {
+        var suffixes = UIDetector.REGISTER_PROJECTS.stream().map(Project::getSuffix).collect(Collectors.toSet());
         File path = new File(LDLMod.location, "ui_editor");
         DialogWidget.showFileDialog(editor, "ldlib.gui.editor.tips.load_resource", path, true,
-                DialogWidget.suffixFilter(".ui"), r -> {
-                    if (r != null && r.isFile()) {
-                        try {
-                            var tag = NbtIo.read(r);
-                            if (tag != null) {
-                                editor.loadProject(Project.fromNBT(tag));
+                node -> {
+                    if (node.isLeaf() && node.getContent().isFile()) {
+                        String file = node.getContent().getName().toLowerCase();
+                        for (String suffix : suffixes) {
+                            if (file.endsWith(suffix.toLowerCase())) {
+                                return true;
                             }
-                        } catch (IOException ignored) {
-                            // TODO
+                        }
+                        return false;
+                    }
+                    return true;
+                }, r -> {
+                    if (r != null && r.isFile()) {
+                        String file = r.getName().toLowerCase();
+                        for (var project : UIDetector.REGISTER_PROJECTS) {
+                            if (file.endsWith(project.getSuffix())) {
+                                var p = project.loadProject(r);
+                                if (p != null) {
+                                    editor.loadProject(p);
+                                }
+                            }
                         }
                     }
                 });

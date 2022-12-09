@@ -1,37 +1,47 @@
 package com.lowdragmc.lowdraglib.gui.editor.data;
 
+import com.lowdragmc.lowdraglib.gui.editor.annotation.RegisterUI;
+import com.lowdragmc.lowdraglib.gui.editor.ui.Editor;
+import lombok.NonNull;
+import org.jetbrains.annotations.Nullable;
 
-import com.lowdragmc.lowdraglib.gui.texture.ResourceBorderTexture;
-import com.lowdragmc.lowdraglib.gui.widget.Widget;
-import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraftforge.common.util.INBTSerializable;
+import javax.annotation.Nonnull;
+import java.io.File;
 
 /**
  * @author KilaBash
- * @date 2022/12/4
+ * @date 2022/12/9
  * @implNote Project
  */
-public record Project(
-        Resources resources,
-        WidgetGroup root) {
+public abstract class Project {
 
-    public static Project newEmptyProject() {
-        return new Project(Resources.defaultResource(),
-                (WidgetGroup) new WidgetGroup(30, 30, 200, 200).setBackground(ResourceBorderTexture.BORDERED_BACKGROUND));
+    public abstract Resources getResources();
+
+    /**
+     * Save project
+     */
+    public abstract void saveProject(Editor editor);
+
+    /**
+     * Load project from file. return null if loading failed
+     */
+    @Nullable
+    public abstract Project loadProject(File file);
+
+    public abstract Project newEmptyProject();
+
+    public RegisterUI getRegisterUI() {
+        return getClass().getAnnotation(RegisterUI.class);
     }
 
-    public static Project fromNBT(CompoundTag tag) {
-        WidgetGroup root = new WidgetGroup();
-        root.deserializeNBT(tag.getCompound("root"));
-        return new Project(Resources.fromNBT(tag.getCompound("resources")), root);
+    public String getSuffix() {
+        return getRegisterUI().name();
     }
 
-    public CompoundTag serializeNBT() {
-        CompoundTag tag = new CompoundTag();
-        tag.put("resources", resources.serializeNBT());
-        tag.put("root", root.serializeNBT());
-        return tag;
+    public void onClosed(Editor editor) {
     }
 
+    public void onLoad(Editor editor) {
+        editor.getResourcePanel().loadResource(getResources(), false);
+    }
 }

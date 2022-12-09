@@ -70,7 +70,11 @@ public class MainPanel extends WidgetGroup {
             selectedUIs.clear();
         } else {
             if (isCtrlDown()) {
-                selectedUIs.add(hoverUI);
+                if (selectedUIs.contains(hoverUI)) {
+                    selectedUIs.remove(hoverUI);
+                } else {
+                    selectedUIs.add(hoverUI);
+                }
             } else if (!selectedUIs.contains(hoverUI)){
                 selectedUIs.clear();
                 selectedUIs.add(hoverUI);

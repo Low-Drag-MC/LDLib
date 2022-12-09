@@ -45,7 +45,7 @@ public class SelectorWidget extends WidgetGroup {
 
     public SelectorWidget() {
         this(0, 0, 60, 15, new ArrayList<>(List.of("A", "B", "C", "D", "E", "F", "G")), -1);
-        setButtonBackground(ColorPattern.BLACK.rectTexture().setRadius(7.5f));
+        setButtonBackground(ColorPattern.T_GRAY.rectTexture());
         setValue("D");
     }
 
@@ -130,6 +130,11 @@ public class SelectorWidget extends WidgetGroup {
         return this;
     }
 
+    @ConfigSetter(field = "candidates")
+    public void setCandidates(List<String> candidates) {
+        this.candidates = candidates;
+        computeLayout();
+    }
 
     public SelectorWidget setButtonBackground(IGuiTexture... guiTexture) {
         super.setBackground(guiTexture);

@@ -5,13 +5,10 @@ import com.lowdragmc.lowdraglib.gui.editor.Icons;
 import com.lowdragmc.lowdraglib.gui.editor.data.Project;
 import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
 import com.lowdragmc.lowdraglib.gui.texture.ColorRectTexture;
-import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
-import com.lowdragmc.lowdraglib.gui.texture.TextTexture;
 import com.lowdragmc.lowdraglib.gui.util.TreeBuilder;
 import com.lowdragmc.lowdraglib.gui.util.TreeNode;
 import com.lowdragmc.lowdraglib.gui.widget.MenuWidget;
-import com.lowdragmc.lowdraglib.gui.widget.TabButton;
 import com.lowdragmc.lowdraglib.gui.widget.TabContainer;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 import com.lowdragmc.lowdraglib.utils.Size;
@@ -35,13 +32,11 @@ public class Editor extends WidgetGroup {
     @Getter
     protected TabContainer tabPages;
     @Getter
-    protected MainPanel currentMainPanel;
-    @Getter
     protected ConfigPanel configPanel;
     @Getter
     protected ResourcePanel resourcePanel;
     @Getter
-    protected WidgetPanel widgetPanel;
+    protected ToolPanel toolPanel;
 
 
     public Editor() {
@@ -70,7 +65,7 @@ public class Editor extends WidgetGroup {
         this.clearAllWidgets();
 
         addWidget(tabPages = new TabContainer(0, 0, screenWidth, screenHeight));
-        addWidget(widgetPanel = new WidgetPanel(this));
+        addWidget(toolPanel = new ToolPanel(this));
         addWidget(configPanel = new ConfigPanel(this));
         addWidget(resourcePanel = new ResourcePanel(this));
         addWidget(menuPanel = new MenuPanel(this));
@@ -106,15 +101,16 @@ public class Editor extends WidgetGroup {
     }
 
     public void loadProject(Project project) {
-        currentProject = project;
         if (currentProject != null) {
-            resourcePanel.loadResource(project.resources(), false);
+            currentProject.onClosed(this);
+        }
 
-            tabPages.clearAllWidgets();
-            tabPages.addTab(new TabButton(50, 16, 60, 14).setTexture(
-                    new GuiTextureGroup(ColorPattern.T_GREEN.rectTexture().setBottomRadius(10).transform(0, 0.4f), new TextTexture("Main")),
-                    new GuiTextureGroup(ColorPattern.T_RED.rectTexture().setBottomRadius(10).transform(0, 0.4f), new TextTexture("Main"))
-            ), currentMainPanel = new MainPanel(this, project.root()));
+        currentProject = project;
+        tabPages.clearAllWidgets();
+        toolPanel.clearAllWidgets();
+
+        if (currentProject != null) {
+            currentProject.onLoad(this);
         }
     }
 
