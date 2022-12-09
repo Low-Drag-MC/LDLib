@@ -67,8 +67,9 @@ public class TexturesResourceContainer extends ResourceContainer<IGuiTexture, Im
     @Override
     protected TreeBuilder.Menu getMenu() {
         return TreeBuilder.Menu.start()
-                .leaf("ldlib.gui.editor.menu.edit", this::editResource)
-                .branch(Icons.borderText("+").scale(0.6f), "ldlib.gui.editor.menu.add_resource", menu -> {
+                .leaf(Icons.EDIT_FILE, "ldlib.gui.editor.menu.edit", this::editResource)
+                .crossLine()
+                .branch(Icons.ADD_FILE, "ldlib.gui.editor.menu.add_resource", menu -> {
                     for (UIDetector.Wrapper<RegisterUI, IGuiTexture> wrapper : UIDetector.REGISTER_TEXTURES) {
                         IGuiTexture icon = wrapper.creator().get();
                         String name = "ldlib.gui.editor.register.texture." + wrapper.annotation().name();
@@ -78,7 +79,8 @@ public class TexturesResourceContainer extends ResourceContainer<IGuiTexture, Im
                         });
                     }
                 })
-                .leaf(Icons.borderText("-").scale(0.6f), "ldlib.gui.editor.menu.remove", this::removeSelectedResource)
+                .leaf(Icons.REMOVE_FILE, "ldlib.gui.editor.menu.remove", this::removeSelectedResource)
+                .crossLine()
                 .leaf("ldlib.gui.editor.menu.rename", this::renameResource);
     }
 }

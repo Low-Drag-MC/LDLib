@@ -116,21 +116,9 @@ public class MainPanel extends WidgetGroup {
         selectedUIs.clear();
     }
 
-    private CompoundTag tag;
-
     protected TreeBuilder.Menu createMenu() {
         return TreeBuilder.Menu.start()
-                .leaf("ldlib.gui.editor.menu.remove", this::removeSelected)
-                .leaf("ser", () -> {
-                    tag = root.serializeNBT();
-                })
-                .leaf("desr", () -> {
-                    if (tag != null) {
-                        selectedUIs.clear();
-                        hoverUI = null;
-                        root.deserializeNBT(tag);
-                    }
-                });
+                .leaf(Icons.DELETE, "ldlib.gui.editor.menu.remove", this::removeSelected);
     }
 
     @Override

@@ -1,6 +1,7 @@
 package com.lowdragmc.lowdraglib.gui.editor.configurator;
 
 import com.lowdragmc.lowdraglib.gui.editor.ColorPattern;
+import com.lowdragmc.lowdraglib.gui.editor.Icons;
 import com.lowdragmc.lowdraglib.gui.editor.ui.ConfigPanel;
 import com.lowdragmc.lowdraglib.gui.texture.*;
 import com.lowdragmc.lowdraglib.gui.widget.ButtonWidget;
@@ -121,7 +122,7 @@ public class ArrayConfiguratorGroup<T> extends ConfiguratorGroup{
         super.init(width);
         if (addDefault != null) {
             this.addWidget(new ButtonWidget(width - (tips.length > 0 ? 24 : 12), 3, 9, 9,
-                    new GuiTextureGroup(new ColorBorderTexture(1, -1), new TextTexture("+", -1)),
+                    Icons.ADD,
                     cd -> addMask = true).setHoverTooltips("ldlib.gui.editor.tips.add_item"));
         }
     }
@@ -155,9 +156,9 @@ public class ArrayConfiguratorGroup<T> extends ConfiguratorGroup{
             inner = provider.apply(this::getter, this::setter);
             this.addWidget(inner);
             this.addWidget(new ButtonWidget(2, 3, 9, 9,
-                    new GuiTextureGroup(new ColorBorderTexture(1, -1), new TextTexture("-", -1)),
+                    Icons.REMOVE,
                     cd -> removeMask = this)
-                    .setHoverTooltips("ldlib.gui.editor.tips.drag_item"));
+                    .setHoverTooltips("ldlib.gui.editor.tips.remove_item"));
         }
 
         private void setter(T t) {
@@ -193,8 +194,9 @@ public class ArrayConfiguratorGroup<T> extends ConfiguratorGroup{
             super.init(width);
             inner.init(width - 10 - 15);
             ImageWidget imageWidget = new ImageWidget(width - 12, 2, 9, 9, new ColorRectTexture(-1).setRadius(4.5f));
-            imageWidget.setHoverTooltips("ldlib.gui.editor.tips.remove_item")
-                    .setDraggingProvider(() -> this, (t, p) -> new GuiTextureGroup(new WidgetTexture(p.x, p.y, inner), new WidgetTexture(p.x, p.y, imageWidget)));
+            imageWidget.setHoverTooltips("ldlib.gui.editor.tips.drag_item");
+            this.setDraggingProvider(() -> this, (t, p) -> new GuiTextureGroup(new WidgetTexture(p.x, p.y, inner), new WidgetTexture(p.x, p.y, imageWidget)));
+            imageWidget.setDraggingProvider(() -> this, (t, p) -> new GuiTextureGroup(new WidgetTexture(p.x, p.y, inner), new WidgetTexture(p.x, p.y, imageWidget)));
             this.addWidget(imageWidget);
         }
 

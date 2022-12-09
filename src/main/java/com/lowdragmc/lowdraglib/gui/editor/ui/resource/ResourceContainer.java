@@ -126,9 +126,11 @@ public class ResourceContainer<T, C extends Widget> extends WidgetGroup {
 
     protected TreeBuilder.Menu getMenu() {
         return TreeBuilder.Menu.start()
-                .leaf("ldlib.gui.editor.menu.edit", this::editResource)
-                .leaf(Icons.borderText("+").scale(0.6f), "ldlib.gui.editor.menu.add_resource", this::addNewResource)
-                .leaf(Icons.borderText("-").scale(0.6f), "ldlib.gui.editor.menu.remove", this::removeSelectedResource)
+                .leaf(Icons.EDIT_FILE, "ldlib.gui.editor.menu.edit", this::editResource)
+                .crossLine()
+                .leaf(Icons.ADD_FILE, "ldlib.gui.editor.menu.add_resource", this::addNewResource)
+                .leaf(Icons.REMOVE_FILE, "ldlib.gui.editor.menu.remove", this::removeSelectedResource)
+                .crossLine()
                 .leaf("ldlib.gui.editor.menu.rename", this::renameResource);
     }
 

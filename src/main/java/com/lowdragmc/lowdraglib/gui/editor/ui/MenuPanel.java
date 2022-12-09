@@ -2,6 +2,7 @@ package com.lowdragmc.lowdraglib.gui.editor.ui;
 
 import com.lowdragmc.lowdraglib.LDLMod;
 import com.lowdragmc.lowdraglib.gui.editor.ColorPattern;
+import com.lowdragmc.lowdraglib.gui.editor.Icons;
 import com.lowdragmc.lowdraglib.gui.editor.data.Project;
 import com.lowdragmc.lowdraglib.gui.editor.data.Resources;
 import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
@@ -57,12 +58,14 @@ public class MenuPanel extends WidgetGroup {
                 .branch("ldlib.gui.editor.menu.new", menu -> {
                     menu.leaf("ldlib.gui.editor.menu.project", this::newProject);
                 })
-                .leaf("ldlib.gui.editor.menu.open", this::openProject)
-                .leaf("ldlib.gui.editor.menu.save", this::saveProject)
-                .branch("ldlib.gui.editor.menu.import", menu -> {
+                .crossLine()
+                .leaf(Icons.OPEN_FILE, "ldlib.gui.editor.menu.open", this::openProject)
+                .leaf(Icons.SAVE, "ldlib.gui.editor.menu.save", this::saveProject)
+                .crossLine()
+                .branch(Icons.IMPORT, "ldlib.gui.editor.menu.import", menu -> {
                     menu.leaf("ldlib.gui.editor.menu.resource", this::importResource);
                 })
-                .branch("ldlib.gui.editor.menu.export", menu -> {
+                .branch(Icons.EXPORT, "ldlib.gui.editor.menu.export", menu -> {
                     menu.leaf("ldlib.gui.editor.menu.resource", this::exportResource);
                 });
     }

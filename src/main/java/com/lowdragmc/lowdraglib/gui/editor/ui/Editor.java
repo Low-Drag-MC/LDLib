@@ -99,6 +99,7 @@ public class Editor extends WidgetGroup {
 
     public void openMenu(double posX, double posY, TreeBuilder.Menu menuBuilder) {
         openMenu(posX, posY, menuBuilder.build())
+                .setCrossLinePredicate(TreeBuilder.Menu::isCrossLine)
                 .setKeyIconSupplier(TreeBuilder.Menu::getIcon)
                 .setKeyNameSupplier(TreeBuilder.Menu::getName)
                 .setOnNodeClicked(TreeBuilder.Menu::handle);

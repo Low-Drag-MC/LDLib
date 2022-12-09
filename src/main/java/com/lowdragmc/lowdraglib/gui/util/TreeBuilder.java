@@ -52,6 +52,7 @@ public class TreeBuilder<K, V> {
     }
 
     public static class Menu extends TreeBuilder<Tuple<IGuiTexture, String>, Runnable> {
+        public static Tuple<IGuiTexture, String> CROSS_LINE = new Tuple<>(IGuiTexture.EMPTY, "");
 
         private Menu(Tuple<IGuiTexture, String> key) {
             super(key);
@@ -59,6 +60,11 @@ public class TreeBuilder<K, V> {
 
         public static Menu start(){
             return new Menu(new Tuple<>(IGuiTexture.EMPTY, ""));
+        }
+
+        public Menu crossLine() {
+            stack.peek().createChild(CROSS_LINE);
+            return this;
         }
 
         public Menu branch(IGuiTexture icon, String name, Consumer<Menu> menuConsumer) {
@@ -99,6 +105,10 @@ public class TreeBuilder<K, V> {
             if (node.isLeaf() && node.getContent() != null) {
                 node.getContent().run();
             }
+        }
+
+        public static boolean isCrossLine(Tuple<IGuiTexture, String> key) {
+            return key == CROSS_LINE;
         }
     }
 

@@ -1,5 +1,6 @@
 package com.lowdragmc.lowdraglib.gui.editor.configurator;
 
+import com.lowdragmc.lowdraglib.gui.editor.Icons;
 import com.lowdragmc.lowdraglib.gui.editor.ui.ConfigPanel;
 import com.lowdragmc.lowdraglib.gui.texture.*;
 import com.lowdragmc.lowdraglib.gui.widget.ImageWidget;
@@ -65,7 +66,7 @@ public class Configurator extends WidgetGroup {
         this.width = width;
         setSize(new Size(width, getSize().height));
         if (tips.length > 0) {
-            this.addWidget(new ImageWidget(width - 12, 3, 9, 9, new GuiTextureGroup(new ColorBorderTexture(1, -1), new TextTexture("?", -1))).setHoverTooltips(tips));
+            this.addWidget(new ImageWidget(width - 12, 3, 9, 9, Icons.HELP).setHoverTooltips(tips));
         }
     }
 
