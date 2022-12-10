@@ -14,9 +14,10 @@ import net.minecraftforge.api.distmarker.OnlyIn;
  */
 public class WidgetTexture extends TransformTexture{
     private final Widget widget;
-    private final int centerX;
-    private final int centerY;
+    private int centerX;
+    private int centerY;
     private boolean isDragging;
+    private boolean fixedCenter;
 
     public WidgetTexture(Widget widget) {
         this.widget = widget;
@@ -29,6 +30,7 @@ public class WidgetTexture extends TransformTexture{
         this.centerX = mouseX;
         this.centerY = mouseY;
         this.isDragging = true;
+        this.fixedCenter = true;
     }
 
     public WidgetTexture setDragging(boolean dragging) {
@@ -42,6 +44,10 @@ public class WidgetTexture extends TransformTexture{
         int xOffset;
         int yOffset;
         float scale  = 1;
+        if (!fixedCenter) {
+            this.centerX = widget.getPosition().x + widget.getSize().width / 2;
+            this.centerY = widget.getPosition().y + widget.getSize().height / 2;
+        }
         if (isDragging) {
             xOffset = mouseX - this.centerX;
             yOffset = mouseY - this.centerY;

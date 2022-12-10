@@ -195,8 +195,10 @@ public class ArrayConfiguratorGroup<T> extends ConfiguratorGroup{
             inner.init(width - 10 - 15);
             ImageWidget imageWidget = new ImageWidget(width - 12, 2, 9, 9, new ColorRectTexture(-1).setRadius(4.5f));
             imageWidget.setHoverTooltips("ldlib.gui.editor.tips.drag_item");
-            this.setDraggingProvider(() -> this, (t, p) -> new GuiTextureGroup(new WidgetTexture(p.x, p.y, inner), new WidgetTexture(p.x, p.y, imageWidget)));
-            imageWidget.setDraggingProvider(() -> this, (t, p) -> new GuiTextureGroup(new WidgetTexture(p.x, p.y, inner), new WidgetTexture(p.x, p.y, imageWidget)));
+            if (onReorder != null) {
+                this.setDraggingProvider(() -> this, (t, p) -> new GuiTextureGroup(new WidgetTexture(p.x, p.y, inner), new WidgetTexture(p.x, p.y, imageWidget)));
+                imageWidget.setDraggingProvider(() -> this, (t, p) -> new GuiTextureGroup(new WidgetTexture(p.x, p.y, inner), new WidgetTexture(p.x, p.y, imageWidget)));
+            }
             this.addWidget(imageWidget);
         }
 
@@ -204,7 +206,7 @@ public class ArrayConfiguratorGroup<T> extends ConfiguratorGroup{
         @OnlyIn(Dist.CLIENT)
         public void drawInBackground(@NotNull PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
             super.drawInBackground(poseStack, mouseX, mouseY, partialTicks);
-            if (isMouseOverElement(mouseX, mouseY)) {
+            if (isMouseOverElement(mouseX, mouseY) && onReorder != null) {
                 var object = getGui().getModularUIGui().getDraggingElement();
                 Position pos = getPosition();
                 Size size = getSize();
@@ -221,7 +223,7 @@ public class ArrayConfiguratorGroup<T> extends ConfiguratorGroup{
         @Override
         @OnlyIn(Dist.CLIENT)
         public boolean mouseReleased(double mouseX, double mouseY, int button) {
-            if (isMouseOverElement(mouseX, mouseY)) {
+            if (isMouseOverElement(mouseX, mouseY) && onReorder != null) {
                 var object = getGui().getModularUIGui().getDraggingElement();
                 Position pos = getPosition();
                 Size size = getSize();

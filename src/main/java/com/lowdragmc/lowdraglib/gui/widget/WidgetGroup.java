@@ -29,6 +29,7 @@ import javax.annotation.Nonnull;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.regex.Pattern;
 
 @RegisterUI(name = "group", group = "group")
 public class WidgetGroup extends Widget implements IGhostIngredientTarget, IIngredientSlot, IConfigurableWidgetGroup {
@@ -149,25 +150,25 @@ public class WidgetGroup extends Widget implements IGhostIngredientTarget, IIngr
     }
 
     @Nullable
-    public Widget getFirstWidgetById(String id) {
+    public Widget getFirstWidgetById(Pattern regex) {
         List<Widget> list = new ArrayList<>();
-        getWidgetsById(list, id);
+        getWidgetsById(list, regex);
         return list.isEmpty() ? null : list.get(0);
     }
 
-    public List<Widget> getWidgetsById(String id) {
+    public List<Widget> getWidgetsById(Pattern regex) {
         List<Widget> list = new ArrayList<>();
-        getWidgetsById(list, id);
+        getWidgetsById(list, regex);
         return list;
     }
 
-    private void getWidgetsById(List<Widget> list, String id) {
+    private void getWidgetsById(List<Widget> list, Pattern regex) {
         for (Widget widget : widgets) {
-            if (widget.id.equals(id)) {
+            if (regex.matcher(widget.id).find()) {
                 list.add(widget);
             }
             if (widget instanceof WidgetGroup widgetGroup) {
-                widgetGroup.getWidgetsById(list, id);
+                widgetGroup.getWidgetsById(list, regex);
             }
         }
     }
@@ -628,7 +629,7 @@ public class WidgetGroup extends Widget implements IGhostIngredientTarget, IIngr
     }
 
     @Override
-    public boolean canWidgetDragIn(IConfigurableWidget widget) {
+    public boolean canWidgetAccepted(IConfigurableWidget widget) {
         if (widget == this) return false;
         var parent = this.getParent();
         while (parent != null) {
@@ -639,12 +640,12 @@ public class WidgetGroup extends Widget implements IGhostIngredientTarget, IIngr
     }
 
     @Override
-    public void onWidgetDragIn(IConfigurableWidget widget) {
+    public void acceptWidget(IConfigurableWidget widget) {
         addWidget(widget.widget());
     }
 
     @Override
-    public void onWidgetDragOut(IConfigurableWidget widget) {
+    public void onWidgetRemoved(IConfigurableWidget widget) {
         removeWidget(widget.widget());
     }
 
@@ -654,24 +655,12 @@ public class WidgetGroup extends Widget implements IGhostIngredientTarget, IIngr
         var children = new ListTag();
         for (Widget widget : widgets) {
             if (widget instanceof IConfigurableWidget child && child.isRegisterUI()) {
-                CompoundTag ui = new CompoundTag();
-                ui.putString("type", child.getRegisterUI().name());
-                ui.put("data", child.serializeNBT());
-                children.add(ui);
+                children.add(child.serializeWrapper());
             }
         }
         tag.put("children", children);
         return tag;
     }
-
-    public static final Function<String, UIDetector.Wrapper<RegisterUI, IConfigurableWidget>> CACHE = Util.memoize(type -> {
-        for (var wrapper : UIDetector.REGISTER_WIDGETS) {
-            if (wrapper.annotation().name().equals(type)) {
-                return wrapper;
-            }
-        }
-        return null;
-    });
 
     @Override
     public void deserializeNBT(CompoundTag nbt) {
@@ -680,12 +669,9 @@ public class WidgetGroup extends Widget implements IGhostIngredientTarget, IIngr
         var children = nbt.getList("children", Tag.TAG_COMPOUND);
         for (Tag tag : children) {
             if (tag instanceof CompoundTag ui) {
-                String type = ui.getString("type");
-                var wrapper = CACHE.apply(type);
-                if (wrapper != null) {
-                    var child = wrapper.creator().get();
+                var child = IConfigurableWidget.deserializeWrapper(ui);
+                if (child != null) {
                     addWidget(child.widget());
-                    child.deserializeNBT(ui.getCompound("data"));
                 }
             }
         }

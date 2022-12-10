@@ -85,6 +85,17 @@ public class TreeNode<T, K> {
         return children.stream().filter(valid).collect(Collectors.toList());
     }
 
+    public void removeChild(T key) {
+        if (children != null) {
+            for (TreeNode<T, K> child : children) {
+                if (child.key.equals(key)) {
+                    children.remove(child);
+                    return;
+                }
+            }
+        }
+    }
+
     @Override
     public String toString() {
         return key.toString();

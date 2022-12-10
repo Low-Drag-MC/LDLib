@@ -253,7 +253,7 @@ public class SelectorWidget extends WidgetGroup {
     }
 
     @Override
-    public boolean canWidgetDragIn(IConfigurableWidget widget) {
+    public boolean canWidgetAccepted(IConfigurableWidget widget) {
         return false;
     }
 }

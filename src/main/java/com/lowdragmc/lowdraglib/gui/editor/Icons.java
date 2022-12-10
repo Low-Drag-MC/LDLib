@@ -21,6 +21,9 @@ public class Icons {
     public static ResourceTexture ADD = icon("add");
     public static ResourceTexture SAVE = icon("save");
     public static ResourceTexture HELP = icon("help");
+    public static ResourceTexture COPY = icon("copy");
+    public static ResourceTexture PASTE = icon("paste");
+    public static ResourceTexture CUT = icon("cut");
     public static ResourceTexture REMOVE = icon("remove");
     public static ResourceTexture DELETE = icon("delete");
     public static ResourceTexture EXPORT = icon("export");

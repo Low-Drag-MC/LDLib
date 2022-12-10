@@ -23,6 +23,18 @@ public class TreeBuilder<K, V> {
     }
 
     public TreeBuilder<K, V> branch(K key, Consumer<TreeBuilder<K, V>> builderConsumer) {
+        var children = stack.peek().getChildren();
+        if (children != null && !children.isEmpty()) {
+            for (var child : children) {
+                if (!child.isLeaf() && child.key.equals(key)) {
+                    stack.push(child);
+                    builderConsumer.accept(this);
+                    endBranch();
+                    return this;
+                }
+            }
+        }
+
         stack.push(stack.peek().getOrCreateChild(key));
         builderConsumer.accept(this);
         endBranch();
@@ -41,6 +53,11 @@ public class TreeBuilder<K, V> {
 
     public TreeBuilder<K, V> leaf(K key, V content) {
         stack.peek().addContent(key, content);
+        return this;
+    }
+
+    public TreeBuilder<K, V> remove(K key) {
+        stack.peek().removeChild(key);
         return this;
     }
 
@@ -68,13 +85,22 @@ public class TreeBuilder<K, V> {
         }
 
         public Menu branch(IGuiTexture icon, String name, Consumer<Menu> menuConsumer) {
-            startBranch(new Tuple<>(icon, name));
-            menuConsumer.accept(this);
-            endBranch();
+            branch(new Tuple<>(icon, name), builder -> menuConsumer.accept(this));
             return this;
         }
 
         public Menu branch(String name, Consumer<Menu> menuConsumer) {
+            var children = stack.peek().getChildren();
+            if (children != null && !children.isEmpty()) {
+                for (TreeNode<Tuple<IGuiTexture, String>, Runnable> child : children) {
+                    if (!child.isLeaf() && child.getKey().getB().equals(name)) {
+                        stack.push(child);
+                        menuConsumer.accept(this);
+                        endBranch();
+                        return this;
+                    }
+                }
+            }
             return branch(IGuiTexture.EMPTY, name, menuConsumer);
         }
 
@@ -90,6 +116,19 @@ public class TreeBuilder<K, V> {
 
         public Menu leaf(String name, Runnable runnable) {
             super.leaf(new Tuple<>(IGuiTexture.EMPTY, name), runnable);
+            return this;
+        }
+
+        public Menu remove(String name) {
+            var children = stack.peek().getChildren();
+            if (children != null && !children.isEmpty()) {
+                for (TreeNode<Tuple<IGuiTexture, String>, Runnable> child : children) {
+                    if (child.getKey().getB().equals(name)) {
+                        stack.peek().removeChild(child.getKey());
+                        return this;
+                    }
+                }
+            }
             return this;
         }
 

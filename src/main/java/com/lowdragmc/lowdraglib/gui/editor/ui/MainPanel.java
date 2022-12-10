@@ -2,6 +2,7 @@ package com.lowdragmc.lowdraglib.gui.editor.ui;
 
 import com.lowdragmc.lowdraglib.gui.editor.Icons;
 import com.lowdragmc.lowdraglib.gui.editor.configurator.IConfigurableWidget;
+import com.lowdragmc.lowdraglib.gui.editor.configurator.IConfigurableWidgetGroup;
 import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.util.TreeBuilder;
@@ -16,9 +17,7 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author KilaBash
@@ -26,6 +25,7 @@ import java.util.Set;
  * @implNote MainPanel
  */
 public class MainPanel extends WidgetGroup {
+    protected static final List<CompoundTag> COPIED = new ArrayList<>();
 
     @Getter
     protected final Editor editor;
@@ -124,6 +124,10 @@ public class MainPanel extends WidgetGroup {
     protected TreeBuilder.Menu createMenu() {
         return TreeBuilder.Menu.start()
                 .leaf(Icons.DELETE, "ldlib.gui.editor.menu.remove", this::removeSelected)
+                .leaf(Icons.COPY, "ldlib.gui.editor.menu.copy", this::copy)
+                .leaf(Icons.CUT, "ldlib.gui.editor.menu.cut", this::cut)
+                .leaf(Icons.PASTE, "ldlib.gui.editor.menu.paste", this::paste)
+                .crossLine()
                 .branch("ldlib.gui.editor.menu.align", menu -> {
                     menu.leaf(Icons.ALIGN_H_C, "ldlib.gui.editor.menu.align.hc", this::alignHC)
                             .leaf(Icons.ALIGN_H_D, "ldlib.gui.editor.menu.align.hd", this::alignHD)
@@ -136,7 +140,39 @@ public class MainPanel extends WidgetGroup {
                 });
     }
 
-    private void alignVB() {
+    private void cut() {
+        copy();
+        if (!selectedUIs.isEmpty()) {
+            for (UIWrapper selectedUI : selectedUIs) {
+                selectedUI.inner().widget().getParent().onWidgetRemoved(selectedUI.inner());
+            }
+            selectedUIs.clear();
+        }
+    }
+
+    protected void copy() {
+        COPIED.clear();
+        if (!selectedUIs.isEmpty()) {
+            for (UIWrapper selectedUI : selectedUIs) {
+                COPIED.add(selectedUI.inner().serializeWrapper());
+            }
+        }
+    }
+
+    protected void paste() {
+        if (!COPIED.isEmpty() && hoverUI != null) {
+            for (var tag : COPIED) {
+                var widget = IConfigurableWidget.deserializeWrapper(tag);
+                if (hoverUI.inner() instanceof IConfigurableWidgetGroup group) {
+                    if (group.canWidgetAccepted(widget)) {
+                        group.acceptWidget(widget);
+                    }
+                }
+            }
+        }
+    }
+
+    protected void alignVB() {
         if (selectedUIs.size() > 0) {
             int max = Integer.MIN_VALUE;
             for (UIWrapper ui : selectedUIs) {
@@ -148,7 +184,7 @@ public class MainPanel extends WidgetGroup {
         }
     }
 
-    private void alignVT() {
+    protected void alignVT() {
         if (selectedUIs.size() > 0) {
             int min = Integer.MAX_VALUE;
             for (UIWrapper ui : selectedUIs) {
@@ -160,7 +196,7 @@ public class MainPanel extends WidgetGroup {
         }
     }
 
-    private void alignVD() {
+    protected void alignVD() {
         if (selectedUIs.size() > 2) {
             var uis = selectedUIs.stream().map(ui -> ui.inner().widget()).sorted(Comparator.comparingInt(w -> w.getRect().getHeightCenter())).toList();
             int min = uis.get(0).getRect().getHeightCenter(), max = uis.get(uis.size() - 1).getRect().getHeightCenter();
@@ -172,7 +208,7 @@ public class MainPanel extends WidgetGroup {
         }
     }
 
-    private void alignVC() {
+    protected void alignVC() {
         if (selectedUIs.size() > 0) {
             int min = Integer.MAX_VALUE, max = Integer.MIN_VALUE;
             for (UIWrapper ui : selectedUIs) {
@@ -186,7 +222,7 @@ public class MainPanel extends WidgetGroup {
         }
     }
 
-    private void alignHR() {
+    protected void alignHR() {
         if (selectedUIs.size() > 0) {
             int max = Integer.MIN_VALUE;
             for (UIWrapper ui : selectedUIs) {
@@ -198,7 +234,7 @@ public class MainPanel extends WidgetGroup {
         }
     }
 
-    private void alignHL() {
+    protected void alignHL() {
         if (selectedUIs.size() > 0) {
             int min = Integer.MAX_VALUE;
             for (UIWrapper ui : selectedUIs) {
@@ -210,7 +246,7 @@ public class MainPanel extends WidgetGroup {
         }
     }
 
-    private void alignHD() {
+    protected void alignHD() {
         if (selectedUIs.size() > 2) {
             var uis = selectedUIs.stream().map(ui -> ui.inner().widget()).sorted(Comparator.comparingInt(w -> w.getRect().getWidthCenter())).toList();
             int min = uis.get(0).getRect().getWidthCenter(), max = uis.get(uis.size() - 1).getRect().getWidthCenter();
@@ -222,7 +258,7 @@ public class MainPanel extends WidgetGroup {
         }
     }
 
-    private void alignHC() {
+    protected void alignHC() {
         if (selectedUIs.size() > 0) {
             int min = Integer.MAX_VALUE, max = Integer.MIN_VALUE;
             for (UIWrapper ui : selectedUIs) {

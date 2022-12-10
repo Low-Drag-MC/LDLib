@@ -1,6 +1,5 @@
 package com.lowdragmc.lowdraglib.gui.editor.ui;
 
-import com.lowdragmc.lowdraglib.LDLMod;
 import com.lowdragmc.lowdraglib.gui.editor.ColorPattern;
 import com.lowdragmc.lowdraglib.gui.editor.Icons;
 import com.lowdragmc.lowdraglib.gui.editor.data.Project;
@@ -56,7 +55,7 @@ public class MenuPanel extends WidgetGroup {
     }
 
     protected TreeBuilder.Menu getFileMenu() {
-        return TreeBuilder.Menu.start()
+        var fileMenu = TreeBuilder.Menu.start()
                 .branch("ldlib.gui.editor.menu.new", this::newProject)
                 .crossLine()
                 .leaf(Icons.OPEN_FILE, "ldlib.gui.editor.menu.open", this::openProject)
@@ -68,13 +67,16 @@ public class MenuPanel extends WidgetGroup {
                 .branch(Icons.EXPORT, "ldlib.gui.editor.menu.export", menu -> {
                     menu.leaf("ldlib.gui.editor.menu.resource", this::exportResource);
                 });
+        if (editor.currentProject != null) {
+            editor.currentProject.attachMenu("file", fileMenu);
+        }
+        return fileMenu;
     }
 
     private void exportResource() {
         var resources = editor.resourcePanel.getResources();
         if (resources != null) {
-            File path = new File(LDLMod.location, "ui_editor");
-            DialogWidget.showFileDialog(editor, "ldlib.gui.editor.tips.save_resource", path, false,
+            DialogWidget.showFileDialog(editor, "ldlib.gui.editor.tips.save_resource", editor.getWorkSpace(), false,
                     DialogWidget.suffixFilter(".resource"), r -> {
                         if (r != null && !r.isDirectory()) {
                             if (!r.getName().endsWith(".resource")) {
@@ -92,8 +94,7 @@ public class MenuPanel extends WidgetGroup {
 
     private void importResource() {
         if (editor.getCurrentProject() == null) return;
-        File path = new File(LDLMod.location, "ui_editor");
-        DialogWidget.showFileDialog(editor, "ldlib.gui.editor.tips.load_resource", path, true,
+        DialogWidget.showFileDialog(editor, "ldlib.gui.editor.tips.load_resource", editor.getWorkSpace(), true,
                 DialogWidget.suffixFilter(".resource"), r -> {
                     if (r != null && r.isFile()) {
                         try {
@@ -118,14 +119,22 @@ public class MenuPanel extends WidgetGroup {
     private void saveProject() {
         var project = editor.getCurrentProject();
         if (project != null) {
-            project.saveProject(editor);
+            String suffix = "." + project.getSuffix();
+            DialogWidget.showFileDialog(editor, "ldlib.gui.editor.tips.save_project", editor.getWorkSpace(), false,
+                    DialogWidget.suffixFilter(suffix), file -> {
+                        if (file != null && !file.isDirectory()) {
+                            if (!file.getName().endsWith(".ui")) {
+                                file = new File(file.getParentFile(), file.getName() + suffix);
+                            }
+                            project.saveProject(file);
+                        }
+                    });
         }
     }
 
     private void openProject() {
         var suffixes = UIDetector.REGISTER_PROJECTS.stream().map(Project::getSuffix).collect(Collectors.toSet());
-        File path = new File(LDLMod.location, "ui_editor");
-        DialogWidget.showFileDialog(editor, "ldlib.gui.editor.tips.load_resource", path, true,
+        DialogWidget.showFileDialog(editor, "ldlib.gui.editor.tips.load_project", editor.getWorkSpace(), true,
                 node -> {
                     if (node.isLeaf() && node.getContent().isFile()) {
                         String file = node.getContent().getName().toLowerCase();

@@ -33,7 +33,7 @@ public record UIWrapper(MainPanel panel, IConfigurableWidget inner) implements I
     }
 
     public boolean checkAcceptable(UIWrapper uiWrapper) {
-        return inner instanceof IConfigurableWidgetGroup group && group.canWidgetDragIn(uiWrapper.inner);
+        return inner instanceof IConfigurableWidgetGroup group && group.canWidgetAccepted(uiWrapper.inner);
     }
 
     @OnlyIn(Dist.CLIENT)
@@ -80,7 +80,7 @@ public record UIWrapper(MainPanel panel, IConfigurableWidget inner) implements I
                     var parent = uiWrapper.inner.widget().getParent(); // remove from original parent
 
                     if (parent != null) {
-                        parent.onWidgetDragOut(uiWrapper.inner);
+                        parent.onWidgetRemoved(uiWrapper.inner);
                     }
 
                     // accept it with correct position
@@ -88,7 +88,7 @@ public record UIWrapper(MainPanel panel, IConfigurableWidget inner) implements I
                     uiWrapper.inner.widget().setSelfPosition(new Position(
                             position.x - uiWrapper.inner.widget().getSize().width / 2,
                             position.y - uiWrapper.inner.widget().getSize().height / 2));
-                    group.onWidgetDragIn(uiWrapper.inner);
+                    group.acceptWidget(uiWrapper.inner);
                     return true;
                 }
             } else if (inner instanceof IConfigurableWidgetGroup group && dragging instanceof UIWrapper[] uiWrappers && Arrays.stream(uiWrappers).allMatch(this::checkAcceptable)) {
@@ -96,7 +96,7 @@ public record UIWrapper(MainPanel panel, IConfigurableWidget inner) implements I
                     var parent = uiWrapper.inner.widget().getParent(); // remove from original parent
 
                     if (parent != null) {
-                        parent.onWidgetDragOut(uiWrapper.inner);
+                        parent.onWidgetRemoved(uiWrapper.inner);
                     }
 
                     // accept it with correct position
@@ -104,7 +104,7 @@ public record UIWrapper(MainPanel panel, IConfigurableWidget inner) implements I
                     uiWrapper.inner.widget().setSelfPosition(new Position(
                             position.x - uiWrapper.inner.widget().getSize().width / 2,
                             position.y - uiWrapper.inner.widget().getSize().height / 2));
-                    group.onWidgetDragIn(uiWrapper.inner);
+                    group.acceptWidget(uiWrapper.inner);
                 }
 
                 return true;

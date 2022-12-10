@@ -176,6 +176,7 @@ public class ColorBorderTexture extends TransformTexture{
     @OnlyIn(Dist.CLIENT)
     @Override
     protected void drawInternal(PoseStack stack, int mouseX, int mouseY, float x, float y, int width, int height) {
+        if (width == 0 || height == 0) return;
         if (radiusLTInner > 0 || radiusLBInner > 0 || radiusRTInner > 0 ||radiusRBInner > 0 ||
                 radiusLTOuter > 0 || radiusLBOuter > 0 || radiusRTOuter > 0 ||radiusRBOuter > 0) {
             float radius = Math.min(width, height) / 2f;

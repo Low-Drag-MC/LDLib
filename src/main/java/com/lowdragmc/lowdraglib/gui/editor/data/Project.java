@@ -2,6 +2,7 @@ package com.lowdragmc.lowdraglib.gui.editor.data;
 
 import com.lowdragmc.lowdraglib.gui.editor.annotation.RegisterUI;
 import com.lowdragmc.lowdraglib.gui.editor.ui.Editor;
+import com.lowdragmc.lowdraglib.gui.util.TreeBuilder;
 import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -20,7 +21,7 @@ public abstract class Project {
     /**
      * Save project
      */
-    public abstract void saveProject(Editor editor);
+    public abstract void saveProject(File file);
 
     /**
      * Load project from file. return null if loading failed
@@ -44,4 +45,9 @@ public abstract class Project {
     public void onLoad(Editor editor) {
         editor.getResourcePanel().loadResource(getResources(), false);
     }
+
+    public void attachMenu(String name, TreeBuilder.Menu menu) {
+
+    }
+
 }

@@ -75,10 +75,6 @@ public class EntriesResourceContainer extends ResourceContainer<String, TextFiel
 
     @Override
     protected TreeBuilder.Menu getMenu() {
-        return TreeBuilder.Menu.start()
-                .leaf(Icons.ADD_FILE, "ldlib.gui.editor.menu.add_resource", this::addNewResource)
-                .leaf(Icons.REMOVE_FILE, "ldlib.gui.editor.menu.remove", this::removeSelectedResource)
-                .crossLine()
-                .leaf("ldlib.gui.editor.menu.rename", this::renameResource);
+        return super.getMenu().remove("ldlib.gui.editor.menu.edit");
     }
 }

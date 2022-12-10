@@ -9,7 +9,6 @@ import com.lowdragmc.lowdraglib.utils.Position;
 import com.lowdragmc.lowdraglib.utils.Size;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.Slot;
-import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.Nullable;
@@ -19,6 +18,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.regex.Pattern;
 
 /**
  * Author: KilaBash
@@ -45,9 +45,14 @@ public final class ModularUI {
     public final Player entityPlayer;
 
     public ModularUI(int width, int height, IUIHolder holder, Player entityPlayer) {
-        this.mainGroup = new WidgetGroup(Position.ORIGIN, new Size(width, height));
-        this.width = width;
-        this.height = height;
+        this(new WidgetGroup(Position.ORIGIN, new Size(width, height)), holder, entityPlayer);
+    }
+
+    public ModularUI(WidgetGroup mainGroup, IUIHolder holder, Player entityPlayer) {
+        this.mainGroup = mainGroup;
+        mainGroup.setSelfPosition(Position.ORIGIN);
+        this.width = mainGroup.getSize().width;
+        this.height = mainGroup.getSize().height;
         this.holder = holder;
         this.entityPlayer = entityPlayer;
         this.uiCloseCallback = new ArrayList<>();
@@ -63,12 +68,12 @@ public final class ModularUI {
     }
 
     @Nullable
-    public Widget getFirstWidgetById(String id) {
-        return mainGroup.getFirstWidgetById(id);
+    public Widget getFirstWidgetById(String regex) {
+        return mainGroup.getFirstWidgetById(Pattern.compile(regex));
     }
 
-    public List<Widget> getWidgetsById(String id) {
-        return mainGroup.getWidgetsById(id);
+    public List<Widget> getWidgetsById(String regex) {
+        return mainGroup.getWidgetsById(Pattern.compile(regex));
     }
 
     public ModularUIContainer getModularUIContainer() {

@@ -1,6 +1,5 @@
 package com.lowdragmc.lowdraglib.gui.editor.data;
 
-import com.lowdragmc.lowdraglib.LDLMod;
 import com.lowdragmc.lowdraglib.gui.editor.ColorPattern;
 import com.lowdragmc.lowdraglib.gui.editor.annotation.RegisterUI;
 import com.lowdragmc.lowdraglib.gui.editor.ui.Editor;
@@ -9,7 +8,6 @@ import com.lowdragmc.lowdraglib.gui.editor.ui.tool.WidgetToolBox;
 import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
 import com.lowdragmc.lowdraglib.gui.texture.ResourceBorderTexture;
 import com.lowdragmc.lowdraglib.gui.texture.TextTexture;
-import com.lowdragmc.lowdraglib.gui.widget.DialogWidget;
 import com.lowdragmc.lowdraglib.gui.widget.TabButton;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 import net.minecraft.nbt.CompoundTag;
@@ -24,7 +22,7 @@ import java.io.IOException;
  * @implNote UIProject
  */
 @RegisterUI(name = "ui")
-public class UIProject extends Project{
+public class UIProject extends Project {
 
     public Resources resources;
     public WidgetGroup root;
@@ -62,22 +60,12 @@ public class UIProject extends Project{
     }
 
     @Override
-    public void saveProject(Editor editor) {
-        String suffix = "." + getSuffix();
-        File path = new File(LDLMod.location, "ui_editor");
-        DialogWidget.showFileDialog(editor, "ldlib.gui.editor.tips.save_resource", path, false,
-                DialogWidget.suffixFilter(suffix), r -> {
-                    if (r != null && !r.isDirectory()) {
-                        if (!r.getName().endsWith(".ui")) {
-                            r = new File(r.getParentFile(), r.getName() + suffix);
-                        }
-                        try {
-                            NbtIo.write(serializeNBT(), r);
-                        } catch (IOException ignored) {
-                            // TODO
-                        }
-                    }
-                });
+    public void saveProject(File file) {
+        try {
+            NbtIo.write(serializeNBT(), file);
+        } catch (IOException ignored) {
+            // TODO
+        }
     }
 
     public Project loadProject(File file) {

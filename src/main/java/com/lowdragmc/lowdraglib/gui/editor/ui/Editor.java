@@ -17,6 +17,8 @@ import lombok.Getter;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
+import java.io.File;
+
 /**
  * @author KilaBash
  * @date 2022/11/30
@@ -25,6 +27,8 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 public class Editor extends WidgetGroup {
     @OnlyIn(Dist.CLIENT)
     public static Editor INSTANCE;
+    @Getter
+    protected final File workSpace;
     @Getter
     protected Project currentProject;
     @Getter
@@ -39,9 +43,10 @@ public class Editor extends WidgetGroup {
     protected ToolPanel toolPanel;
 
 
-    public Editor() {
+    public Editor(File workSpace) {
         super(0, 0, 10, 10);
         setClientSideWidget();
+        this.workSpace = workSpace;
     }
 
     @Override

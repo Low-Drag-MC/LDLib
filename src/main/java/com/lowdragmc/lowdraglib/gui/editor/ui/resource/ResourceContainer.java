@@ -15,6 +15,7 @@ import com.lowdragmc.lowdraglib.utils.Size;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import net.minecraft.nbt.Tag;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -59,6 +60,7 @@ public class ResourceContainer<T, C extends Widget> extends WidgetGroup {
 
     @Getter @Nullable
     protected String selected;
+    private Tag copied;
 
     public ResourceContainer(Resource<T> resource, ResourcePanel panel) {
         super(3, 0, panel.getSize().width - 6, panel.getSize().height - 14);
@@ -127,11 +129,26 @@ public class ResourceContainer<T, C extends Widget> extends WidgetGroup {
     protected TreeBuilder.Menu getMenu() {
         return TreeBuilder.Menu.start()
                 .leaf(Icons.EDIT_FILE, "ldlib.gui.editor.menu.edit", this::editResource)
+                .leaf("ldlib.gui.editor.menu.rename", this::renameResource)
                 .crossLine()
+                .leaf(Icons.COPY, "ldlib.gui.editor.menu.copy", this::copy)
+                .leaf(Icons.PASTE, "ldlib.gui.editor.menu.paste", this::paste)
                 .leaf(Icons.ADD_FILE, "ldlib.gui.editor.menu.add_resource", this::addNewResource)
-                .leaf(Icons.REMOVE_FILE, "ldlib.gui.editor.menu.remove", this::removeSelectedResource)
-                .crossLine()
-                .leaf("ldlib.gui.editor.menu.rename", this::renameResource);
+                .leaf(Icons.REMOVE_FILE, "ldlib.gui.editor.menu.remove", this::removeSelectedResource);
+    }
+
+    protected void paste() {
+        if (copied != null) {
+            var value = getResource().deserialize(copied);
+            resource.addResource(genNewFileName(), value);
+            reBuild();
+        }
+    }
+
+    protected void copy() {
+        if (selected != null) {
+            copied = resource.serialize(resource.getResource(selected));
+        }
     }
 
     protected void renameResource() {
