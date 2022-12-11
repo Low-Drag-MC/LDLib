@@ -45,13 +45,15 @@ public class PhantomSlotWidget extends SlotWidget implements IGhostIngredientTar
     }
 
     @ConfigSetter(field = "canTakeItems")
-    public void setCanTakeItems(boolean v) {
+    public PhantomSlotWidget setCanTakeItems(boolean v) {
         // you cant modify it
+        return this;
     }
 
     @ConfigSetter(field = "canPutItems")
-    public void setCanPutItems(boolean v) {
+    public PhantomSlotWidget setCanPutItems(boolean v) {
         // you cant modify it
+        return this;
     }
 
     @Override

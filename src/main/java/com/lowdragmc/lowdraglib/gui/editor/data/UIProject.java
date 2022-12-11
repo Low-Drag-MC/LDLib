@@ -27,7 +27,7 @@ public class UIProject extends Project {
     public Resources resources;
     public WidgetGroup root;
 
-    public UIProject() {
+    private UIProject() {
 
     }
 
@@ -36,15 +36,13 @@ public class UIProject extends Project {
         this.root = root;
     }
 
-    public Project newEmptyProject() {
-        return new UIProject(Resources.defaultResource(),
-                (WidgetGroup) new WidgetGroup(30, 30, 200, 200).setBackground(ResourceBorderTexture.BORDERED_BACKGROUND));
+    public UIProject(CompoundTag tag) {
+        deserializeNBT(tag);
     }
 
-    public static UIProject fromNBT(CompoundTag tag) {
-        WidgetGroup root = new WidgetGroup();
-        root.deserializeNBT(tag.getCompound("root"));
-        return new UIProject(Resources.fromNBT(tag.getCompound("resources")), root);
+    public UIProject newEmptyProject() {
+        return new UIProject(Resources.defaultResource(),
+                (WidgetGroup) new WidgetGroup(30, 30, 200, 200).setBackground(ResourceBorderTexture.BORDERED_BACKGROUND));
     }
 
     public CompoundTag serializeNBT() {
@@ -52,6 +50,12 @@ public class UIProject extends Project {
         tag.put("resources", resources.serializeNBT());
         tag.put("root", root.serializeNBT());
         return tag;
+    }
+
+    public void deserializeNBT(CompoundTag tag) {
+        this.resources = loadResources(tag.getCompound("resources"));
+        this.root = new WidgetGroup();
+        root.deserializeNBT(tag.getCompound("root"));
     }
 
     @Override
@@ -72,7 +76,7 @@ public class UIProject extends Project {
         try {
             var tag = NbtIo.read(file);
             if (tag != null) {
-                return UIProject.fromNBT(tag);
+                return new UIProject(tag);
             }
         } catch (IOException ignored) {}
         return null;

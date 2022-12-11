@@ -3,7 +3,9 @@ package com.lowdragmc.lowdraglib.gui.widget;
 import com.lowdragmc.lowdraglib.LDLMod;
 import com.lowdragmc.lowdraglib.gui.editor.annotation.Configurable;
 import com.lowdragmc.lowdraglib.gui.editor.annotation.RegisterUI;
+import com.lowdragmc.lowdraglib.gui.editor.configurator.ConfiguratorGroup;
 import com.lowdragmc.lowdraglib.gui.editor.configurator.IConfigurableWidget;
+import com.lowdragmc.lowdraglib.gui.editor.configurator.WrapperConfigurator;
 import com.lowdragmc.lowdraglib.gui.ingredient.IRecipeIngredientSlot;
 import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
 import com.lowdragmc.lowdraglib.gui.modular.ModularUIGuiContainer;
@@ -16,6 +18,8 @@ import com.lowdragmc.lowdraglib.utils.Size;
 import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
+import lombok.Setter;
+import lombok.experimental.Accessors;
 import me.shedaniel.rei.api.common.util.EntryStacks;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
@@ -25,41 +29,54 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.IItemHandlerModifiable;
+import net.minecraftforge.items.ItemStackHandler;
 import net.minecraftforge.items.SlotItemHandler;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 @RegisterUI(name = "item_slot", group = "container")
+@Accessors(chain = true)
 public class SlotWidget extends Widget implements IRecipeIngredientSlot, IConfigurableWidget {
 
     @Nullable
     protected Slot slotReference;
     @Configurable
+    @Setter
     protected boolean canTakeItems;
     @Configurable
+    @Setter
     protected boolean canPutItems;
     public boolean isPlayerContainer;
     public boolean isPlayerHotBar;
     @Configurable
+    @Setter
     public boolean drawHoverOverlay = true;
     @Configurable
+    @Setter
     public boolean drawHoverTips = true;
 
     @Configurable
+    @Setter
     protected IGuiTexture overlay;
 
+    @Setter
     protected Runnable changeListener;
+    @Setter
     protected BiConsumer<SlotWidget, List<Component>> onAddedTooltips;
+    @Setter
     protected Function<ItemStack, ItemStack> itemHook;
+    @Setter
     protected IngredientIO ingredientIO = IngredientIO.RENDER_ONLY;
 
     public SlotWidget() {
@@ -83,16 +100,6 @@ public class SlotWidget extends Widget implements IRecipeIngredientSlot, IConfig
         setHandlerSlot(itemHandler, slotIndex);
     }
 
-    public SlotWidget setItemHook(Function<ItemStack, ItemStack> itemHook) {
-        this.itemHook = itemHook;
-        return this;
-    }
-
-    public SlotWidget setIngredientIO(IngredientIO ingredientIO) {
-        this.ingredientIO = ingredientIO;
-        return this;
-    }
-
     protected Slot createSlot(Container inventory, int index) {
         return new WidgetSlot(inventory, index, 0, 0);
     }
@@ -101,27 +108,14 @@ public class SlotWidget extends Widget implements IRecipeIngredientSlot, IConfig
         return new WidgetSlotItemHandler(itemHandler, index, 0, 0);
     }
 
-    public SlotWidget setOnAddedTooltips(BiConsumer<SlotWidget, List<Component>> onAddedTooltips) {
-        this.onAddedTooltips = onAddedTooltips;
-        return this;
-    }
-
-    public SlotWidget setDrawHoverTips(boolean drawHoverTips) {
-        this.drawHoverTips = drawHoverTips;
-        return this;
-    }
-
-    public SlotWidget setDrawOverlay(boolean drawOverlay) {
-        this.drawHoverOverlay = drawOverlay;
-        return this;
-    }
-
-    public void setContainerSlot(Container inventory, int slotIndex) {
+    public SlotWidget setContainerSlot(Container inventory, int slotIndex) {
         updateSlot(createSlot(inventory, slotIndex));
+        return this;
     }
 
-    public void setHandlerSlot(IItemHandler itemHandler, int slotIndex) {
+    public SlotWidget setHandlerSlot(IItemHandler itemHandler, int slotIndex) {
         updateSlot(createSlot(itemHandler, slotIndex));
+        return this;
     }
 
     protected void updateSlot(Slot slot) {
@@ -155,12 +149,17 @@ public class SlotWidget extends Widget implements IRecipeIngredientSlot, IConfig
     @Override
     @OnlyIn(Dist.CLIENT)
     public void drawInForeground(@Nonnull PoseStack mStack, int mouseX, int mouseY, float partialTicks) {
-        if (slotReference != null && drawHoverTips && isMouseOverElement(mouseX, mouseY) && isActive()) {
+        if (slotReference != null && drawHoverTips && isMouseOverElement(mouseX, mouseY)) {
             ItemStack stack = slotReference.getItem();
             if (!stack.isEmpty() && gui != null) {
-                gui.getModularUIGui().setHoverTooltip(getToolTips(gui.getModularUIGui().getTooltipFromItem(stack)), stack, null, stack.getTooltipImage().orElse(null));
+                List<Component> tips = new ArrayList<>(getToolTips(gui.getModularUIGui().getTooltipFromItem(stack)));
+                tips.addAll(tooltipTexts);
+                gui.getModularUIGui().setHoverTooltip(tips, stack, null, stack.getTooltipImage().orElse(null));
+            } else {
                 super.drawInForeground(mStack, mouseX, mouseY, partialTicks);
             }
+        } else {
+            super.drawInForeground(mStack, mouseX, mouseY, partialTicks);
         }
         if (drawHoverOverlay && isMouseOverElement(mouseX, mouseY)) {
             RenderSystem.colorMask(true, true, true, false);
@@ -256,11 +255,6 @@ public class SlotWidget extends Widget implements IRecipeIngredientSlot, IConfig
         }
     }
 
-    public SlotWidget setChangeListener(Runnable changeListener) {
-        this.changeListener = changeListener;
-        return this;
-    }
-
     public SlotWidget(IItemHandlerModifiable itemHandler, int slotIndex, int xPosition, int yPosition) {
         this(itemHandler, slotIndex, xPosition, yPosition, true, true);
     }
@@ -304,7 +298,7 @@ public class SlotWidget extends Widget implements IRecipeIngredientSlot, IConfig
         return slotReference;
     }
 
-    public Widget setLocationInfo(boolean isPlayerContainer, boolean isPlayerHotBar) {
+    public SlotWidget setLocationInfo(boolean isPlayerContainer, boolean isPlayerHotBar) {
         this.isPlayerHotBar = isPlayerHotBar;
         this.isPlayerContainer = isPlayerContainer;
         return this;
@@ -418,5 +412,25 @@ public class SlotWidget extends Widget implements IRecipeIngredientSlot, IConfig
             return SlotWidget.this.isEnabled();
         }
 
+    }
+
+    @Override
+    public void buildConfigurator(ConfiguratorGroup father) {
+        var handler = new ItemStackHandler();
+        handler.setStackInSlot(0, Blocks.STONE.asItem().getDefaultInstance());
+        father.addConfigurators(new WrapperConfigurator("ldlib.gui.editor.group.preview", new SlotWidget(){
+            @Override
+            public void updateScreen() {
+                super.updateScreen();
+                setHoverTooltips(SlotWidget.this.tooltipTexts);
+                this.backgroundTexture = SlotWidget.this.backgroundTexture;
+                this.hoverTexture = SlotWidget.this.hoverTexture;
+                this.drawHoverOverlay = SlotWidget.this.drawHoverOverlay;
+                this.drawHoverTips = SlotWidget.this.drawHoverTips;
+                this.overlay = SlotWidget.this.overlay;
+            }
+        }.setCanPutItems(false).setCanTakeItems(false).setHandlerSlot(handler, 0)));
+
+        IConfigurableWidget.super.buildConfigurator(father);
     }
 }

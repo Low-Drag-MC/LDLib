@@ -97,6 +97,7 @@
   "ldlib.gui.editor.tips.cell_to": "End cell index",
   "ldlib.gui.editor.tips.cell_animation": "Tick time between cells",
   "ldlib.gui.editor.tips.texture_type": "Switching the texture type will not modify references of the previous one.",
+  "ldlib.gui.editor.tips.progress_texture": "Can only accept a Progress Texture",
 
   "ldlib.gui.editor.register.texture.resource_texture": "Resource Texture",
   "ldlib.gui.editor.register.texture.border_texture": "Border Texture",
@@ -122,5 +123,6 @@
   "ldlib.gui.editor.register.widget.fluid_slot": "Fluid Slot",
   "ldlib.gui.editor.register.widget.phantom_item_slot": "Phantom Item Slot",
   "ldlib.gui.editor.register.widget.phantom_fluid_slot": "Phantom Fluid Slot",
-  "ldlib.gui.editor.register.widget.selector": "Selector"
+  "ldlib.gui.editor.register.widget.selector": "Selector",
+  "ldlib.gui.editor.register.widget.progress": "Progress"
 }

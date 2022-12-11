@@ -12,6 +12,7 @@ import lombok.Setter;
 
 import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 /**
@@ -23,6 +24,8 @@ public class GuiTextureConfigurator extends ValueConfigurator<IGuiTexture>{
     protected ImageWidget preview;
     @Setter
     protected Consumer<ClickData> onPressCallback;
+    @Setter
+    protected Predicate<IGuiTexture> available;
 
     public GuiTextureConfigurator(String name, Supplier<IGuiTexture> supplier, Consumer<IGuiTexture> onUpdate, boolean forceUpdate) {
         super(name, supplier, onUpdate, IGuiTexture.EMPTY, forceUpdate);
@@ -48,12 +51,14 @@ public class GuiTextureConfigurator extends ValueConfigurator<IGuiTexture>{
         int x = (width - w) / 2;
         addWidget(preview = new ImageWidget(x, 17, w, w, value).setBorder(2, ColorPattern.T_WHITE.color));
         preview.setDraggingConsumer(
-                o -> o instanceof IGuiTexture || o instanceof Integer || o instanceof String,
+                o -> available == null ? (o instanceof IGuiTexture || o instanceof Integer || o instanceof String) : (o instanceof IGuiTexture texture && available.test(texture)),
                 o -> preview.setBorder(2, ColorPattern.GREEN.color),
                 o -> preview.setBorder(2, ColorPattern.T_WHITE.color),
                 o -> {
                     IGuiTexture newTexture = null;
-                    if (o instanceof IGuiTexture texture) {
+                    if (available != null && o instanceof IGuiTexture texture && available.test(texture)) {
+                        newTexture = texture;
+                    }else if (o instanceof IGuiTexture texture) {
                         newTexture = texture;
                     } else if (o instanceof Integer color) {
                         newTexture = new ColorRectTexture(color);

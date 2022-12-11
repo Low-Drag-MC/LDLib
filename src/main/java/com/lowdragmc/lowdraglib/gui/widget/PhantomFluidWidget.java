@@ -51,13 +51,15 @@ public class PhantomFluidWidget extends TankWidget implements IGhostIngredientTa
     }
 
     @ConfigSetter(field = "allowClickFilled")
-    public void setAllowClickFilled(boolean v) {
+    public PhantomFluidWidget setAllowClickFilled(boolean v) {
         // you cant modify it
+        return this;
     }
 
     @ConfigSetter(field = "allowClickDrained")
-    public void setAllowClickDrained(boolean v) {
+    public PhantomFluidWidget setAllowClickDrained(boolean v) {
         // you cant modify it
+        return this;
     }
 
     public static FluidStack drainFrom(Object ingredient) {

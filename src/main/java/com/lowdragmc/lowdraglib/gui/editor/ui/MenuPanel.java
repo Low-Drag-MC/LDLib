@@ -68,7 +68,7 @@ public class MenuPanel extends WidgetGroup {
                     menu.leaf("ldlib.gui.editor.menu.resource", this::exportResource);
                 });
         if (editor.currentProject != null) {
-            editor.currentProject.attachMenu("file", fileMenu);
+            editor.currentProject.attachMenu(editor, "file", fileMenu);
         }
         return fileMenu;
     }
@@ -93,20 +93,21 @@ public class MenuPanel extends WidgetGroup {
     }
 
     private void importResource() {
-        if (editor.getCurrentProject() == null) return;
-        DialogWidget.showFileDialog(editor, "ldlib.gui.editor.tips.load_resource", editor.getWorkSpace(), true,
-                DialogWidget.suffixFilter(".resource"), r -> {
-                    if (r != null && r.isFile()) {
-                        try {
-                            var tag = NbtIo.read(r);
-                            if (tag != null) {
-                                editor.resourcePanel.loadResource(Resources.fromNBT(tag), true);
+        if (editor.currentProject != null) {
+            DialogWidget.showFileDialog(editor, "ldlib.gui.editor.tips.load_resource", editor.getWorkSpace(), true,
+                    DialogWidget.suffixFilter(".resource"), r -> {
+                        if (r != null && r.isFile()) {
+                            try {
+                                var tag = NbtIo.read(r);
+                                if (tag != null) {
+                                    editor.resourcePanel.loadResource(editor.currentProject.loadResources(tag), true);
+                                }
+                            } catch (IOException ignored) {
+                                // TODO
                             }
-                        } catch (IOException ignored) {
-                            // TODO
                         }
-                    }
-                });
+                    });
+        }
     }
 
     private void newProject(TreeBuilder.Menu menu) {
@@ -123,7 +124,7 @@ public class MenuPanel extends WidgetGroup {
             DialogWidget.showFileDialog(editor, "ldlib.gui.editor.tips.save_project", editor.getWorkSpace(), false,
                     DialogWidget.suffixFilter(suffix), file -> {
                         if (file != null && !file.isDirectory()) {
-                            if (!file.getName().endsWith(".ui")) {
+                            if (!file.getName().endsWith(suffix)) {
                                 file = new File(file.getParentFile(), file.getName() + suffix);
                             }
                             project.saveProject(file);

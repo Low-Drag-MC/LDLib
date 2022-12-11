@@ -49,10 +49,8 @@ public class ResourceContainer<T, C extends Widget> extends WidgetGroup {
     protected Predicate<String> onRemove;
     @Setter
     protected Consumer<String> onEdit;
-    @Setter
-    protected Function<String, T> draggingMapping;
-    @Setter
-    protected Function<T, IGuiTexture> draggingRenderer;
+    protected Function<String, Object> draggingMapping;
+    protected Function<Object, IGuiTexture> draggingRenderer;
     @Setter
     protected Supplier<String> nameSupplier;
     @Setter
@@ -68,6 +66,12 @@ public class ResourceContainer<T, C extends Widget> extends WidgetGroup {
         this.widgets = new HashMap<>();
         this.panel = panel;
         this.resource = resource;
+    }
+
+    public <D> ResourceContainer<T, C> setDragging(Function<String, D> draggingMapping, Function<D, IGuiTexture> draggingRenderer) {
+        this.draggingMapping = draggingMapping::apply;
+        this.draggingRenderer = o -> draggingRenderer.apply((D) o);
+        return this;
     }
 
     @Override
@@ -127,14 +131,19 @@ public class ResourceContainer<T, C extends Widget> extends WidgetGroup {
     }
 
     protected TreeBuilder.Menu getMenu() {
-        return TreeBuilder.Menu.start()
-                .leaf(Icons.EDIT_FILE, "ldlib.gui.editor.menu.edit", this::editResource)
-                .leaf("ldlib.gui.editor.menu.rename", this::renameResource)
-                .crossLine()
-                .leaf(Icons.COPY, "ldlib.gui.editor.menu.copy", this::copy)
-                .leaf(Icons.PASTE, "ldlib.gui.editor.menu.paste", this::paste)
-                .leaf(Icons.ADD_FILE, "ldlib.gui.editor.menu.add_resource", this::addNewResource)
-                .leaf(Icons.REMOVE_FILE, "ldlib.gui.editor.menu.remove", this::removeSelectedResource);
+        var menu = TreeBuilder.Menu.start();
+        if (onEdit != null) {
+            menu.leaf(Icons.EDIT_FILE, "ldlib.gui.editor.menu.edit", this::editResource);
+        }
+        menu.leaf("ldlib.gui.editor.menu.rename", this::renameResource);
+        menu.crossLine();
+        menu.leaf(Icons.COPY, "ldlib.gui.editor.menu.copy", this::copy);
+        menu.leaf(Icons.PASTE, "ldlib.gui.editor.menu.paste", this::paste);
+        if (onAdd != null) {
+            menu.leaf(Icons.ADD_FILE, "ldlib.gui.editor.menu.add_resource", this::addNewResource);
+        }
+        menu.leaf(Icons.REMOVE_FILE, "ldlib.gui.editor.menu.remove", this::removeSelectedResource);
+        return menu;
     }
 
     protected void paste() {

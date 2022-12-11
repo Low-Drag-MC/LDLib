@@ -23,8 +23,7 @@ public class EntriesResourceContainer extends ResourceContainer<String, TextFiel
 
     public EntriesResourceContainer(Resource<String> resource, ResourcePanel panel) {
         super(resource, panel);
-        setDraggingMapping(key -> key);
-        setDraggingRenderer(TextTexture::new);
+        setDragging(key -> key, TextTexture::new);
         setOnAdd(key -> "Hello KilaBash!");
         setNameSupplier(() -> {
             String randomName = "new.";
@@ -73,8 +72,4 @@ public class EntriesResourceContainer extends ResourceContainer<String, TextFiel
         }
     }
 
-    @Override
-    protected TreeBuilder.Menu getMenu() {
-        return super.getMenu().remove("ldlib.gui.editor.menu.edit");
-    }
 }

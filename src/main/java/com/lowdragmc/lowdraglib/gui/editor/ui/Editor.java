@@ -98,6 +98,7 @@ public class Editor extends WidgetGroup {
     }
 
     public void openMenu(double posX, double posY, TreeBuilder.Menu menuBuilder) {
+        if (menuBuilder == null) return;
         openMenu(posX, posY, menuBuilder.build())
                 .setCrossLinePredicate(TreeBuilder.Menu::isCrossLine)
                 .setKeyIconSupplier(TreeBuilder.Menu::getIcon)

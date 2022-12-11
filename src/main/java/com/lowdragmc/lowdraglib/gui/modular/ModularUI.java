@@ -168,6 +168,7 @@ public final class ModularUI {
         if (this.width != width || this.height != height) {
             this.width = width;
             this.height = height;
+            mainGroup.setSize(new Size(width, height));
             getModularUIGui().init();
         }
     }

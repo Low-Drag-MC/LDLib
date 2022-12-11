@@ -22,7 +22,7 @@ public class TexturesResourceContainer extends ResourceContainer<IGuiTexture, Im
     public TexturesResourceContainer(Resource<IGuiTexture> resource, ResourcePanel panel) {
         super(resource, panel);
         setWidgetSupplier(t -> new ImageWidget(0, 0, 30, 30, t));
-        setDraggingRenderer(o -> o);
+        setDragging(resource::getResource, o -> o);
         setOnEdit(key -> openTextureConfigurator(key, getResource().getResource(key)));
         setOnRemove(key -> !key.equals("empty"));
     }

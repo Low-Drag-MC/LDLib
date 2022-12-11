@@ -8,14 +8,13 @@ import com.lowdragmc.lowdraglib.gui.editor.configurator.IConfigurableWidget;
 import com.lowdragmc.lowdraglib.gui.editor.data.Project;
 import com.lowdragmc.lowdraglib.gui.editor.data.resource.Resource;
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
-import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import com.lowdragmc.lowdraglib.utils.ReflectionUtils;
 
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.BiPredicate;
 import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 /**
@@ -38,13 +37,13 @@ public class UIDetector {
 
     }
 
-    public static <A extends Annotation, T, C> List<C> scanClasses(Class<A> annotationClass, Class<T> baseClazz, Predicate<Class<? extends T>> predicate, Function<Class<? extends T>, C> mapping) {
+    public static <A extends Annotation, T, C> List<C> scanClasses(Class<A> annotationClass, Class<T> baseClazz, BiPredicate<A, Class<? extends T>> predicate, Function<Class<? extends T>, C> mapping) {
         List<C> result = new ArrayList<>();
         ReflectionUtils.getAnnotationClasses(annotationClass, clazz -> {
             if (baseClazz.isAssignableFrom(clazz)) {
                 try {
                     Class<? extends T> realClass =  (Class<? extends T>) clazz;
-                    if (predicate.test(realClass)) {
+                    if (predicate.test(clazz.getAnnotation(annotationClass), realClass)) {
                         result.add(mapping.apply(realClass));
                     }
                 } catch (Throwable e) {
@@ -55,9 +54,14 @@ public class UIDetector {
         return result;
     }
 
-    private static <T> boolean checkNoArgsConstructor(Class<? extends T> clazz) {
+    private static <A, T> boolean checkNoArgsConstructor(A annotation, Class<? extends T> clazz) {
+        if (annotation instanceof RegisterUI registerUI) {
+            if (!registerUI.modID().isEmpty() && !LDLMod.isModLoaded(registerUI.modID())) {
+                return false;
+            }
+        }
         try {
-            clazz.getConstructor();
+            clazz.getDeclaredConstructor();
             return true;
         } catch (NoSuchMethodException e) {
             return false;
@@ -66,7 +70,9 @@ public class UIDetector {
 
     private static <T> T createNoArgsInstance(Class<? extends T> clazz) {
         try {
-            return clazz.getConstructor().newInstance();
+            var constructor = clazz.getDeclaredConstructor();
+            constructor.setAccessible(true);
+            return constructor.newInstance();
         } catch (Throwable e) {
             throw new RuntimeException(e);
         }
