@@ -71,9 +71,9 @@ public class ToolPanel extends WidgetGroup {
         tabContainer.clearAllWidgets();
     }
 
-    public void addNewToolBox(ResourceTexture texture, WidgetGroup toolBox) {
+    public void addNewToolBox(String name, ResourceTexture texture, WidgetGroup toolBox) {
         toolBox.setSize(new Size(WIDTH, getSize().height - 15));
-        tabContainer.addTab(new TabButton(WIDTH + 4, 4 + toolBoxes.size() * 20, 12, 12) {
+        tabContainer.addTab((TabButton) new TabButton(WIDTH + 4, 4 + toolBoxes.size() * 20, 12, 12) {
             @Override
             @OnlyIn(Dist.CLIENT)
             public boolean mouseClicked(double mouseX, double mouseY, int button) {
@@ -82,7 +82,7 @@ public class ToolPanel extends WidgetGroup {
                 }
                 return super.mouseClicked(mouseX, mouseY, button);
             }
-        }.setTexture(texture, texture.copy().setColor(ColorPattern.T_GREEN.color)), toolBox);
+        }.setTexture(texture, texture.copy().setColor(ColorPattern.T_GREEN.color)).setHoverTooltips(name), toolBox);
         toolBoxes.add(toolBox);
         tabsBackground.setSize(new Size(20, toolBoxes.size() * 20));
     }

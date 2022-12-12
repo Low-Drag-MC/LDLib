@@ -119,12 +119,42 @@ public class HsbColorWidget extends Widget {
 		BufferBuilder builder = Tesselator.getInstance().getBuilder();
 		drawHsbContext(pose, builder, x, y, width - barWidth - gap, height - barWidth - gap);
 
-		DrawerHelper.drawBorder(poseStack, x, y, width - barWidth - gap, height - barWidth - gap, ColorPattern.T_WHITE.color, 2);
-
+		// alpha bar
 		DrawerHelper.drawGradientRect(poseStack, x, y + height - barWidth, width - barWidth - gap, barWidth, argb & 0x00ffffff, argb | 0xff000000, true);
+		// preview
 		DrawerHelper.drawSolidRect(poseStack, x + width - barWidth, y + height - barWidth, barWidth, barWidth, argb);
 
+		float color = 0;
+		float mainX = 0, mainY = 0;
+		switch (mode) {
+			case H -> {
+				mainX = s;
+				mainY = 1 - b;
+				color = (1 - h / 360f);
+			}
+			case S -> {
+				mainX = h / 360f;
+				mainY = 1 - b;
+				color = (1 - s);
+			}
+			case B -> {
+				mainX = h / 360f;
+				mainY = 1- s;
+				color = (1 - b);
+			}
+		}
+
+		// main indicator
+		DrawerHelper.drawSolidRect(poseStack, (int) (x + mainX * (width - barWidth - gap)) - 1, (int) (y + mainY * (height - barWidth - gap)) - 1, 3, 3, 0xffff0000);
+		// color indicator
+		DrawerHelper.drawSolidRect(poseStack, x + width - barWidth - 2, (int) (y + color * (height - barWidth - gap)), barWidth + 4, 1, 0xffff0000);
+		// alpha indicator
+		DrawerHelper.drawSolidRect(poseStack, (int) (x + alpha * (width - barWidth - gap)), y + height - barWidth - 2, 1, barWidth + 4, 0xffff0000);
+
 		renderInfo(poseStack, x, y, width - barWidth - gap, height - barWidth - gap);
+
+		// border
+		DrawerHelper.drawBorder(poseStack, x, y, width - barWidth - gap, height - barWidth - gap, ColorPattern.WHITE.color, 2);
 	}
 
 	/**
@@ -426,8 +456,8 @@ public class HsbColorWidget extends Widget {
 	}
 
 	private static float normalizeMouse(double mouse, int pos, int size) {
-		if (mouse > pos + size) return 1;
-		if (mouse < pos) return 0;
+		if (mouse >= pos + size) return 1;
+		if (mouse <= pos) return 0;
 		double x = mouse - pos;
 		double y = x % size / size;
 		if (y < 0) {
@@ -460,7 +490,7 @@ public class HsbColorWidget extends Widget {
 				}
 				case B -> {
 					h = normalizedX * 360f;
-					s = normalizedY;
+					s = 1.0f - normalizedY;
 				}
 			}
 			refreshRGB();

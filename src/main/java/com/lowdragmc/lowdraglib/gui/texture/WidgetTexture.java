@@ -56,7 +56,7 @@ public class WidgetTexture extends TransformTexture{
             yOffset = (int) (y + height / 2 - this.centerY);
             float scaleW = width * 1f / widget.getSize().width;
             float scaleH = height * 1f / widget.getSize().height;
-            scale = Math.max(scaleW, scaleH);
+            scale = Math.min(scaleW, scaleH);
         }
         float particleTick = Minecraft.getInstance().getFrameTime();
         stack.pushPose();

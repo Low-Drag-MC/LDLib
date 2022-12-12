@@ -15,6 +15,8 @@ import com.lowdragmc.lowdraglib.utils.Rect;
 import com.lowdragmc.lowdraglib.utils.Size;
 import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.blaze3d.vertex.PoseStack;
+import lombok.Getter;
+import lombok.Setter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
@@ -44,6 +46,8 @@ public class Widget {
     protected ModularUI gui;
     protected WidgetUIAccess uiAccess;
     @Configurable(tips = "ldlib.gui.editor.tips.id")
+    @Setter
+    @Getter
     protected String id = "";
     private Position parentPosition = Position.ORIGIN;
     @Configurable(name = "ldlib.gui.editor.name.pos", tips = "ldlib.gui.editor.tips.pos")

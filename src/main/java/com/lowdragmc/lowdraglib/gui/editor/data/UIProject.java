@@ -91,7 +91,7 @@ public class UIProject extends Project {
         ), new MainPanel(editor, root));
 
         for (WidgetToolBox.Default tab : WidgetToolBox.Default.TABS) {
-            editor.getToolPanel().addNewToolBox(tab.icon, tab.createToolBox());
+            editor.getToolPanel().addNewToolBox("ldlib.gui.editor.group." + tab.groupName, tab.icon, tab.createToolBox());
         }
 
     }

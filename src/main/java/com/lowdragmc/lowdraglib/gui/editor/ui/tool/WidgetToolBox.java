@@ -9,6 +9,7 @@ import com.lowdragmc.lowdraglib.gui.editor.ui.ToolPanel;
 import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
 import com.lowdragmc.lowdraglib.gui.texture.WidgetTexture;
 import com.lowdragmc.lowdraglib.gui.widget.DraggableScrollableWidgetGroup;
+import com.lowdragmc.lowdraglib.gui.widget.ImageWidget;
 import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
 import com.lowdragmc.lowdraglib.gui.widget.SelectableWidgetGroup;
 import com.lowdragmc.lowdraglib.utils.Position;
@@ -55,11 +56,9 @@ public class WidgetToolBox extends DraggableScrollableWidgetGroup {
             String group = wrapper.annotation().group().isEmpty() ? "basic" : wrapper.annotation().group();
             if (group.equals(groupName)) {
                 var widget = wrapper.creator().get();
-                var size = widget.widget().getSize();
-                widget.widget().setSelfPosition(new Position((ToolPanel.WIDTH - 2 - size.width) / 2, (65 - size.height) / 2 + 14));
-                widget.widget().setActive(false);
-                SelectableWidgetGroup selectableWidgetGroup = new SelectableWidgetGroup(0, yOffset, ToolPanel.WIDTH - 2, 65 + 14);
-                selectableWidgetGroup.addWidget(widget.widget());
+                widget.widget().setSelfPosition(new Position(0, 0));
+                SelectableWidgetGroup selectableWidgetGroup = new SelectableWidgetGroup(0, yOffset, ToolPanel.WIDTH - 2, 50 + 14);
+                selectableWidgetGroup.addWidget(new ImageWidget((ToolPanel.WIDTH - 2 - 45) / 2, 17, 45, 30, new WidgetTexture(widget.widget())));
                 selectableWidgetGroup.addWidget(new LabelWidget(3, 3,
                         "ldlib.gui.editor.register.widget." + wrapper.annotation().name()));
                 selectableWidgetGroup.setSelectedTexture(ColorPattern.T_GRAY.rectTexture());
@@ -71,7 +70,7 @@ public class WidgetToolBox extends DraggableScrollableWidgetGroup {
                     }
                 }, (w, p) -> new WidgetTexture(w.get().widget()).setDragging(true));
                 addWidget(selectableWidgetGroup);
-                yOffset += 65 + 14 + 3;
+                yOffset += 50 + 14 + 3;
             }
         }
     }

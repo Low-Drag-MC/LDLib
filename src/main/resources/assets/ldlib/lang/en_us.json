@@ -36,6 +36,10 @@
   "ldlib.gui.editor.group.colors": "colors",
   "ldlib.gui.editor.group.entries": "entries",
   "ldlib.gui.editor.group.transform": "transform",
+  "ldlib.gui.editor.group.basic": "Basic Widgets",
+  "ldlib.gui.editor.group.group": "Group Widgets",
+  "ldlib.gui.editor.group.container": "Container Widgets",
+  "ldlib.gui.editor.group.custom": "Custom Widgets",
 
   "ldlib.gui.editor.name.texture_type": "Texture Type",
   "ldlib.gui.editor.name.pos": "position",
@@ -124,5 +128,6 @@
   "ldlib.gui.editor.register.widget.phantom_item_slot": "Phantom Item Slot",
   "ldlib.gui.editor.register.widget.phantom_fluid_slot": "Phantom Fluid Slot",
   "ldlib.gui.editor.register.widget.selector": "Selector",
-  "ldlib.gui.editor.register.widget.progress": "Progress"
+  "ldlib.gui.editor.register.widget.progress": "Progress",
+  "ldlib.gui.editor.register.widget.player_inventory": "Player Inventory"
 }
