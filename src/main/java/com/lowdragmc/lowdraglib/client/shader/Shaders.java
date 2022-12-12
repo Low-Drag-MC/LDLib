@@ -1,9 +1,13 @@
 package com.lowdragmc.lowdraglib.client.shader;
 
+import com.google.common.collect.ImmutableMap;
 import com.lowdragmc.lowdraglib.LDLMod;
 import com.lowdragmc.lowdraglib.client.shader.management.Shader;
 import com.lowdragmc.lowdraglib.gui.util.DrawerHelper;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+import com.mojang.blaze3d.vertex.VertexFormat;
+import com.mojang.blaze3d.vertex.VertexFormatElement;
+import lombok.Getter;
 import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
@@ -14,6 +18,8 @@ import net.minecraftforge.client.event.RegisterShadersEvent;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+
+import static com.mojang.blaze3d.vertex.DefaultVertexFormat.ELEMENT_POSITION;
 
 @OnlyIn(Dist.CLIENT)
 public class Shaders {
@@ -71,16 +77,30 @@ public class Shaders {
 
 	// *** vanilla **//
 
+	@Getter
 	private static ShaderInstance particleShader;
+	@Getter
+	private static ShaderInstance blitShader;
+	@Getter
+	private static ShaderInstance hsbShader;
 
-	public static ShaderInstance getParticleShader() {
-		return particleShader;
-	}
+	/**
+	 * the vertex format for HSB color, three four of float
+	 */
+	private static final VertexFormatElement HSB_Alpha = new VertexFormatElement(0, VertexFormatElement.Type.FLOAT, VertexFormatElement.Usage.COLOR, 4);
+
+	public static final VertexFormat HSB_VERTEX_FORMAT = new VertexFormat(
+			ImmutableMap.<String, VertexFormatElement>builder()
+					.put("Position", ELEMENT_POSITION)
+					.put("HSB_ALPHA", HSB_Alpha)
+					.build());
 
 	public static void registerVanillaShaders(RegisterShadersEvent event) {
 		ResourceManager resourceManager = event.getResourceManager();
 		try {
 			event.registerShader(new ShaderInstance(resourceManager, new ResourceLocation(LDLMod.MODID, "particle"), DefaultVertexFormat.PARTICLE), shaderInstance -> particleShader = shaderInstance);
+			event.registerShader(new ShaderInstance(resourceManager, new ResourceLocation(LDLMod.MODID, "fast_blit"), DefaultVertexFormat.POSITION), shaderInstance -> blitShader = shaderInstance);
+			event.registerShader(new ShaderInstance(resourceManager, new ResourceLocation(LDLMod.MODID, "hsb_block"), HSB_VERTEX_FORMAT), shaderInstance -> hsbShader = shaderInstance);
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}

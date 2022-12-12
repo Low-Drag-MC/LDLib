@@ -13,11 +13,13 @@ public class Icons {
     public static ResourceTexture DOWN = new ResourceTexture("ldlib:textures/gui/down.png");
     public static ResourceTexture RIGHT = new ResourceTexture("ldlib:textures/gui/right.png");
     public static ResourceTexture RESOURCE = icon("resource");
+    public static ResourceTexture PALETTE = icon("palette");
     public static ResourceTexture RESOURCE_SETTING = icon("resource_setting");
     public static ResourceTexture WIDGET_SETTING = icon("widget_setting");
     public static ResourceTexture WIDGET_BASIC = icon("widget_basic");
     public static ResourceTexture WIDGET_GROUP = icon("widget_group");
     public static ResourceTexture WIDGET_CONTAINER = icon("widget_container");
+    public static ResourceTexture WIDGET_CUSTOM = icon("widget_custom");
     public static ResourceTexture ADD = icon("add");
     public static ResourceTexture SAVE = icon("save");
     public static ResourceTexture HELP = icon("help");

@@ -88,9 +88,13 @@ public class CommonProxy {
             }));
         }
 
-        event.getDispatcher().register(Commands.literal("ui_editor").executes(context -> {
-            UIEditorFactory.INSTANCE.openUI(UIEditorFactory.INSTANCE, context.getSource().getPlayerOrException());
-            return 1;
-        }));
+        event.getDispatcher().register(Commands.literal("ldlib")
+                .then(Commands.literal("ui_editor")
+                        .executes(context -> {
+                            UIEditorFactory.INSTANCE.openUI(UIEditorFactory.INSTANCE, context.getSource().getPlayerOrException());
+                            return 1;
+                        })
+                )
+        );
     }
 }

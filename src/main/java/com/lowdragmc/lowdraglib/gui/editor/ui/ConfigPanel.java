@@ -11,6 +11,7 @@ import com.lowdragmc.lowdraglib.utils.Position;
 import lombok.Getter;
 
 import java.util.*;
+import java.util.function.Consumer;
 
 /**
  * @author KilaBash
@@ -25,14 +26,21 @@ public class ConfigPanel extends WidgetGroup {
         public static final Tab RESOURCE = registerTab(Icons.RESOURCE_SETTING);
 
         public final ResourceTexture icon;
+        public final Consumer<ConfiguratorGroup> configurable;
 
-        private Tab(ResourceTexture icon) {
+        private Tab(ResourceTexture icon, Consumer<ConfiguratorGroup> configurable) {
             this.icon = icon;
-            TABS.add(this);
+            this.configurable= configurable;
         }
 
         public static Tab registerTab(ResourceTexture icon) {
-            return new Tab(icon);
+            return registerTab(icon, father -> {});
+        }
+
+        public static Tab registerTab(ResourceTexture icon, Consumer<ConfiguratorGroup> configurable) {
+            var tab = new Tab(icon, configurable);
+            TABS.add(tab);
+            return tab;
         }
     }
 
@@ -44,6 +52,8 @@ public class ConfigPanel extends WidgetGroup {
     protected final Map<Tab, List<Configurator>> configurators = new HashMap<>(Tab.TABS.size());
 
     protected TabContainer tabContainer;
+    @Getter
+    protected HsbColorWidget palette;
 
 
     public ConfigPanel(Editor editor) {
@@ -88,6 +98,7 @@ public class ConfigPanel extends WidgetGroup {
         clearAllConfigurators(tab);
         this.focus.put(tab, configurable);
         ConfiguratorGroup group = new ConfiguratorGroup("", false);
+        tab.configurable.accept(group);
         configurable.buildConfigurator(group);
         for (Configurator configurator : group.getConfigurators()) {
             configurator.setConfigPanel(this, tab);

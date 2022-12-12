@@ -42,7 +42,7 @@ public class ResourceContainer<T, C extends Widget> extends WidgetGroup {
     protected final Map<String, C> widgets;
     protected DraggableScrollableWidgetGroup container;
     @Setter @Getter
-    protected Function<T, C> widgetSupplier;
+    protected Function<String, C> widgetSupplier;
     @Setter
     protected Function<String, T> onAdd;
     @Setter
@@ -91,7 +91,7 @@ public class ResourceContainer<T, C extends Widget> extends WidgetGroup {
         int x = 1;
         int y = 3;
         for (Map.Entry<String, T> entry : resource.allResources()) {
-            var widget = widgetSupplier.apply(entry.getValue());
+            var widget = widgetSupplier.apply(entry.getKey());
             widgets.put(entry.getKey(), widget);
             Size size = widget.getSize();
             SelectableWidgetGroup selectableWidgetGroup = new SelectableWidgetGroup(0, 0, size.width, size.height + 14);

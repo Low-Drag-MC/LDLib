@@ -74,7 +74,6 @@ public class Editor extends WidgetGroup {
         addWidget(configPanel = new ConfigPanel(this));
         addWidget(resourcePanel = new ResourcePanel(this));
         addWidget(menuPanel = new MenuPanel(this));
-
         loadProject(currentProject);
     }
 

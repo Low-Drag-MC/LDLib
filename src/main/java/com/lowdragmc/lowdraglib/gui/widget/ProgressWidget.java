@@ -135,9 +135,6 @@ public class ProgressWidget extends Widget implements IConfigurableWidget {
     public void readUpdateInfo(int id, FriendlyByteBuf buffer) {
         if (id == 0) {
             this.lastProgressValue = buffer.readDouble();
-            if (dynamicHoverTips != null) {
-                setHoverTooltips(dynamicHoverTips.apply(lastProgressValue));
-            }
         }
     }
 

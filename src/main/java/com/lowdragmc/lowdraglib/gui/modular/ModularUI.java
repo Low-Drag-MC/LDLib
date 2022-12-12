@@ -7,6 +7,8 @@ import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 import com.lowdragmc.lowdraglib.utils.Position;
 import com.lowdragmc.lowdraglib.utils.Size;
+import lombok.Getter;
+import lombok.Setter;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.Slot;
 import net.minecraftforge.api.distmarker.Dist;
@@ -31,6 +33,7 @@ public final class ModularUI {
     public final WidgetGroup mainGroup;
     private int screenWidth, screenHeight;
     private int width, height;
+    @Getter
     private boolean fullScreen;
     @OnlyIn(Dist.CLIENT)
     private ModularUIGuiContainer guiContainer;
@@ -61,6 +64,11 @@ public final class ModularUI {
     public ModularUI(IUIHolder holder, Player entityPlayer) {
         this(0, 0, holder, entityPlayer);
         fullScreen = true;
+    }
+
+    public void setFullScreen() {
+        this.fullScreen = true;
+        setSize(getScreenWidth(), getScreenHeight());
     }
 
     public HashMap<Slot, SlotWidget> getSlotMap() {

@@ -28,6 +28,7 @@ public class WidgetToolBox extends DraggableScrollableWidgetGroup {
         public static final Default BASIC = registerTab("basic", Icons.WIDGET_BASIC);
         public static final Default GROUP = registerTab("group", Icons.WIDGET_GROUP);
         public static final Default CONTAINER = registerTab("container", Icons.WIDGET_CONTAINER);
+        public static final Default CUSTOM = registerTab("custom", Icons.WIDGET_CUSTOM);
 
         public final String groupName;
         public final ResourceTexture icon;

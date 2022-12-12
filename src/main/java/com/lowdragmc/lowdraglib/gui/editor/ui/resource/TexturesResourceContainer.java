@@ -21,7 +21,7 @@ import com.lowdragmc.lowdraglib.gui.widget.ImageWidget;
 public class TexturesResourceContainer extends ResourceContainer<IGuiTexture, ImageWidget> {
     public TexturesResourceContainer(Resource<IGuiTexture> resource, ResourcePanel panel) {
         super(resource, panel);
-        setWidgetSupplier(t -> new ImageWidget(0, 0, 30, 30, t));
+        setWidgetSupplier(k -> new ImageWidget(0, 0, 30, 30, getResource().getResource(k)));
         setDragging(resource::getResource, o -> o);
         setOnEdit(key -> openTextureConfigurator(key, getResource().getResource(key)));
         setOnRemove(key -> !key.equals("empty"));
