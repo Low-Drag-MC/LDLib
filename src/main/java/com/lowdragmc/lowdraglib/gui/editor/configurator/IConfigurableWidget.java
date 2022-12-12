@@ -3,14 +3,20 @@ package com.lowdragmc.lowdraglib.gui.editor.configurator;
 import com.lowdragmc.lowdraglib.gui.editor.annotation.RegisterUI;
 import com.lowdragmc.lowdraglib.gui.editor.runtime.PersistedParser;
 import com.lowdragmc.lowdraglib.gui.editor.runtime.UIDetector;
+import com.lowdragmc.lowdraglib.gui.editor.ui.UIWrapper;
+import com.lowdragmc.lowdraglib.gui.editor.ui.tool.WidgetToolBox;
+import com.lowdragmc.lowdraglib.gui.texture.ColorRectTexture;
+import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import net.minecraft.Util;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraftforge.common.util.INBTSerializable;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * @author KilaBash
@@ -30,6 +36,37 @@ public interface IConfigurableWidget extends IConfigurable, INBTSerializable<Com
 
     default Widget widget() {
         return (Widget) this;
+    }
+
+
+    default boolean canDragIn(Object dragging) {
+        if (dragging instanceof IGuiTexture) {
+            return true;
+        } else if (dragging instanceof String) {
+            return true;
+        } else if (dragging instanceof IIdProvider) {
+            return true;
+        } else if (dragging instanceof Integer) {
+            return true;
+        }
+        return false;
+    }
+
+    default boolean handleDragging(Object dragging) {
+        if (dragging instanceof IGuiTexture guiTexture) {
+            widget().setBackground(guiTexture);
+            return true;
+        } else if (dragging instanceof String string) {
+            widget().setHoverTooltips(string);
+            return true;
+        } else if (dragging instanceof IIdProvider idProvider) {
+            widget().setId(idProvider.get());
+            return true;
+        } else if (dragging instanceof Integer color) {
+            widget().setBackground(new ColorRectTexture(color));
+            return true;
+        }
+        return false;
     }
 
     @Override
@@ -61,5 +98,13 @@ public interface IConfigurableWidget extends IConfigurable, INBTSerializable<Com
             return child;
         }
         return null;
+    }
+
+    // ******* setter ********//
+
+
+    @FunctionalInterface
+    interface IIdProvider extends Supplier<String> {
+
     }
 }

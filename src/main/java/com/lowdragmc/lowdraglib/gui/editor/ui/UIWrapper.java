@@ -16,6 +16,7 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 import java.util.Arrays;
+import java.util.function.Supplier;
 
 /**
  * @author KilaBash
@@ -51,15 +52,15 @@ public record UIWrapper(MainPanel panel, IConfigurableWidget inner) implements I
             }
             var dragging = panel.getGui().getModularUIGui().getDraggingElement();
             boolean drawDragging = false;
-            if (dragging instanceof WidgetToolBox.IWidgetPanelDragging widgetPanelDragging && checkAcceptable(new UIWrapper(panel, widgetPanelDragging.get()))) {
+
+            if (inner.canDragIn(dragging)) {
+                drawDragging = true;
+            } else if (dragging instanceof WidgetToolBox.IWidgetPanelDragging widgetPanelDragging && checkAcceptable(new UIWrapper(panel, widgetPanelDragging.get()))) {
                 drawDragging = true;
             } else if (dragging instanceof UIWrapper[] uiWrappers && Arrays.stream(uiWrappers).allMatch(this::checkAcceptable)) { // can accept
                 drawDragging = true;
-            } else if (dragging instanceof IGuiTexture) {
-                drawDragging = true;
-            } else if (dragging instanceof String) {
-                drawDragging = true;
             }
+
             if (drawDragging) {
                 borderColor = 0xff55aa55;
             }
@@ -108,12 +109,8 @@ public record UIWrapper(MainPanel panel, IConfigurableWidget inner) implements I
                 }
 
                 return true;
-            } else if (dragging instanceof IGuiTexture guiTexture) {
-                inner.widget().setBackground(guiTexture);
-                return true;
-            } else if (dragging instanceof String string) {
-                inner.widget().setHoverTooltips(string);
-                return true;
+            } else {
+                return inner.handleDragging(dragging);
             }
         }
         return false;

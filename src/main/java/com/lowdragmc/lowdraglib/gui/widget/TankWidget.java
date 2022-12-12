@@ -58,7 +58,6 @@ public class TankWidget extends Widget implements IRecipeIngredientSlot, IConfig
 
     @Nullable
     @Getter
-    @Setter
     protected IFluidTank fluidTank;
     @Configurable
     @Setter
@@ -106,6 +105,14 @@ public class TankWidget extends Widget implements IRecipeIngredientSlot, IConfig
         this.allowClickFilled = allowClickContainerFilling;
         this.allowClickDrained = allowClickContainerEmptying;
         this.drawHoverTips = true;
+    }
+
+    public TankWidget setFluidTank(IFluidTank fluidTank) {
+        this.fluidTank = fluidTank;
+        if (isClientSideWidget) {
+            setClientSideWidget();
+        }
+        return this;
     }
 
     @Override

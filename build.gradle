@@ -47,7 +47,12 @@ archivesBaseName = "${mod_name}"
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(17) // Mojang ships Java 8 to end users, so your mod should target Java 8.
 
+def isJetBrainsRuntime() {
+    return System.getProperty('java.vm.vendor').contains('JetBrains')
+}
+
 println('Java: ' + System.getProperty('java.version') + ' JVM: ' + System.getProperty('java.vm.version') + '(' + System.getProperty('java.vendor') + ') Arch: ' + System.getProperty('os.arch'))
+
 minecraft {
     mappings channel: "parchment", version: "${mappings_version}"
 
@@ -80,7 +85,7 @@ minecraft {
         runConfig.jvmArg("-Dmixin.dumpTargetOnFailure=true")
         runConfig.jvmArg("-Dmixin.checks.interfaces=true")
         runConfig.jvmArg("-Dmixin.hotSwap=true")
-        if (enable_hot_swap_agent) {
+        if (isJetBrainsRuntime()) {
             runConfig.jvmArg("-XX:+AllowEnhancedClassRedefinition")
             runConfig.jvmArg("-XX:HotswapAgent=fatjar")
         }
