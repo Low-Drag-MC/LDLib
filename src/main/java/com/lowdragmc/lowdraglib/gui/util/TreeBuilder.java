@@ -23,6 +23,18 @@ public class TreeBuilder<K, V> {
     }
 
     public TreeBuilder<K, V> branch(K key, Consumer<TreeBuilder<K, V>> builderConsumer) {
+        var children = stack.peek().getChildren();
+        if (children != null && !children.isEmpty()) {
+            for (var child : children) {
+                if (!child.isLeaf() && child.key.equals(key)) {
+                    stack.push(child);
+                    builderConsumer.accept(this);
+                    endBranch();
+                    return this;
+                }
+            }
+        }
+
         stack.push(stack.peek().getOrCreateChild(key));
         builderConsumer.accept(this);
         endBranch();
@@ -44,6 +56,11 @@ public class TreeBuilder<K, V> {
         return this;
     }
 
+    public TreeBuilder<K, V> remove(K key) {
+        stack.peek().removeChild(key);
+        return this;
+    }
+
     public TreeNode<K, V> build() {
         while (stack.size() > 1) {
             stack.pop();
@@ -52,6 +69,7 @@ public class TreeBuilder<K, V> {
     }
 
     public static class Menu extends TreeBuilder<Tuple<IGuiTexture, String>, Runnable> {
+        public static Tuple<IGuiTexture, String> CROSS_LINE = new Tuple<>(IGuiTexture.EMPTY, "");
 
         private Menu(Tuple<IGuiTexture, String> key) {
             super(key);
@@ -61,14 +79,28 @@ public class TreeBuilder<K, V> {
             return new Menu(new Tuple<>(IGuiTexture.EMPTY, ""));
         }
 
+        public Menu crossLine() {
+            stack.peek().createChild(CROSS_LINE);
+            return this;
+        }
+
         public Menu branch(IGuiTexture icon, String name, Consumer<Menu> menuConsumer) {
-            startBranch(new Tuple<>(icon, name));
-            menuConsumer.accept(this);
-            endBranch();
+            branch(new Tuple<>(icon, name), builder -> menuConsumer.accept(this));
             return this;
         }
 
         public Menu branch(String name, Consumer<Menu> menuConsumer) {
+            var children = stack.peek().getChildren();
+            if (children != null && !children.isEmpty()) {
+                for (TreeNode<Tuple<IGuiTexture, String>, Runnable> child : children) {
+                    if (!child.isLeaf() && child.getKey().getB().equals(name)) {
+                        stack.push(child);
+                        menuConsumer.accept(this);
+                        endBranch();
+                        return this;
+                    }
+                }
+            }
             return branch(IGuiTexture.EMPTY, name, menuConsumer);
         }
 
@@ -87,6 +119,19 @@ public class TreeBuilder<K, V> {
             return this;
         }
 
+        public Menu remove(String name) {
+            var children = stack.peek().getChildren();
+            if (children != null && !children.isEmpty()) {
+                for (TreeNode<Tuple<IGuiTexture, String>, Runnable> child : children) {
+                    if (child.getKey().getB().equals(name)) {
+                        stack.peek().removeChild(child.getKey());
+                        return this;
+                    }
+                }
+            }
+            return this;
+        }
+
         public static IGuiTexture getIcon(Tuple<IGuiTexture, String> key) {
             return key.getA();
         }
@@ -99,6 +144,10 @@ public class TreeBuilder<K, V> {
             if (node.isLeaf() && node.getContent() != null) {
                 node.getContent().run();
             }
+        }
+
+        public static boolean isCrossLine(Tuple<IGuiTexture, String> key) {
+            return key == CROSS_LINE;
         }
     }
 

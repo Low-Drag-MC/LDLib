@@ -1,6 +1,10 @@
 package com.lowdragmc.lowdraglib.gui.editor.configurator;
 
 import com.lowdragmc.lowdraglib.gui.editor.Icons;
+import com.lowdragmc.lowdraglib.gui.texture.ColorBorderTexture;
+import com.lowdragmc.lowdraglib.gui.texture.ColorRectTexture;
+import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
+import com.lowdragmc.lowdraglib.gui.texture.ResourceBorderTexture;
 import com.lowdragmc.lowdraglib.gui.widget.SwitchWidget;
 
 import javax.annotation.Nonnull;
@@ -36,6 +40,6 @@ public class BooleanConfigurator extends ValueConfigurator<Boolean>{
             updateValue();
         }));
         switchWidget.setPressed(value);
-        switchWidget.setTexture(Icons.borderText(" "), Icons.borderText("■"));
+        switchWidget.setTexture(new ColorBorderTexture(-1, -1).setRadius(5), new GuiTextureGroup(new ColorBorderTexture(-1, -1).setRadius(5), new ColorRectTexture(-1).setRadius(5).scale(0.5f)));
     }
 }

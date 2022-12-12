@@ -63,7 +63,7 @@ public class NumberConfigurator extends ValueConfigurator<Number> {
     }
 
     private IGuiTexture getCommonColor() {
-        return colorBackground ? new ColorRectTexture(value.intValue()) : ColorPattern.T_GRAY.rectTexture();
+        return colorBackground ? new ColorRectTexture(value.intValue()).setRadius(5).setRadius(5) : ColorPattern.T_GRAY.rectTexture().setRadius(5);
     }
 
     @Override
@@ -72,7 +72,7 @@ public class NumberConfigurator extends ValueConfigurator<Number> {
         addWidget(image = new ImageWidget(leftWidth, 2, width - leftWidth - 3 - rightWidth, 10, getCommonColor()));
         image.setDraggingConsumer(
                 o -> o instanceof Number,
-                o -> image.setImage(ColorPattern.GREEN.rectTexture()),
+                o -> image.setImage(ColorPattern.GREEN.rectTexture().setRadius(5)),
                 o -> image.setImage(getCommonColor()),
                 o -> {
                     if (o instanceof Number number) {

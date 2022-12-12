@@ -21,16 +21,12 @@ import net.minecraft.world.item.ItemStack;
 
 import javax.annotation.Nonnull;
 import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 public class ModularUIContainer extends AbstractContainerMenu implements WidgetUIAccess {
 
-    protected final HashMap<Slot, SlotWidget> slotMap = new HashMap<>();
     private final ModularUI modularUI;
 
     public ModularUIContainer(ModularUI modularUI, int windowID) {
@@ -38,60 +34,38 @@ public class ModularUIContainer extends AbstractContainerMenu implements WidgetU
         this.modularUI = modularUI;
         this.modularUI.setModularUIContainer(this);
         modularUI.mainGroup.setUiAccess(this);
-        modularUI.mainGroup.getNativeWidgets().forEach(nativeWidget -> {
-            Slot slot = nativeWidget.getHandle();
-            slotMap.put(slot, nativeWidget);
-            addSlot(slot);
-        });
-    }
-
-    @Override
-    public void notifySizeChange() {
     }
 
     //WARNING! WIDGET CHANGES SHOULD BE *STRICTLY* SYNCHRONIZED BETWEEN SERVER AND CLIENT,
     //OTHERWISE ID MISMATCH CAN HAPPEN BETWEEN ASSIGNED SLOTS!
-    @Override
-    public void notifyWidgetChange() {
-        List<SlotWidget> nativeWidgets = modularUI.mainGroup.getNativeWidgets();
-
-        Set<SlotWidget> removedWidgets = new HashSet<>(slotMap.values());
-        nativeWidgets.forEach(removedWidgets::remove);
-        if (!removedWidgets.isEmpty()) {
-            for (SlotWidget removedWidget : removedWidgets) {
-                Slot slotHandle = removedWidget.getHandle();
-                this.slotMap.remove(slotHandle);
-                //replace removed slot with empty placeholder to avoid list index shift
-                EmptySlotPlaceholder emptySlotPlaceholder = new EmptySlotPlaceholder();
-                emptySlotPlaceholder.index = slotHandle.index;
-                this.slots.set(slotHandle.index, emptySlotPlaceholder);
-                this.lastSlots.set(slotHandle.index, ItemStack.EMPTY);
-            }
+    @Nonnull
+    public Slot addSlot(@Nonnull Slot slotHandle) {
+        var emptySlotIndex = slots.stream()
+                .filter(it -> it instanceof EmptySlotPlaceholder)
+                .mapToInt(slot -> slot.index).findFirst();
+        if (emptySlotIndex.isPresent()) {
+            slotHandle.index = emptySlotIndex.getAsInt();
+            this.slots.set(slotHandle.index, slotHandle);
+            this.lastSlots.set(slotHandle.index, ItemStack.EMPTY);
+            this.remoteSlots.set(slotHandle.index, ItemStack.EMPTY);
+        } else {
+            slotHandle.index = this.slots.size();
+            this.slots.add(slotHandle);
+            this.lastSlots.add(ItemStack.EMPTY);
+            this.remoteSlots.add(ItemStack.EMPTY);
         }
+        return slotHandle;
+    }
 
-        Set<SlotWidget> addedWidgets = new HashSet<>(nativeWidgets);
-        addedWidgets.removeAll(slotMap.values());
-        if (!addedWidgets.isEmpty()) {
-            int[] emptySlotIndexes = slots.stream()
-                    .filter(it -> it instanceof EmptySlotPlaceholder)
-                    .mapToInt(slot -> slot.index).toArray();
-            int currentIndex = 0;
-            for (SlotWidget addedWidget : addedWidgets) {
-                Slot slotHandle = addedWidget.getHandle();
-                //add or replace empty slot in inventory
-                this.slotMap.put(slotHandle, addedWidget);
-                if (currentIndex < emptySlotIndexes.length) {
-                    int slotIndex = emptySlotIndexes[currentIndex++];
-                    slotHandle.index = slotIndex;
-                    this.slots.set(slotIndex, slotHandle);
-                    this.lastSlots.set(slotIndex, ItemStack.EMPTY);
-                } else {
-                    slotHandle.index = this.slots.size();
-                    this.slots.add(slotHandle);
-                    this.lastSlots.add(ItemStack.EMPTY);
-                }
-            }
-        }
+    //WARNING! WIDGET CHANGES SHOULD BE *STRICTLY* SYNCHRONIZED BETWEEN SERVER AND CLIENT,
+    //OTHERWISE ID MISMATCH CAN HAPPEN BETWEEN ASSIGNED SLOTS!
+    public void removeSlot(Slot slotHandle) {
+        //replace removed slot with empty placeholder to avoid list index shift
+        EmptySlotPlaceholder emptySlotPlaceholder = new EmptySlotPlaceholder();
+        emptySlotPlaceholder.index = slotHandle.index;
+        this.slots.set(slotHandle.index, emptySlotPlaceholder);
+        this.lastSlots.set(slotHandle.index, ItemStack.EMPTY);
+        this.remoteSlots.set(slotHandle.index, ItemStack.EMPTY);
     }
 
     public ModularUI getModularUI() {
@@ -124,7 +98,7 @@ public class ModularUIContainer extends AbstractContainerMenu implements WidgetU
     public void clicked(int slotId, int dragType, @Nonnull ClickType clickTypeIn, @Nonnull Player player) {
         if (slotId >= 0 && slotId < slots.size()) {
             Slot slot = getSlot(slotId);
-            ItemStack result = slotMap.get(slot).slotClick(dragType, clickTypeIn, player);
+            ItemStack result = modularUI.getSlotMap().get(slot).slotClick(dragType, clickTypeIn, player);
             if (result == null) {
 //                return super.clicked(slotId, dragType, clickTypeIn, player);
                 super.clicked(slotId, dragType, clickTypeIn, player);
@@ -140,7 +114,7 @@ public class ModularUIContainer extends AbstractContainerMenu implements WidgetU
     private final PerTickIntCounter transferredPerTick = new PerTickIntCounter(0);
 
     private List<SlotWidget> getShiftClickSlots(ItemStack itemStack, boolean fromContainer) {
-        return slotMap.values().stream()
+        return modularUI.getSlotMap().values().stream()
                 .filter(it -> it.canMergeSlot(itemStack))
                 .filter(it -> it.isPlayerContainer == fromContainer)
                 .sorted(Comparator.comparing(s -> (fromContainer ? -1 : 1) * s.getHandle().index))
@@ -166,7 +140,7 @@ public class ModularUIContainer extends AbstractContainerMenu implements WidgetU
             if (!slot.mayPlace(itemStack))
                 continue; //if itemstack cannot be placed into that slot, continue
             ItemStack stackInSlot = slot.getItem();
-            if (!ItemStack.isSame(itemStack, stackInSlot) || !ItemStack.matches(itemStack, stackInSlot))
+            if (!ItemStack.isSame(itemStack, stackInSlot) || !ItemStack.isSameItemSameTags(itemStack, stackInSlot))
                 continue; //if itemstacks don't match, continue
             int slotMaxStackSize = Math.min(stackInSlot.getMaxStackSize(), slot.getMaxStackSize(stackInSlot));
             int amountToInsert = Math.min(itemStack.getCount(), slotMaxStackSize - stackInSlot.getCount());
@@ -218,14 +192,14 @@ public class ModularUIContainer extends AbstractContainerMenu implements WidgetU
             return ItemStack.EMPTY;
         }
         ItemStack stackInSlot = slot.getItem();
-//        ItemStack stackToMerge = slotMap.get(slot).onItemTake(player, stackInSlot.copy(), true);
+//        ItemStack stackToMerge = modularUI.getSlotMap().get(slot).onItemTake(player, stackInSlot.copy(), true);
         ItemStack stackToMerge = stackInSlot.copy();
-        boolean fromContainer = !slotMap.get(slot).isPlayerContainer;
+        boolean fromContainer = !modularUI.getSlotMap().get(slot).isPlayerContainer;
         if (!attemptMergeStack(stackToMerge, fromContainer, true)) {
             return ItemStack.EMPTY;
         }
         int itemsMerged;
-        if (stackToMerge.isEmpty() || slotMap.get(slot).canMergeSlot(stackToMerge)) {
+        if (stackToMerge.isEmpty() || modularUI.getSlotMap().get(slot).canMergeSlot(stackToMerge)) {
             itemsMerged = stackInSlot.getCount() - stackToMerge.getCount();
         } else {
             //if we can't have partial stack merge, we have to use all the stack
@@ -245,7 +219,7 @@ public class ModularUIContainer extends AbstractContainerMenu implements WidgetU
         } else {
             slot.setChanged();
         }
-//        extractedStack = slotMap.get(slot).onItemTake(player, extractedStack, false);
+//        extractedStack = modularUI.getSlotMap().get(slot).onItemTake(player, extractedStack, false);
         ItemStack resultStack = extractedStack.copy();
         if (!attemptMergeStack(extractedStack, fromContainer, false)) {
             resultStack = ItemStack.EMPTY;
@@ -259,7 +233,7 @@ public class ModularUIContainer extends AbstractContainerMenu implements WidgetU
 
     @Override
     public boolean canTakeItemForPickAll(@Nonnull ItemStack stack, @Nonnull Slot slotIn) {
-        return slotMap.get(slotIn).canMergeSlot(stack);
+        return modularUI.getSlotMap().get(slotIn).canMergeSlot(stack);
     }
 
     @Override

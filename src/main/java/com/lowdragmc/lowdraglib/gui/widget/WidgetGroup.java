@@ -2,13 +2,14 @@ package com.lowdragmc.lowdraglib.gui.widget;
 
 import com.lowdragmc.lowdraglib.gui.animation.Animation;
 import com.lowdragmc.lowdraglib.gui.editor.annotation.RegisterUI;
-import com.lowdragmc.lowdraglib.gui.editor.configurator.IConfigurableWidget;
+import com.lowdragmc.lowdraglib.gui.editor.configurator.*;
 import com.lowdragmc.lowdraglib.gui.editor.runtime.UIDetector;
 import com.lowdragmc.lowdraglib.gui.ingredient.IGhostIngredientTarget;
 import com.lowdragmc.lowdraglib.gui.ingredient.IIngredientSlot;
 import com.lowdragmc.lowdraglib.gui.ingredient.Target;
 import com.lowdragmc.lowdraglib.gui.modular.WidgetUIAccess;
 import com.lowdragmc.lowdraglib.gui.texture.ResourceBorderTexture;
+import com.lowdragmc.lowdraglib.gui.texture.WidgetTexture;
 import com.lowdragmc.lowdraglib.utils.Position;
 import com.lowdragmc.lowdraglib.utils.Size;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -28,9 +29,10 @@ import javax.annotation.Nonnull;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.regex.Pattern;
 
-@RegisterUI(name = "group", group = "advanced")
-public class WidgetGroup extends Widget implements IGhostIngredientTarget, IIngredientSlot, IConfigurableWidget {
+@RegisterUI(name = "group", group = "group")
+public class WidgetGroup extends Widget implements IGhostIngredientTarget, IIngredientSlot, IConfigurableWidgetGroup {
 
     public final List<Widget> widgets = new ArrayList<>();
     private final WidgetGroupUIAccess groupUIAccess = new WidgetGroupUIAccess();
@@ -139,14 +141,44 @@ public class WidgetGroup extends Widget implements IGhostIngredientTarget, IIngr
         return super.getHoverElement(mouseX, mouseY);
     }
 
+    protected void onChildSelfPositionUpdate(Widget child) {
+
+    }
+
+    protected void onChildSizeUpdate(Widget child) {
+
+    }
+
+    @Nullable
+    public Widget getFirstWidgetById(Pattern regex) {
+        List<Widget> list = new ArrayList<>();
+        getWidgetsById(list, regex);
+        return list.isEmpty() ? null : list.get(0);
+    }
+
+    public List<Widget> getWidgetsById(Pattern regex) {
+        List<Widget> list = new ArrayList<>();
+        getWidgetsById(list, regex);
+        return list;
+    }
+
+    private void getWidgetsById(List<Widget> list, Pattern regex) {
+        for (Widget widget : widgets) {
+            if (regex.matcher(widget.id).find()) {
+                list.add(widget);
+            }
+            if (widget instanceof WidgetGroup widgetGroup) {
+                widgetGroup.getWidgetsById(list, regex);
+            }
+        }
+    }
+
     protected boolean recomputeSize() {
         if (isDynamicSized) {
             Size currentSize = getSize();
             Size dynamicSize = computeDynamicSize();
             if (!currentSize.equals(dynamicSize)) {
                 setSize(dynamicSize);
-                if (uiAccess != null)
-                    uiAccess.notifySizeChange();
                 return true;
             }
         }
@@ -191,13 +223,13 @@ public class WidgetGroup extends Widget implements IGhostIngredientTarget, IIngr
             throw new IllegalArgumentException("Already added");
         }
         this.widgets.add(index, widget);
+        if (isClientSideWidget) {
+            widget.setClientSideWidget();
+        }
         widget.setUiAccess(groupUIAccess);
         widget.setGui(gui);
         widget.setParent(this);
         widget.setParentPosition(getPosition());
-        if (isClientSideWidget) {
-            widget.setClientSideWidget();
-        }
         if (isInitialized() && !widget.isInitialized()) {
             widget.initWidget();
             if (!isRemote() && !widget.isClientSideWidget) {
@@ -208,9 +240,6 @@ public class WidgetGroup extends Widget implements IGhostIngredientTarget, IIngr
             }
         }
         recomputeSize();
-        if (uiAccess != null && !isClientSideWidget) {
-            uiAccess.notifyWidgetChange();
-        }
         return this;
     }
 
@@ -251,9 +280,6 @@ public class WidgetGroup extends Widget implements IGhostIngredientTarget, IIngr
         widget.setGui(null);
         widget.setParentPosition(Position.ORIGIN);
         recomputeSize();
-        if (uiAccess != null && !isClientSideWidget) {
-            this.uiAccess.notifyWidgetChange();
-        }
     }
 
     public void clearAllWidgets() {
@@ -274,9 +300,6 @@ public class WidgetGroup extends Widget implements IGhostIngredientTarget, IIngr
             }
         }
         recomputeSize();
-        if (uiAccess != null) {
-            this.uiAccess.notifyWidgetChange();
-        }
     }
 
 
@@ -287,15 +310,6 @@ public class WidgetGroup extends Widget implements IGhostIngredientTarget, IIngr
             widget.setGui(gui);
             widget.initWidget();
         }
-    }
-
-    @Override
-    public List<SlotWidget> getNativeWidgets() {
-        ArrayList<SlotWidget> nativeWidgets = new ArrayList<>();
-        for (Widget widget : widgets) {
-            nativeWidgets.addAll(widget.getNativeWidgets());
-        }
-        return nativeWidgets;
     }
 
     @Override
@@ -552,30 +566,12 @@ public class WidgetGroup extends Widget implements IGhostIngredientTarget, IIngr
     private class WidgetGroupUIAccess implements WidgetUIAccess {
 
         @Override
-        public void notifySizeChange() {
-            WidgetUIAccess uiAccess = WidgetGroup.this.uiAccess;
-            recomputeSize();
-            if (uiAccess != null) {
-                uiAccess.notifySizeChange();
-            }
-        }
-
-        @Override
         public boolean attemptMergeStack(ItemStack itemStack, boolean fromContainer, boolean simulate) {
             WidgetUIAccess uiAccess = WidgetGroup.this.uiAccess;
             if (uiAccess != null) {
                 return uiAccess.attemptMergeStack(itemStack, fromContainer, simulate);
             }
             return false;
-        }
-
-        @Override
-        public void notifyWidgetChange() {
-            WidgetUIAccess uiAccess = WidgetGroup.this.uiAccess;
-            if (uiAccess != null) {
-                uiAccess.notifyWidgetChange();
-            }
-            recomputeSize();
         }
 
         @Override
@@ -612,7 +608,28 @@ public class WidgetGroup extends Widget implements IGhostIngredientTarget, IIngr
     // *********** IConfigurableWidget ************* //
 
     @Override
-    public boolean canWidgetDragIn(IConfigurableWidget widget) {
+    public void buildConfigurator(ConfiguratorGroup father) {
+        IConfigurableWidgetGroup.super.buildConfigurator(father);
+        addWidgetsConfigurator(father);
+    }
+
+    protected void addWidgetsConfigurator(ConfiguratorGroup father) {
+        var arrayGroup = new ArrayConfiguratorGroup<>("children", true, () -> widgets,
+                (getter, setter) -> {
+            var child = getter.get();
+            return new WrapperConfigurator(child.id, new ImageWidget(0, 0, 50, 50, new WidgetTexture(child)));
+                }, true);
+        arrayGroup.setCanAdd(false);
+        arrayGroup.setOnRemove(this::removeWidget);
+        arrayGroup.setOnReorder((index, widget) -> {
+            removeWidget(widget);
+            addWidget(index, widget);
+        });
+        father.addConfigurators(arrayGroup);
+    }
+
+    @Override
+    public boolean canWidgetAccepted(IConfigurableWidget widget) {
         if (widget == this) return false;
         var parent = this.getParent();
         while (parent != null) {
@@ -623,53 +640,38 @@ public class WidgetGroup extends Widget implements IGhostIngredientTarget, IIngr
     }
 
     @Override
-    public void onWidgetDragIn(IConfigurableWidget widget) {
+    public void acceptWidget(IConfigurableWidget widget) {
         addWidget(widget.widget());
     }
 
     @Override
-    public void onWidgetDragOut(IConfigurableWidget widget) {
+    public void onWidgetRemoved(IConfigurableWidget widget) {
         removeWidget(widget.widget());
     }
 
     @Override
     public CompoundTag serializeNBT() {
-        CompoundTag tag = IConfigurableWidget.super.serializeNBT();
+        CompoundTag tag = IConfigurableWidgetGroup.super.serializeNBT();
         var children = new ListTag();
         for (Widget widget : widgets) {
             if (widget instanceof IConfigurableWidget child && child.isRegisterUI()) {
-                CompoundTag ui = new CompoundTag();
-                ui.putString("type", child.getRegisterUI().name());
-                ui.put("data", child.serializeNBT());
-                children.add(ui);
+                children.add(child.serializeWrapper());
             }
         }
         tag.put("children", children);
         return tag;
     }
 
-    public static final Function<String, UIDetector.Wrapper<RegisterUI, IConfigurableWidget>> CACHE = Util.memoize(type -> {
-        for (var wrapper : UIDetector.REGISTER_WIDGETS) {
-            if (wrapper.annotation().name().equals(type)) {
-                return wrapper;
-            }
-        }
-        return null;
-    });
-
     @Override
     public void deserializeNBT(CompoundTag nbt) {
         clearAllWidgets();
-        IConfigurableWidget.super.deserializeNBT(nbt);
+        IConfigurableWidgetGroup.super.deserializeNBT(nbt);
         var children = nbt.getList("children", Tag.TAG_COMPOUND);
         for (Tag tag : children) {
             if (tag instanceof CompoundTag ui) {
-                String type = ui.getString("type");
-                var wrapper = CACHE.apply(type);
-                if (wrapper != null) {
-                    var child = wrapper.creator().get();
+                var child = IConfigurableWidget.deserializeWrapper(ui);
+                if (child != null) {
                     addWidget(child.widget());
-                    child.deserializeNBT(ui.getCompound("data"));
                 }
             }
         }

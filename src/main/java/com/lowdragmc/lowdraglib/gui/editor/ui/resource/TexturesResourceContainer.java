@@ -21,8 +21,8 @@ import com.lowdragmc.lowdraglib.gui.widget.ImageWidget;
 public class TexturesResourceContainer extends ResourceContainer<IGuiTexture, ImageWidget> {
     public TexturesResourceContainer(Resource<IGuiTexture> resource, ResourcePanel panel) {
         super(resource, panel);
-        setWidgetSupplier(t -> new ImageWidget(0, 0, 30, 30, t));
-        setDraggingRenderer(o -> o);
+        setWidgetSupplier(k -> new ImageWidget(0, 0, 30, 30, getResource().getResource(k)));
+        setDragging(resource::getResource, o -> o);
         setOnEdit(key -> openTextureConfigurator(key, getResource().getResource(key)));
         setOnRemove(key -> !key.equals("empty"));
     }
@@ -67,8 +67,12 @@ public class TexturesResourceContainer extends ResourceContainer<IGuiTexture, Im
     @Override
     protected TreeBuilder.Menu getMenu() {
         return TreeBuilder.Menu.start()
-                .leaf("ldlib.gui.editor.menu.edit", this::editResource)
-                .branch(Icons.borderText("+").scale(0.6f), "ldlib.gui.editor.menu.add_resource", menu -> {
+                .leaf(Icons.EDIT_FILE, "ldlib.gui.editor.menu.edit", this::editResource)
+                .leaf("ldlib.gui.editor.menu.rename", this::renameResource)
+                .crossLine()
+                .leaf(Icons.COPY, "ldlib.gui.editor.menu.copy", this::copy)
+                .leaf(Icons.PASTE, "ldlib.gui.editor.menu.paste", this::paste)
+                .branch(Icons.ADD_FILE, "ldlib.gui.editor.menu.add_resource", menu -> {
                     for (UIDetector.Wrapper<RegisterUI, IGuiTexture> wrapper : UIDetector.REGISTER_TEXTURES) {
                         IGuiTexture icon = wrapper.creator().get();
                         String name = "ldlib.gui.editor.register.texture." + wrapper.annotation().name();
@@ -78,7 +82,6 @@ public class TexturesResourceContainer extends ResourceContainer<IGuiTexture, Im
                         });
                     }
                 })
-                .leaf(Icons.borderText("-").scale(0.6f), "ldlib.gui.editor.menu.remove", this::removeSelectedResource)
-                .leaf("ldlib.gui.editor.menu.rename", this::renameResource);
+                .leaf(Icons.REMOVE_FILE, "ldlib.gui.editor.menu.remove", this::removeSelectedResource);
     }
 }

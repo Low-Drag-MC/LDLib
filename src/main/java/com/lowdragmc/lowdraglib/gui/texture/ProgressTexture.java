@@ -13,14 +13,13 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 @RegisterUI(name = "progress_texture")
 public class ProgressTexture extends TransformTexture {
     @Configurable
+    protected FillDirection fillDirection = FillDirection.LEFT_TO_RIGHT;
+    @Configurable
     protected IGuiTexture emptyBarArea;
     @Configurable
     protected IGuiTexture filledBarArea;
 
     protected double progress;
-
-    @Configurable
-    protected FillDirection fillDirection = FillDirection.LEFT_TO_RIGHT;
 
     private boolean demo;
 

@@ -48,6 +48,15 @@ public class TreeNode<T, K> {
         return result;
     }
 
+    public TreeNode<T, K> createChild (T childKey) {
+        if (getChildren() == null) {
+            children = new ArrayList<>();
+        }
+        TreeNode<T, K> result = new TreeNode<T, K>(dimension + 1, childKey).setValid(valid);
+        getChildren().add(result);
+        return result;
+    }
+
     public TreeNode<T, K> getChild(T key) {
         if (getChildren() != null) {
             for (TreeNode<T, K> child : getChildren()) {
@@ -74,6 +83,17 @@ public class TreeNode<T, K> {
     public List<TreeNode<T, K>> getChildren() {
         if (valid == null) return children;
         return children.stream().filter(valid).collect(Collectors.toList());
+    }
+
+    public void removeChild(T key) {
+        if (children != null) {
+            for (TreeNode<T, K> child : children) {
+                if (child.key.equals(key)) {
+                    children.remove(child);
+                    return;
+                }
+            }
+        }
     }
 
     @Override

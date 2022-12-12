@@ -23,8 +23,7 @@ public class EntriesResourceContainer extends ResourceContainer<String, TextFiel
 
     public EntriesResourceContainer(Resource<String> resource, ResourcePanel panel) {
         super(resource, panel);
-        setDraggingMapping(key -> key);
-        setDraggingRenderer(TextTexture::new);
+        setDragging(key -> key, TextTexture::new);
         setOnAdd(key -> "Hello KilaBash!");
         setNameSupplier(() -> {
             String randomName = "new.";
@@ -41,7 +40,7 @@ public class EntriesResourceContainer extends ResourceContainer<String, TextFiel
     public void reBuild() {
         selected = null;
         container.clearAllWidgets();
-        int width = (getSize().getWidth() - 6) / 2;
+        int width = (getSize().getWidth() - 16) / 2;
         int i = 0;
         for (var entry : resource.allResources()) {
             TextFieldWidget widget = new TextFieldWidget(width, 0, width, 15, null, s -> resource.addResource(entry.getKey(), s));
@@ -60,7 +59,7 @@ public class EntriesResourceContainer extends ResourceContainer<String, TextFiel
                     return super.mouseClicked(mouseX, mouseY, button);
                 }
             };
-            selectableWidgetGroup.setDraggingProvider(draggingMapping == null ? entry::getValue : () -> draggingMapping.apply(entry.getKey()), draggingRenderer);
+            selectableWidgetGroup.setDraggingProvider(draggingMapping == null ? entry::getValue : () -> draggingMapping.apply(entry.getKey()), (c, p) -> draggingRenderer.apply(c));
             selectableWidgetGroup.addWidget(new ImageWidget(0, 0, width, 15, new GuiTextureGroup(
                     ColorPattern.GRAY.rectTexture(),
                     new TextTexture("" + entry.getKey() + " ").setWidth(size.width).setType(TextTexture.TextType.ROLL))));
@@ -73,11 +72,4 @@ public class EntriesResourceContainer extends ResourceContainer<String, TextFiel
         }
     }
 
-    @Override
-    protected TreeBuilder.Menu getMenu() {
-        return TreeBuilder.Menu.start()
-                .leaf(Icons.borderText("+").scale(0.6f), "ldlib.gui.editor.menu.add_resource", this::addNewResource)
-                .leaf(Icons.borderText("-").scale(0.6f), "ldlib.gui.editor.menu.remove", this::removeSelectedResource)
-                .leaf("ldlib.gui.editor.menu.rename", this::renameResource);
-    }
 }

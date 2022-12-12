@@ -15,6 +15,8 @@ import com.lowdragmc.lowdraglib.utils.Rect;
 import com.lowdragmc.lowdraglib.utils.Size;
 import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.blaze3d.vertex.PoseStack;
+import lombok.Getter;
+import lombok.Setter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
@@ -30,10 +32,7 @@ import org.lwjgl.glfw.GLFW;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.function.Supplier;
+import java.util.function.*;
 
 /**
  * Widget is functional element of ModularUI
@@ -41,12 +40,14 @@ import java.util.function.Supplier;
  * It's information is also synced to client
  */
 @SuppressWarnings("UnusedReturnValue")
-@Configurable(name = "ldlib.gui.editor.group.basic_info", collapse = false)
+@Configurable(name = "ldlib.gui.editor.group.basic_info")
 public class Widget {
 
     protected ModularUI gui;
     protected WidgetUIAccess uiAccess;
     @Configurable(tips = "ldlib.gui.editor.tips.id")
+    @Setter
+    @Getter
     protected String id = "";
     private Position parentPosition = Position.ORIGIN;
     @Configurable(name = "ldlib.gui.editor.name.pos", tips = "ldlib.gui.editor.tips.pos")
@@ -69,7 +70,7 @@ public class Widget {
     protected boolean initialized;
     protected boolean tryToDrag = false;
     protected Supplier<Object> draggingProvider;
-    protected Function<Object, IGuiTexture> draggingRenderer;
+    protected BiFunction<Object, Position, IGuiTexture> draggingRenderer;
     protected Predicate<Object> draggingAccept = o -> false;
     protected Consumer<Object> draggingIn;
     protected Consumer<Object> draggingOut;
@@ -131,9 +132,9 @@ public class Widget {
     }
 
     @SuppressWarnings("unchecked")
-    public <T> Widget setDraggingProvider(Supplier<T> draggingProvider, Function<T, IGuiTexture> draggingRenderer) {
+    public <T> Widget setDraggingProvider(Supplier<T> draggingProvider, BiFunction<T, Position, IGuiTexture> draggingRenderer) {
         this.draggingProvider = (Supplier<Object>) draggingProvider;
-        this.draggingRenderer = (Function<Object, IGuiTexture>) draggingRenderer;
+        this.draggingRenderer = (BiFunction<Object, Position, IGuiTexture>) draggingRenderer;
         return this;
     }
 
@@ -174,21 +175,21 @@ public class Widget {
     }
 
     public void setParentPosition(Position parentPosition) {
-        Preconditions.checkNotNull(parentPosition, "parentPosition");
         this.parentPosition = parentPosition;
         recomputePosition();
     }
 
     @ConfigSetter(field = "selfPosition")
     public void setSelfPosition(Position selfPosition) {
-        Preconditions.checkNotNull(selfPosition, "selfPosition");
         this.selfPosition = selfPosition;
         recomputePosition();
+        if (isParent(parent)) {
+            parent.onChildSelfPositionUpdate(this);
+        }
     }
 
     public Position addSelfPosition(int addX, int addY) {
-        this.selfPosition = new Position(selfPosition.x + addX, selfPosition.y + addY);
-        recomputePosition();
+        setSelfPosition(new Position(selfPosition.x + addX, selfPosition.y + addY));
         return this.selfPosition;
     }
 
@@ -198,9 +199,12 @@ public class Widget {
 
     @ConfigSetter(field = "size")
     public void setSize(Size size) {
-        Preconditions.checkNotNull(size, "size");
+        if (this.size.equals(size)) return;
         this.size = size;
         onSizeUpdate();
+        if (isParent(parent)) {
+            parent.onChildSizeUpdate(this);
+        }
     }
 
     public final Position getPosition() {
@@ -319,7 +323,7 @@ public class Widget {
      */
     @OnlyIn(Dist.CLIENT)
     public void drawInForeground(@Nonnull PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
-        if (tooltipTexts != null && isMouseOverElement(mouseX, mouseY) && tooltipTexts.size() > 0 && gui != null &&  gui.getModularUIGui() != null) {
+        if (tooltipTexts.size() > 0 && isMouseOverElement(mouseX, mouseY) && getHoverElement(mouseX, mouseY) == this && gui != null && gui.getModularUIGui() != null) {
             gui.getModularUIGui().setHoverTooltip(tooltipTexts, ItemStack.EMPTY, null, null);
         }
     }
@@ -371,7 +375,9 @@ public class Widget {
     public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
         if (!isMouseOverElement(mouseX, mouseY) && tryToDrag && draggingProvider != null && draggingRenderer != null) {
             var element = draggingProvider.get();
-            getGui().getModularUIGui().setDraggingElement(element, draggingRenderer.apply(element));
+            if (element != null) {
+                getGui().getModularUIGui().setDraggingElement(element, draggingRenderer.apply(element, new Position((int) mouseX, (int) mouseY)));
+            }
         }
         if (isMouseOverElement(mouseX, mouseY) && draggingAccept.test(getGui().getModularUIGui().getDraggingElement())) {
             var element = getGui().getModularUIGui().getDraggingElement();
@@ -470,13 +476,6 @@ public class Widget {
     }
 
     public void handleClientAction(int id, FriendlyByteBuf buffer) {
-    }
-
-    public List<SlotWidget> getNativeWidgets() {
-        if (this instanceof SlotWidget) {
-            return Collections.singletonList((SlotWidget) this);
-        }
-        return Collections.emptyList();
     }
 
     /**

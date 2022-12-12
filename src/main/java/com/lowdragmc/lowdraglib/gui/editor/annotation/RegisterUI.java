@@ -16,4 +16,5 @@ import java.lang.annotation.Target;
 public @interface RegisterUI {
     String name();
     String group() default "";
+    String modID() default "";
 }

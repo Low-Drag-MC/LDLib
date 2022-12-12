@@ -3,6 +3,7 @@ package com.lowdragmc.lowdraglib;
 import com.lowdragmc.lowdraglib.gui.editor.runtime.UIDetector;
 import com.lowdragmc.lowdraglib.gui.factory.BlockEntityUIFactory;
 import com.lowdragmc.lowdraglib.gui.factory.HeldItemUIFactory;
+import com.lowdragmc.lowdraglib.gui.factory.UIEditorFactory;
 import com.lowdragmc.lowdraglib.gui.factory.UIFactory;
 import com.lowdragmc.lowdraglib.networking.LDLNetworking;
 import com.lowdragmc.lowdraglib.syncdata.TypedPayloadRegistries;
@@ -35,7 +36,10 @@ public class CommonProxy {
         LDLNetworking.init();
         UIFactory.register(BlockEntityUIFactory.INSTANCE);
         UIFactory.register(HeldItemUIFactory.INSTANCE);
-        UIFactory.register(TestNodeEditor.instance);
+        UIFactory.register(UIEditorFactory.INSTANCE);
+        if (DEBUG) {
+            UIFactory.register(TestNodeEditor.INSTANCE);
+        }
         UIDetector.init();
     }
 
@@ -79,9 +83,18 @@ public class CommonProxy {
     public void registerCommand(RegisterCommandsEvent event) {
         if (DEBUG) {
             event.getDispatcher().register(Commands.literal("editor").executes(context -> {
-                TestNodeEditor.instance.openUI(TestNodeEditor.instance, context.getSource().getPlayerOrException());
+                TestNodeEditor.INSTANCE.openUI(TestNodeEditor.INSTANCE, context.getSource().getPlayerOrException());
                 return 1;
             }));
         }
+
+        event.getDispatcher().register(Commands.literal("ldlib")
+                .then(Commands.literal("ui_editor")
+                        .executes(context -> {
+                            UIEditorFactory.INSTANCE.openUI(UIEditorFactory.INSTANCE, context.getSource().getPlayerOrException());
+                            return 1;
+                        })
+                )
+        );
     }
 }

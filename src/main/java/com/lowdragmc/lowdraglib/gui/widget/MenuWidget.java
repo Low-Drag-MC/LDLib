@@ -19,6 +19,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 @Accessors(chain = true)
 public class MenuWidget<K, T> extends WidgetGroup {
@@ -37,6 +38,8 @@ public class MenuWidget<K, T> extends WidgetGroup {
     protected Function<K, IGuiTexture> keyIconSupplier;
     @Setter @Nullable
     protected Function<K, String> keyNameSupplier;
+    @Setter @Nullable
+    protected Predicate<K> crossLinePredicate;
     @Setter
     protected boolean autoClose;
 
@@ -75,6 +78,10 @@ public class MenuWidget<K, T> extends WidgetGroup {
             }
             for (TreeNode<K, T> child : root.getChildren()) {
                 var key = child.getKey();
+                if (crossLinePredicate != null && crossLinePredicate.test(key)) { // cross line
+                    maxHeight += 1;
+                    continue;
+                }
                 var name = key.toString();
                 if (keyNameSupplier != null) {
                     name = keyNameSupplier.apply(key);
@@ -104,11 +111,11 @@ public class MenuWidget<K, T> extends WidgetGroup {
                     group.addWidget(new ButtonWidget(0, 0, maxWidth, nodeHeight, null).setHoverTexture(Objects.requireNonNullElseGet(nodeHoverTexture, () -> new ColorRectTexture(0x44aaaaaa))));
                 }
                 if (keyIconSupplier != null) {
-                    group.addWidget(new ImageWidget(2, 2, nodeHeight - 2, nodeHeight - 2, keyIconSupplier.apply(child.getKey())));
+                    group.addWidget(new ImageWidget(2, 1, nodeHeight - 2, nodeHeight - 2, keyIconSupplier.apply(child.getKey())));
                 }
                 group.addWidget(new ImageWidget(nodeHeight + 2, 0, maxWidth - 2 * nodeHeight - 4, nodeHeight, new TextTexture(name).setType(TextTexture.TextType.LEFT)));
                 addWidget(group);
-                maxHeight += nodeHeight + 1;
+                maxHeight += nodeHeight;
             }
         }
         Position pos = getPosition();
@@ -165,12 +172,15 @@ public class MenuWidget<K, T> extends WidgetGroup {
             return true;
         }
         int maxHeight = 0;
-        for (Map.Entry<TreeNode<K, T>, WidgetGroup> entry : children.entrySet()) {
-            var node = entry.getKey();
-            var widget = entry.getValue();
+        for (var node : root.getChildren()) {
+            if (crossLinePredicate != null && crossLinePredicate.test(node.getKey())) { // cross line
+                maxHeight += 1;
+                continue;
+            }
+            var widget = children.get(node);
             if (widget.isMouseOverElement(mouseX, mouseY)) {
                 // if opened
-                if (opened != null && opened.root == entry.getKey()) return true;
+                if (opened != null && opened.root == node) return true;
 
                 // close previous
                 if (opened != null) {
@@ -191,7 +201,7 @@ public class MenuWidget<K, T> extends WidgetGroup {
                 }
                 return true;
             }
-            maxHeight += nodeHeight + 1;
+            maxHeight += nodeHeight;
         }
         return false;
     }

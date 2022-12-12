@@ -6,17 +6,18 @@ import com.lowdragmc.lowdraglib.gui.editor.data.Project;
 import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
 import com.lowdragmc.lowdraglib.gui.texture.ColorRectTexture;
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
-import com.lowdragmc.lowdraglib.gui.texture.ResourceBorderTexture;
 import com.lowdragmc.lowdraglib.gui.util.TreeBuilder;
 import com.lowdragmc.lowdraglib.gui.util.TreeNode;
 import com.lowdragmc.lowdraglib.gui.widget.MenuWidget;
+import com.lowdragmc.lowdraglib.gui.widget.TabContainer;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 import com.lowdragmc.lowdraglib.utils.Size;
 import com.mojang.blaze3d.vertex.PoseStack;
 import lombok.Getter;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-import org.jetbrains.annotations.NotNull;
+
+import java.io.File;
 
 /**
  * @author KilaBash
@@ -27,23 +28,25 @@ public class Editor extends WidgetGroup {
     @OnlyIn(Dist.CLIENT)
     public static Editor INSTANCE;
     @Getter
+    protected final File workSpace;
+    @Getter
     protected Project currentProject;
     @Getter
     protected MenuPanel menuPanel;
     @Getter
-    protected MainPanel mainPanel;
+    protected TabContainer tabPages;
     @Getter
     protected ConfigPanel configPanel;
     @Getter
     protected ResourcePanel resourcePanel;
     @Getter
-    protected WidgetPanel widgetPanel;
+    protected ToolPanel toolPanel;
 
 
-    public Editor() {
+    public Editor(File workSpace) {
         super(0, 0, 10, 10);
         setClientSideWidget();
-        currentProject = new Project();
+        this.workSpace = workSpace;
     }
 
     @Override
@@ -66,12 +69,12 @@ public class Editor extends WidgetGroup {
         super.onScreenSizeUpdate(screenWidth, screenHeight);
         this.clearAllWidgets();
 
-        addWidget(mainPanel = new MainPanel(this));
-        addWidget(widgetPanel = new WidgetPanel(this));
+        addWidget(tabPages = new TabContainer(0, 0, screenWidth, screenHeight));
+        addWidget(toolPanel = new ToolPanel(this));
         addWidget(configPanel = new ConfigPanel(this));
         addWidget(resourcePanel = new ResourcePanel(this));
         addWidget(menuPanel = new MenuPanel(this));
-
+        loadProject(currentProject);
     }
 
     public <T, C> MenuWidget<T, C> openMenu(double posX, double posY, TreeNode<T, C> menuNode) {
@@ -94,10 +97,26 @@ public class Editor extends WidgetGroup {
     }
 
     public void openMenu(double posX, double posY, TreeBuilder.Menu menuBuilder) {
+        if (menuBuilder == null) return;
         openMenu(posX, posY, menuBuilder.build())
+                .setCrossLinePredicate(TreeBuilder.Menu::isCrossLine)
                 .setKeyIconSupplier(TreeBuilder.Menu::getIcon)
                 .setKeyNameSupplier(TreeBuilder.Menu::getName)
                 .setOnNodeClicked(TreeBuilder.Menu::handle);
+    }
+
+    public void loadProject(Project project) {
+        if (currentProject != null) {
+            currentProject.onClosed(this);
+        }
+
+        currentProject = project;
+        tabPages.clearAllWidgets();
+        toolPanel.clearAllWidgets();
+
+        if (currentProject != null) {
+            currentProject.onLoad(this);
+        }
     }
 
 }

@@ -10,7 +10,7 @@ import net.minecraft.world.entity.player.Player;
 
 public class TestNodeEditor extends UIFactory<TestNodeEditor> implements IUIHolder {
 
-	public static final TestNodeEditor instance = new TestNodeEditor();
+	public static final TestNodeEditor INSTANCE = new TestNodeEditor();
 
 	private TestNodeEditor(){
 

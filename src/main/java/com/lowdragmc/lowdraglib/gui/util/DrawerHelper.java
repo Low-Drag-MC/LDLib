@@ -39,6 +39,7 @@ public class DrawerHelper {
     public static ShaderProgram PANEL_BG;
     public static ShaderProgram ROUND_BOX;
     public static ShaderProgram PROGRESS_ROUND_BOX;
+    public static ShaderProgram FRAME_ROUND_BOX;
     public static ShaderProgram ROUND_LINE;
 
     public static void init() {
@@ -50,6 +51,8 @@ public class DrawerHelper {
                 -> program.attach(Shaders.ROUND_BOX_F).attach(Shaders.SCREEN_V));
         PROGRESS_ROUND_BOX = LdUtils.make(new ShaderProgram(), program
                 -> program.attach(Shaders.PROGRESS_ROUND_BOX_F).attach(Shaders.SCREEN_V));
+        FRAME_ROUND_BOX = LdUtils.make(new ShaderProgram(), program
+                -> program.attach(Shaders.FRAME_ROUND_BOX_F).attach(Shaders.SCREEN_V));
         ROUND_LINE = LdUtils.make(new ShaderProgram(), program
                 -> program.attach(Shaders.ROUND_LINE_F).attach(Shaders.SCREEN_V));
     }
@@ -367,7 +370,7 @@ public class DrawerHelper {
         DrawerHelper.ROUND_BOX.use(uniform -> {
             DrawerHelper.updateScreenVshUniform(poseStack, uniform);
 
-            uniform.glUniform4F("SquareVertex", square.left, square.up, square.right, square.down);
+            uniform.glUniform4F("SquareVertex", square.left - 1f, square.up - 1f, square.right - 1f, square.down - 1f);
             uniform.glUniform4F("RoundRadius", radius.x(), radius.y(), radius.z(), radius.w());
             uniform.fillRGBAColor("Color", color);
             uniform.glUniform1F("Blur", 2);
@@ -388,6 +391,23 @@ public class DrawerHelper {
             uniform.fillRGBAColor("Color2", color2);
             uniform.glUniform1F("Blur", 2);
             uniform.glUniform1F("Progress", progress);
+        });
+
+        RenderSystem.enableBlend();
+        uploadScreenPosVertex();
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    public static void drawFrameRoundBox(PoseStack poseStack, Rect square, float thickness, Vector4f radius1, Vector4f radius2, int color) {
+        DrawerHelper.FRAME_ROUND_BOX.use(uniform -> {
+            DrawerHelper.updateScreenVshUniform(poseStack, uniform);
+
+            uniform.glUniform4F("SquareVertex", square.left - 1, square.up - 1, square.right - 1, square.down - 1);
+            uniform.glUniform4F("RoundRadius1", radius1.x(), radius1.y(), radius1.z(), radius1.w());
+            uniform.glUniform4F("RoundRadius2", radius2.x(), radius2.y(), radius2.z(), radius2.w());
+            uniform.glUniform1F("Thickness", thickness);
+            uniform.fillRGBAColor("Color", color);
+            uniform.glUniform1F("Blur", 2);
         });
 
         RenderSystem.enableBlend();

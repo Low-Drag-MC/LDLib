@@ -36,17 +36,17 @@ public class StringConfigurator extends ValueConfigurator<String>{
     public void init(int width) {
         super.init(width);
         ImageWidget image;
-        addWidget(image = new ImageWidget(leftWidth, 2, width - leftWidth - 3 - rightWidth, 10, ColorPattern.T_GRAY.rectTexture()));
+        addWidget(image = new ImageWidget(leftWidth, 2, width - leftWidth - 3 - rightWidth, 10, ColorPattern.T_GRAY.rectTexture().setRadius(5)));
         image.setDraggingConsumer(
                 o -> (!isResourceLocation && o instanceof Number) || o instanceof String || o instanceof ResourceLocation,
-                o -> image.setImage(ColorPattern.GREEN.rectTexture()),
-                o -> image.setImage(ColorPattern.T_GRAY.rectTexture()),
+                o -> image.setImage(ColorPattern.GREEN.rectTexture().setRadius(5)),
+                o -> image.setImage(ColorPattern.T_GRAY.rectTexture().setRadius(5)),
                 o -> {
                     if ((!isResourceLocation && o instanceof Number) || o instanceof String || o instanceof ResourceLocation) {
                         onValueUpdate(o.toString());
                         updateValue();
                     }
-                    image.setImage(ColorPattern.T_GRAY.rectTexture());
+                    image.setImage(ColorPattern.T_GRAY.rectTexture().setRadius(5));
                 });
         addWidget(textFieldWidget = new TextFieldWidget(leftWidth + 3, 2, width - leftWidth - 6 - rightWidth, 10, null, this::onStringUpdate));
         textFieldWidget.setClientSideWidget();

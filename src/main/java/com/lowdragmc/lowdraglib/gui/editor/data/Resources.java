@@ -17,7 +17,7 @@ public class Resources implements INBTSerializable<CompoundTag> {
 
     public final Map<String, Resource<?>> resources = new HashMap<>();
 
-    private Resources() {
+    protected Resources() {
         for (var wrapper : UIDetector.REGISTER_RESOURCES) {
             var resource =  wrapper.creator().get();
             resources.put(resource.name(), resource);

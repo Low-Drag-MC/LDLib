@@ -1,17 +1,26 @@
 package com.lowdragmc.lowdraglib.gui.modular;
 
 import com.google.common.base.Preconditions;
+import com.lowdragmc.lowdraglib.LDLMod;
+import com.lowdragmc.lowdraglib.gui.widget.SlotWidget;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 import com.lowdragmc.lowdraglib.utils.Position;
 import com.lowdragmc.lowdraglib.utils.Size;
+import lombok.Getter;
+import lombok.Setter;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.Slot;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import org.jetbrains.annotations.Nullable;
 
 import java.awt.Rectangle;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.regex.Pattern;
 
 /**
  * Author: KilaBash
@@ -20,10 +29,11 @@ import java.util.List;
  */
 public final class ModularUI {
 
+    private final HashMap<Slot, SlotWidget> slotMap = new LinkedHashMap<>();
     public final WidgetGroup mainGroup;
-
     private int screenWidth, screenHeight;
     private int width, height;
+    @Getter
     private boolean fullScreen;
     @OnlyIn(Dist.CLIENT)
     private ModularUIGuiContainer guiContainer;
@@ -38,9 +48,14 @@ public final class ModularUI {
     public final Player entityPlayer;
 
     public ModularUI(int width, int height, IUIHolder holder, Player entityPlayer) {
-        this.mainGroup = new WidgetGroup(Position.ORIGIN, new Size(width, height));
-        this.width = width;
-        this.height = height;
+        this(new WidgetGroup(Position.ORIGIN, new Size(width, height)), holder, entityPlayer);
+    }
+
+    public ModularUI(WidgetGroup mainGroup, IUIHolder holder, Player entityPlayer) {
+        this.mainGroup = mainGroup;
+        mainGroup.setSelfPosition(Position.ORIGIN);
+        this.width = mainGroup.getSize().width;
+        this.height = mainGroup.getSize().height;
         this.holder = holder;
         this.entityPlayer = entityPlayer;
         this.uiCloseCallback = new ArrayList<>();
@@ -51,12 +66,56 @@ public final class ModularUI {
         fullScreen = true;
     }
 
+    public void setFullScreen() {
+        this.fullScreen = true;
+        setSize(getScreenWidth(), getScreenHeight());
+    }
+
+    public HashMap<Slot, SlotWidget> getSlotMap() {
+        return slotMap;
+    }
+
+    @Nullable
+    public Widget getFirstWidgetById(String regex) {
+        return mainGroup.getFirstWidgetById(Pattern.compile(regex));
+    }
+
+    public List<Widget> getWidgetsById(String regex) {
+        return mainGroup.getWidgetsById(Pattern.compile(regex));
+    }
+
     public ModularUIContainer getModularUIContainer() {
         return container;
     }
 
+    //WARNING! WIDGET CHANGES SHOULD BE *STRICTLY* SYNCHRONIZED BETWEEN SERVER AND CLIENT,
+    //OTHERWISE ID MISMATCH CAN HAPPEN BETWEEN ASSIGNED SLOTS!
+    public void addNativeSlot(Slot slotHandle, SlotWidget slotWidget) {
+        if (this.slotMap.containsKey(slotHandle)) {
+            LDLMod.LOGGER.error("duplicated slot {}, {}", slotHandle, slotWidget);
+        }
+        this.slotMap.put(slotHandle, slotWidget);
+        if (container != null) {
+            container.addSlot(slotHandle);
+        }
+    }
+
+    //WARNING! WIDGET CHANGES SHOULD BE *STRICTLY* SYNCHRONIZED BETWEEN SERVER AND CLIENT,
+    //OTHERWISE ID MISMATCH CAN HAPPEN BETWEEN ASSIGNED SLOTS!
+    public void removeNativeSlot(Slot slotHandle) {
+        if (this.slotMap.containsKey(slotHandle)) {
+            this.slotMap.remove(slotHandle);
+            if (container != null) {
+                container.removeSlot(slotHandle);
+            }
+        }
+    }
+
     public void setModularUIContainer(ModularUIContainer container) {
         this.container = container;
+        for (Slot slot : slotMap.keySet()) {
+            this.container.addSlot(slot);
+        }
     }
 
 
@@ -76,7 +135,6 @@ public final class ModularUI {
     @OnlyIn(Dist.CLIENT)
     public void setModularUIGui(ModularUIGuiContainer modularUIGuiContainer) {
         this.guiContainer = modularUIGuiContainer;
-        setModularUIContainer(modularUIGuiContainer.getMenu());
     }
 
     public List<Widget> getFlatVisibleWidgetCollection() {
@@ -118,6 +176,7 @@ public final class ModularUI {
         if (this.width != width || this.height != height) {
             this.width = width;
             this.height = height;
+            mainGroup.setSize(new Size(width, height));
             getModularUIGui().init();
         }
     }

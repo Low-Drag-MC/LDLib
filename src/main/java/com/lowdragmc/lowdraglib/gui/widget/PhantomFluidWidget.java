@@ -2,6 +2,10 @@ package com.lowdragmc.lowdraglib.gui.widget;
 
 import com.google.common.collect.Lists;
 import com.lowdragmc.lowdraglib.LDLMod;
+import com.lowdragmc.lowdraglib.gui.editor.annotation.ConfigSetter;
+import com.lowdragmc.lowdraglib.gui.editor.annotation.Configurable;
+import com.lowdragmc.lowdraglib.gui.editor.annotation.RegisterUI;
+import com.lowdragmc.lowdraglib.gui.editor.configurator.IConfigurableWidget;
 import com.lowdragmc.lowdraglib.gui.ingredient.IGhostIngredientTarget;
 import com.lowdragmc.lowdraglib.gui.ingredient.Target;
 import dev.architectury.hooks.fluid.forge.FluidStackHooksForge;
@@ -15,22 +19,46 @@ import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.IFluidTank;
 import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidHandler;
+import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nonnull;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 
-public class PhantomFluidWidget extends TankWidget implements IGhostIngredientTarget {
+@RegisterUI(name = "phantom_fluid_slot", group = "container")
+public class PhantomFluidWidget extends TankWidget implements IGhostIngredientTarget, IConfigurableWidget {
 
     private Consumer<FluidStack> fluidStackUpdater;
+
+    public PhantomFluidWidget() {
+        super();
+        this.allowClickFilled = false;
+        this.allowClickDrained = false;
+    }
 
     public PhantomFluidWidget(IFluidTank fluidTank, int x, int y) {
         super(fluidTank, x, y, false, false);
     }
 
+    public PhantomFluidWidget(@Nullable IFluidTank fluidTank, int x, int y, int width, int height) {
+        super(fluidTank, x, y, width, height, false, false);
+    }
+
     public PhantomFluidWidget setFluidStackUpdater(Consumer<FluidStack> fluidStackUpdater) {
         this.fluidStackUpdater = fluidStackUpdater;
+        return this;
+    }
+
+    @ConfigSetter(field = "allowClickFilled")
+    public PhantomFluidWidget setAllowClickFilled(boolean v) {
+        // you cant modify it
+        return this;
+    }
+
+    @ConfigSetter(field = "allowClickDrained")
+    public PhantomFluidWidget setAllowClickDrained(boolean v) {
+        // you cant modify it
         return this;
     }
 
@@ -61,6 +89,7 @@ public class PhantomFluidWidget extends TankWidget implements IGhostIngredientTa
 
             @Override
             public void accept(@Nonnull Object ingredient) {
+                if (fluidTank == null) return;;
                 FluidStack ingredientStack;
                 if (LDLMod.isReiLoaded() && ingredient instanceof dev.architectury.fluid.FluidStack fluidStack) {
                     ingredient = FluidStackHooksForge.toForge(fluidStack);
@@ -91,6 +120,7 @@ public class PhantomFluidWidget extends TankWidget implements IGhostIngredientTa
     @Override
     public void handleClientAction(int id, FriendlyByteBuf buffer) {
         if (id == 1) {
+            if (fluidTank == null) return;
             ItemStack itemStack = gui.getModularUIContainer().getCarried().copy();
             if (!itemStack.isEmpty()) {
                 itemStack.setCount(1);
@@ -111,6 +141,7 @@ public class PhantomFluidWidget extends TankWidget implements IGhostIngredientTa
         } else if (id == 2) {
             FluidStack fluidStack;
             fluidStack = FluidStack.loadFluidStackFromNBT(buffer.readNbt());
+            if (fluidTank == null) return;
             fluidTank.drain(fluidTank.getCapacity(), IFluidHandler.FluidAction.EXECUTE);
             if (fluidStack != null) {
                 fluidTank.fill(fluidStack.copy(), IFluidHandler.FluidAction.EXECUTE);
@@ -126,7 +157,7 @@ public class PhantomFluidWidget extends TankWidget implements IGhostIngredientTa
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (isMouseOverElement(mouseX, mouseY)) {
             writeClientAction(1, buffer -> { });
-            if (isClientSideWidget) {
+            if (isClientSideWidget && fluidTank != null) {
                 fluidTank.drain(fluidTank.getCapacity(), IFluidHandler.FluidAction.EXECUTE);
                 if (fluidStackUpdater != null) {
                     fluidStackUpdater.accept(null);

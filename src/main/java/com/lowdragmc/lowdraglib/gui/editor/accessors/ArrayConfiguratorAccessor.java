@@ -4,7 +4,6 @@ import com.lowdragmc.lowdraglib.gui.editor.annotation.Configurable;
 import com.lowdragmc.lowdraglib.gui.editor.configurator.ArrayConfiguratorGroup;
 import com.lowdragmc.lowdraglib.gui.editor.configurator.Configurator;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import lombok.AllArgsConstructor;
 
 import java.lang.reflect.Array;
@@ -44,41 +43,27 @@ public class ArrayConfiguratorAccessor implements IConfiguratorAccessor<Object> 
             isCollapse = field.getAnnotation(Configurable.class).collapse();
             canCollapse = field.getAnnotation(Configurable.class).canCollapse();
         }
-        Object array = supplier.get();
-        if (array == null) {
-            array = defaultValue(field, Object.class);
-        }
-        ArrayConfiguratorGroup arrayGroup = new ArrayConfiguratorGroup(name, isCollapse);
-        arrayGroup.setCanCollapse(canCollapse);
 
-        int length = Array.getLength(array);
-
-        List<Object> objectList = new ArrayList<>();
-        Object2IntMap<Configurator> indexMap = new Object2IntOpenHashMap<>();
-
-        for (int i = 0; i < length; i++) {
-            objectList.add(Array.get(array, i));
-            arrayGroup.addConfigurators(createConfigurator(name, consumer, forceUpdate, field, objectList, indexMap, i));
-        }
-
-        arrayGroup.setAddConfigurator(index -> {
-            objectList.add(childAccessor.defaultValue(field, childType));
-            consumer.accept(toArray(objectList));
-            return createConfigurator(name, consumer, forceUpdate, field, objectList, indexMap, index);
-        });
-        arrayGroup.setRemoveConfigurator(index -> {
-            objectList.remove(index);
-            consumer.accept(toArray(objectList));
-            var iter = indexMap.object2IntEntrySet().iterator();
-            while (iter.hasNext()) {
-                var entry = iter.next();
-                if (entry.getIntValue() == index) {
-                    iter.remove();
-                } else if (entry.getIntValue() > index) {
-                    entry.setValue(entry.getIntValue() - 1);
-                }
+        var arrayGroup = new ArrayConfiguratorGroup<>(name, isCollapse, () -> {
+            Object array = supplier.get();
+            if (array == null) {
+                array = defaultValue(field, Object.class);
             }
-        });
+            int length = Array.getLength(array);
+
+            List<Object> objectList = new ArrayList<>();
+
+            for (int i = 0; i < length; i++) {
+                objectList.add(Array.get(array, i));
+            }
+
+            return objectList;
+        }, (getter, setter) -> childAccessor.create("", getter, setter, forceUpdate, field), forceUpdate);
+
+        arrayGroup.setAddDefault(() -> childAccessor.defaultValue(field, childType));
+
+        arrayGroup.setOnUpdate(list -> consumer.accept(toArray(list)));
+        arrayGroup.setCanCollapse(canCollapse);
         return arrayGroup;
     }
 

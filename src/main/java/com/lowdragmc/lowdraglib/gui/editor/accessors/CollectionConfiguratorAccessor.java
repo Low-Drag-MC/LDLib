@@ -3,13 +3,10 @@ package com.lowdragmc.lowdraglib.gui.editor.accessors;
 import com.lowdragmc.lowdraglib.gui.editor.annotation.Configurable;
 import com.lowdragmc.lowdraglib.gui.editor.configurator.ArrayConfiguratorGroup;
 import com.lowdragmc.lowdraglib.gui.editor.configurator.Configurator;
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import lombok.AllArgsConstructor;
 
 import java.lang.reflect.Field;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -43,59 +40,26 @@ public class CollectionConfiguratorAccessor implements IConfiguratorAccessor<Col
     public Configurator create(String name, Supplier<Collection> supplier, Consumer<Collection> consumer, boolean forceUpdate, Field field) {
         boolean isCollapse = true;
         boolean canCollapse = true;
+
         if (field.isAnnotationPresent(Configurable.class)) {
             isCollapse = field.getAnnotation(Configurable.class).collapse();
             canCollapse = field.getAnnotation(Configurable.class).canCollapse();
         }
 
-        var collection = supplier.get();
-        if (collection == null) {
-            collection = defaultValue(field, baseType);
-        }
-
-        final Collection base = collection;
-
-        ArrayConfiguratorGroup arrayGroup = new ArrayConfiguratorGroup(name, isCollapse);
-        arrayGroup.setCanCollapse(canCollapse);
-
-        List<Object> objectList = new ArrayList<>(collection);
-        Object2IntMap<Configurator> indexMap = new Object2IntOpenHashMap<>();
-
-        for (int i = 0; i < objectList.size(); i++) {
-            arrayGroup.addConfigurators(createConfigurator(name, consumer, forceUpdate, field, objectList, indexMap, i, base));
-        }
-
-        arrayGroup.setAddConfigurator(index -> {
-            objectList.add(childAccessor.defaultValue(field, childType));
-            consumer.accept(updateCollection(base, objectList));
-            return createConfigurator(name, consumer, forceUpdate, field, objectList, indexMap, index, base);
-        });
-
-        arrayGroup.setRemoveConfigurator(index -> {
-            objectList.remove(index);
-            consumer.accept(updateCollection(base, objectList));
-            var iter = indexMap.object2IntEntrySet().iterator();
-            while (iter.hasNext()) {
-                var entry = iter.next();
-                if (entry.getIntValue() == index) {
-                    iter.remove();
-                } else if (entry.getIntValue() > index) {
-                    entry.setValue(entry.getIntValue() - 1);
-                }
+        var arrayGroup = new ArrayConfiguratorGroup<>(name, isCollapse, () -> {
+            var collection = supplier.get();
+            if (collection == null) {
+                collection = defaultValue(field, baseType);
             }
-        });
-        return arrayGroup;
-    }
+            ArrayList<Object> objectList = new ArrayList<>(collection);
+            return objectList;
+        }, (getter, setter) -> childAccessor.create("", getter, setter, forceUpdate, field), forceUpdate);
 
-    private Configurator createConfigurator(String name, Consumer consumer, boolean forceUpdate, Field field, List<Object> objectList, Object2IntMap<Configurator> indexMap, int index, Collection base) {
-        AtomicReference<Configurator> reference = new AtomicReference<>();
-        Configurator configurator = childAccessor.create("", () -> objectList.get(indexMap.getInt(reference.get())), value -> {
-            objectList.set(indexMap.getInt(reference.get()), value);
-            consumer.accept(updateCollection(base, objectList));
-        }, forceUpdate, field);
-        reference.set(configurator);
-        indexMap.put(configurator, index);
-        return configurator;
+        arrayGroup.setAddDefault(() -> childAccessor.defaultValue(field, childType));
+
+        arrayGroup.setOnUpdate(list -> consumer.accept(updateCollection(supplier.get(), list)));
+        arrayGroup.setCanCollapse(canCollapse);
+        return arrayGroup;
     }
 
     public Collection updateCollection(Collection base, List<Object> objectList) {

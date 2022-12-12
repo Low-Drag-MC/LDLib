@@ -15,6 +15,7 @@ import com.lowdragmc.lowdraglib.utils.Size;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import net.minecraft.nbt.Tag;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -41,17 +42,15 @@ public class ResourceContainer<T, C extends Widget> extends WidgetGroup {
     protected final Map<String, C> widgets;
     protected DraggableScrollableWidgetGroup container;
     @Setter @Getter
-    protected Function<T, C> widgetSupplier;
+    protected Function<String, C> widgetSupplier;
     @Setter
     protected Function<String, T> onAdd;
     @Setter
     protected Predicate<String> onRemove;
     @Setter
     protected Consumer<String> onEdit;
-    @Setter
-    protected Function<String, T> draggingMapping;
-    @Setter
-    protected Function<T, IGuiTexture> draggingRenderer;
+    protected Function<String, Object> draggingMapping;
+    protected Function<Object, IGuiTexture> draggingRenderer;
     @Setter
     protected Supplier<String> nameSupplier;
     @Setter
@@ -59,6 +58,7 @@ public class ResourceContainer<T, C extends Widget> extends WidgetGroup {
 
     @Getter @Nullable
     protected String selected;
+    private Tag copied;
 
     public ResourceContainer(Resource<T> resource, ResourcePanel panel) {
         super(3, 0, panel.getSize().width - 6, panel.getSize().height - 14);
@@ -68,11 +68,17 @@ public class ResourceContainer<T, C extends Widget> extends WidgetGroup {
         this.resource = resource;
     }
 
+    public <D> ResourceContainer<T, C> setDragging(Function<String, D> draggingMapping, Function<D, IGuiTexture> draggingRenderer) {
+        this.draggingMapping = draggingMapping::apply;
+        this.draggingRenderer = o -> draggingRenderer.apply((D) o);
+        return this;
+    }
+
     @Override
     public void initWidget() {
         Size size = getSize();
         container = new DraggableScrollableWidgetGroup(1, 2, size.width - 2, size.height - 2);
-        container.setYScrollBarWidth(4).setYBarStyle(null, ColorPattern.T_WHITE.rectTexture());
+        container.setYScrollBarWidth(4).setYBarStyle(null, ColorPattern.T_WHITE.rectTexture().setRadius(2));
         addWidget(container);
         reBuild();
         super.initWidget();
@@ -85,11 +91,11 @@ public class ResourceContainer<T, C extends Widget> extends WidgetGroup {
         int x = 1;
         int y = 3;
         for (Map.Entry<String, T> entry : resource.allResources()) {
-            var widget = widgetSupplier.apply(entry.getValue());
+            var widget = widgetSupplier.apply(entry.getKey());
             widgets.put(entry.getKey(), widget);
             Size size = widget.getSize();
             SelectableWidgetGroup selectableWidgetGroup = new SelectableWidgetGroup(0, 0, size.width, size.height + 14);
-            selectableWidgetGroup.setDraggingProvider(draggingMapping == null ? entry::getValue : () -> draggingMapping.apply(entry.getKey()), draggingRenderer);
+            selectableWidgetGroup.setDraggingProvider(draggingMapping == null ? entry::getValue : () -> draggingMapping.apply(entry.getKey()), (c, p) -> draggingRenderer.apply(c));
             selectableWidgetGroup.addWidget(widget);
             selectableWidgetGroup.addWidget(new ImageWidget(0, size.height + 3, size.width, 10, new TextTexture(entry.getKey()).setWidth(size.width).setType(TextTexture.TextType.ROLL)));
             selectableWidgetGroup.setOnSelected(s -> selected = entry.getKey());
@@ -125,11 +131,33 @@ public class ResourceContainer<T, C extends Widget> extends WidgetGroup {
     }
 
     protected TreeBuilder.Menu getMenu() {
-        return TreeBuilder.Menu.start()
-                .leaf("ldlib.gui.editor.menu.edit", this::editResource)
-                .leaf(Icons.borderText("+").scale(0.6f), "ldlib.gui.editor.menu.add_resource", this::addNewResource)
-                .leaf(Icons.borderText("-").scale(0.6f), "ldlib.gui.editor.menu.remove", this::removeSelectedResource)
-                .leaf("ldlib.gui.editor.menu.rename", this::renameResource);
+        var menu = TreeBuilder.Menu.start();
+        if (onEdit != null) {
+            menu.leaf(Icons.EDIT_FILE, "ldlib.gui.editor.menu.edit", this::editResource);
+        }
+        menu.leaf("ldlib.gui.editor.menu.rename", this::renameResource);
+        menu.crossLine();
+        menu.leaf(Icons.COPY, "ldlib.gui.editor.menu.copy", this::copy);
+        menu.leaf(Icons.PASTE, "ldlib.gui.editor.menu.paste", this::paste);
+        if (onAdd != null) {
+            menu.leaf(Icons.ADD_FILE, "ldlib.gui.editor.menu.add_resource", this::addNewResource);
+        }
+        menu.leaf(Icons.REMOVE_FILE, "ldlib.gui.editor.menu.remove", this::removeSelectedResource);
+        return menu;
+    }
+
+    protected void paste() {
+        if (copied != null) {
+            var value = getResource().deserialize(copied);
+            resource.addResource(genNewFileName(), value);
+            reBuild();
+        }
+    }
+
+    protected void copy() {
+        if (selected != null) {
+            copied = resource.serialize(resource.getResource(selected));
+        }
     }
 
     protected void renameResource() {

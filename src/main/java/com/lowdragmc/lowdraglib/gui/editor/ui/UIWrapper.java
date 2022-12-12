@@ -3,25 +3,27 @@ package com.lowdragmc.lowdraglib.gui.editor.ui;
 import com.lowdragmc.lowdraglib.gui.editor.configurator.ConfiguratorGroup;
 import com.lowdragmc.lowdraglib.gui.editor.configurator.IConfigurable;
 import com.lowdragmc.lowdraglib.gui.editor.configurator.IConfigurableWidget;
+import com.lowdragmc.lowdraglib.gui.editor.configurator.IConfigurableWidgetGroup;
+import com.lowdragmc.lowdraglib.gui.editor.ui.tool.WidgetToolBox;
 import com.lowdragmc.lowdraglib.gui.texture.ColorBorderTexture;
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
-import com.lowdragmc.lowdraglib.gui.texture.WidgetDraggingTexture;
+import com.lowdragmc.lowdraglib.gui.texture.WidgetTexture;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import com.lowdragmc.lowdraglib.utils.Position;
 import com.lowdragmc.lowdraglib.utils.Size;
 import com.mojang.blaze3d.vertex.PoseStack;
-import lombok.Getter;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 import java.util.Arrays;
+import java.util.function.Supplier;
 
 /**
  * @author KilaBash
  * @date 2022/12/6
  * @implNote UIWrapper
  */
-public record UIWrapper(@Getter MainPanel panel, @Getter IConfigurableWidget inner) implements IConfigurable {
+public record UIWrapper(MainPanel panel, IConfigurableWidget inner) implements IConfigurable {
 
     public boolean isSelected() {
         return panel.getSelectedUIs().contains(this);
@@ -32,7 +34,7 @@ public record UIWrapper(@Getter MainPanel panel, @Getter IConfigurableWidget inn
     }
 
     public boolean checkAcceptable(UIWrapper uiWrapper) {
-        return inner.canWidgetDragIn(uiWrapper.inner);
+        return inner instanceof IConfigurableWidgetGroup group && group.canWidgetAccepted(uiWrapper.inner);
     }
 
     @OnlyIn(Dist.CLIENT)
@@ -50,13 +52,15 @@ public record UIWrapper(@Getter MainPanel panel, @Getter IConfigurableWidget inn
             }
             var dragging = panel.getGui().getModularUIGui().getDraggingElement();
             boolean drawDragging = false;
-            if (dragging instanceof UIWrapper[] uiWrappers && Arrays.stream(uiWrappers).allMatch(this::checkAcceptable)) { // can accept
+
+            if (inner.canDragIn(dragging)) {
                 drawDragging = true;
-            } else if (dragging instanceof IGuiTexture) {
+            } else if (dragging instanceof WidgetToolBox.IWidgetPanelDragging widgetPanelDragging && checkAcceptable(new UIWrapper(panel, widgetPanelDragging.get()))) {
                 drawDragging = true;
-            } else if (dragging instanceof String) {
+            } else if (dragging instanceof UIWrapper[] uiWrappers && Arrays.stream(uiWrappers).allMatch(this::checkAcceptable)) { // can accept
                 drawDragging = true;
             }
+
             if (drawDragging) {
                 borderColor = 0xff55aa55;
             }
@@ -71,13 +75,29 @@ public record UIWrapper(@Getter MainPanel panel, @Getter IConfigurableWidget inn
         if (isHover()) {
             var dragging = panel.getGui().getModularUIGui().getDraggingElement();
 
-            if (dragging instanceof UIWrapper[] uiWrappers && Arrays.stream(uiWrappers).allMatch(this::checkAcceptable)) {
-                for (UIWrapper uiWrapper : uiWrappers) {
-
+            if (dragging instanceof WidgetToolBox.IWidgetPanelDragging widgetPanelDragging) {
+                UIWrapper uiWrapper = new UIWrapper(panel, widgetPanelDragging.get());
+                if (inner instanceof IConfigurableWidgetGroup group && checkAcceptable(uiWrapper)) {
                     var parent = uiWrapper.inner.widget().getParent(); // remove from original parent
 
                     if (parent != null) {
-                        parent.onWidgetDragOut(uiWrapper.inner);
+                        parent.onWidgetRemoved(uiWrapper.inner);
+                    }
+
+                    // accept it with correct position
+                    Position position = new Position((int) mouseX, (int) mouseY).subtract(group.widget().getPosition());
+                    uiWrapper.inner.widget().setSelfPosition(new Position(
+                            position.x - uiWrapper.inner.widget().getSize().width / 2,
+                            position.y - uiWrapper.inner.widget().getSize().height / 2));
+                    group.acceptWidget(uiWrapper.inner);
+                    return true;
+                }
+            } else if (inner instanceof IConfigurableWidgetGroup group && dragging instanceof UIWrapper[] uiWrappers && Arrays.stream(uiWrappers).allMatch(this::checkAcceptable)) {
+                for (UIWrapper uiWrapper : uiWrappers) {
+                    var parent = uiWrapper.inner.widget().getParent(); // remove from original parent
+
+                    if (parent != null) {
+                        parent.onWidgetRemoved(uiWrapper.inner);
                     }
 
                     // accept it with correct position
@@ -85,16 +105,12 @@ public record UIWrapper(@Getter MainPanel panel, @Getter IConfigurableWidget inn
                     uiWrapper.inner.widget().setSelfPosition(new Position(
                             position.x - uiWrapper.inner.widget().getSize().width / 2,
                             position.y - uiWrapper.inner.widget().getSize().height / 2));
-                    inner.onWidgetDragIn(uiWrapper.inner);
+                    group.acceptWidget(uiWrapper.inner);
                 }
 
                 return true;
-            } else if (dragging instanceof IGuiTexture guiTexture) {
-                inner.widget().setBackground(guiTexture);
-                return true;
-            } else if (dragging instanceof String string) {
-                inner.widget().setHoverTooltips(string);
-                return true;
+            } else {
+                return inner.handleDragging(dragging);
             }
         }
         return false;
@@ -132,6 +148,6 @@ public record UIWrapper(@Getter MainPanel panel, @Getter IConfigurableWidget inn
     }
 
     public IGuiTexture toDraggingTexture(int mouseX, int mouseY) {
-        return new WidgetDraggingTexture(mouseX, mouseY, inner.widget());
+        return new WidgetTexture(mouseX, mouseY, inner.widget());
     }
 }
