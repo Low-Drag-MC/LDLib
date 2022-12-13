@@ -32,6 +32,12 @@ public class ProgressTexture extends TransformTexture {
 
     @Override
     public void updateTick() {
+        if (emptyBarArea != null) {
+            emptyBarArea.updateTick();
+        }
+        if (filledBarArea != null) {
+            filledBarArea.updateTick();
+        }
         if (demo) {
             progress = Math.abs(System.currentTimeMillis() % 2000) / 2000.0;
         }

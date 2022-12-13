@@ -87,6 +87,14 @@ public class ProgressWidget extends Widget implements IConfigurableWidget {
     }
 
     @Override
+    public void updateScreen() {
+        super.updateScreen();
+        if (progressBar != null) {
+            progressBar.updateTick();
+        }
+    }
+
+    @Override
     @OnlyIn(Dist.CLIENT)
     public void drawInForeground(@NotNull PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
         if ((tooltipTexts.size() > 0 || dynamicHoverTips != null) && isMouseOverElement(mouseX, mouseY) && getHoverElement(mouseX, mouseY) == this && gui != null && gui.getModularUIGui() != null) {
