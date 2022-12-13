@@ -101,7 +101,7 @@ public class TextFieldWidget extends Widget implements IConfigurableWidget {
     }
 
     public String getCurrentString() {
-        return this.currentString;
+        return this.currentString == null ? "" : this.currentString;
     }
 
     public String getRawCurrentString() {
