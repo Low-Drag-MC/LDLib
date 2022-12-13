@@ -3,14 +3,17 @@ package com.lowdragmc.lowdraglib.gui.widget;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.lowdragmc.lowdraglib.gui.editor.annotation.RegisterUI;
-import com.lowdragmc.lowdraglib.gui.editor.configurator.ArrayConfiguratorGroup;
-import com.lowdragmc.lowdraglib.gui.editor.configurator.ConfiguratorGroup;
-import com.lowdragmc.lowdraglib.gui.editor.configurator.IConfigurableWidget;
-import com.lowdragmc.lowdraglib.gui.editor.configurator.WrapperConfigurator;
+import com.lowdragmc.lowdraglib.gui.editor.configurator.*;
+import com.lowdragmc.lowdraglib.gui.editor.runtime.PersistedParser;
 import com.lowdragmc.lowdraglib.gui.texture.*;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.Tag;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiConsumer;
 
@@ -145,4 +148,37 @@ public class TabContainer extends WidgetGroup {
         father.addConfigurators(tabsGroup, childrenGroup);
     }
 
+    @Override
+    public CompoundTag serializeNBT() {
+        CompoundTag tag = new CompoundTag();
+        PersistedParser.serializeNBT(tag, getClass(), this);
+        var tabs = new ListTag();
+        for (Map.Entry<TabButton, WidgetGroup> entry : this.tabs.entrySet()) {
+            var button = entry.getKey();
+            var group = entry.getValue();
+            var tab = new CompoundTag();
+            tab.put("button", button.serializeNBT());
+            tab.put("group", group.serializeWrapper());
+            tabs.add(tab);
+        }
+        tag.put("tabs", tabs);
+        return tag;
+    }
+
+    @Override
+    public void deserializeNBT(CompoundTag nbt) {
+        clearAllWidgets();
+        PersistedParser.deserializeNBT(nbt, new HashMap<>(), getClass(), this);
+        var tabs = nbt.getList("tabs", Tag.TAG_COMPOUND);
+        for (Tag tag : tabs) {
+            if (tag instanceof CompoundTag tab) {
+                TabButton button = new TabButton();
+                button.deserializeNBT(tab.getCompound("button"));
+                var widget = IConfigurableWidget.deserializeWrapper(tab.getCompound("group"));
+                if (widget != null && widget.widget() instanceof WidgetGroup group) {
+                    addTab(button, group);
+                }
+            }
+        }
+    }
 }

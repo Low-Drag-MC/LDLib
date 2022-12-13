@@ -7,6 +7,10 @@ import com.lowdragmc.lowdraglib.gui.util.ClickData;
 public class TabButton extends SwitchWidget {
     protected TabContainer container;
 
+    public TabButton() {
+        this(0, 0, 20, 20);
+    }
+
     public TabButton(int xPosition, int yPosition, int width, int height) {
         super(xPosition, yPosition, width, height, null);
         this.setOnPressCallback(this::onPressed);

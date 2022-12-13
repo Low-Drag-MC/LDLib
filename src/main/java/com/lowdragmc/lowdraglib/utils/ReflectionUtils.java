@@ -1,17 +1,13 @@
 package com.lowdragmc.lowdraglib.utils;
 
 import com.lowdragmc.lowdraglib.LDLMod;
-import me.shedaniel.rei.impl.init.PrimitivePlatformAdapter;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.forgespi.language.ModFileScanData;
-import org.apache.commons.lang3.tuple.ImmutableTriple;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.GenericArrayType;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.function.Consumer;
 
 public class ReflectionUtils {
