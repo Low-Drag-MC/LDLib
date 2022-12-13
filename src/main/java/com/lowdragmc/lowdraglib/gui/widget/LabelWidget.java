@@ -95,4 +95,12 @@ public class LabelWidget extends Widget implements IConfigurableWidget {
         }
     }
 
+    @Override
+    public boolean handleDragging(Object dragging) {
+        if (dragging instanceof String string) {
+            setText(string);
+            return true;
+        } else return IConfigurableWidget.super.handleDragging(dragging);
+    }
+
 }

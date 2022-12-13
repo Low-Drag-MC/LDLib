@@ -6,7 +6,6 @@ import com.lowdragmc.lowdraglib.gui.editor.runtime.UIDetector;
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.syncdata.payload.ITypedPayload;
 import com.lowdragmc.lowdraglib.syncdata.payload.NbtTagPayload;
-import com.lowdragmc.lowdraglib.syncdata.payload.PrimitiveTypedPayload;
 import net.minecraft.nbt.CompoundTag;
 
 import java.util.HashMap;
@@ -25,15 +24,16 @@ public class IGuiTextureAccessor extends CustomObjectAccessor<IGuiTexture>{
     @Override
     public ITypedPayload<?> serialize(IGuiTexture value) {
         RegisterUI registered = value.getClass().getAnnotation(RegisterUI.class);
+        CompoundTag tag = new CompoundTag();
         if (registered != null) {
-            CompoundTag tag = new CompoundTag();
             tag.putString("type", registered.name());
             CompoundTag data = new CompoundTag();
             PersistedParser.serializeNBT(data, value.getClass(), value);
             tag.put("data", data);
-            return NbtTagPayload.of(tag);
+        } else {
+            tag.putString("type", "empty");
         }
-        return PrimitiveTypedPayload.NullPayload.ofNull();
+        return NbtTagPayload.of(tag);
     }
 
     @Override

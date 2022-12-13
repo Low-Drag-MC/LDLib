@@ -175,4 +175,20 @@ public class ProgressWidget extends Widget implements IConfigurableWidget {
             PersistedParser.deserializeNBT(nbt.getCompound("progressBar"), new HashMap<>(), ProgressTexture.class, progressBar = new ProgressTexture());
         }
     }
+
+    @Override
+    public boolean canDragIn(Object dragging) {
+        if (dragging instanceof IGuiTexture) {
+            return dragging instanceof ProgressTexture;
+        }
+        return IConfigurableWidget.super.canDragIn(dragging);
+    }
+
+    @Override
+    public boolean handleDragging(Object dragging) {
+        if (dragging instanceof ProgressTexture progressTexture) {
+            setProgressBar(progressTexture);
+            return true;
+        } else return IConfigurableWidget.super.handleDragging(dragging);
+    }
 }

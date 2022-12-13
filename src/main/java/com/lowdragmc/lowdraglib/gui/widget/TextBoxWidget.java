@@ -155,4 +155,14 @@ public class TextBoxWidget extends Widget implements IConfigurableWidget {
             matrixStack.popPose();
         }
     }
+
+    @Override
+    public boolean handleDragging(Object dragging) {
+        if (dragging instanceof String string) {
+            List<String> list = new ArrayList<>();
+            list.add(string);
+            setContent(list);
+            return true;
+        } else return IConfigurableWidget.super.handleDragging(dragging);
+    }
 }
