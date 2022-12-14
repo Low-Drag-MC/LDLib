@@ -3,11 +3,13 @@ package com.lowdragmc.lowdraglib.gui.widget;
 import com.google.common.collect.Lists;
 import com.lowdragmc.lowdraglib.gui.editor.annotation.ConfigSetter;
 import com.lowdragmc.lowdraglib.gui.editor.annotation.Configurable;
+import com.lowdragmc.lowdraglib.gui.editor.annotation.NumberRange;
 import com.lowdragmc.lowdraglib.gui.editor.annotation.RegisterUI;
 import com.lowdragmc.lowdraglib.gui.editor.configurator.IConfigurableWidget;
 import com.lowdragmc.lowdraglib.gui.ingredient.IGhostIngredientTarget;
 import com.lowdragmc.lowdraglib.gui.ingredient.Target;
 import com.mojang.blaze3d.platform.InputConstants;
+import lombok.Setter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.MouseHandler;
 import net.minecraft.client.renderer.Rect2i;
@@ -28,8 +30,12 @@ import java.util.List;
 @RegisterUI(name = "phantom_item_slot", group = "container")
 public class PhantomSlotWidget extends SlotWidget implements IGhostIngredientTarget, IConfigurableWidget {
 
-    @Configurable
     private boolean clearSlotOnRightClick;
+
+    @Configurable
+    @NumberRange(range = {0, 64})
+    @Setter
+    private int maxStackSize = 64;
 
     public PhantomSlotWidget() {
         super();
@@ -134,7 +140,7 @@ public class PhantomSlotWidget extends SlotWidget implements IGhostIngredientTar
         }
     }
 
-    public static ItemStack slotClickPhantom(Slot slot, int mouseButton, ClickType clickTypeIn, ItemStack stackHeld) {
+    public ItemStack slotClickPhantom(Slot slot, int mouseButton, ClickType clickTypeIn, ItemStack stackHeld) {
         ItemStack stack = ItemStack.EMPTY;
 
         ItemStack stackSlot = slot.getItem();
@@ -166,7 +172,7 @@ public class PhantomSlotWidget extends SlotWidget implements IGhostIngredientTar
         return stack;
     }
 
-    private static void adjustPhantomSlot(Slot slot, int mouseButton, ClickType clickTypeIn) {
+    private void adjustPhantomSlot(Slot slot, int mouseButton, ClickType clickTypeIn) {
         ItemStack stackSlot = slot.getItem();
         int stackSize;
         if (clickTypeIn == ClickType.QUICK_MOVE) {
@@ -179,12 +185,12 @@ public class PhantomSlotWidget extends SlotWidget implements IGhostIngredientTar
             stackSize = slot.getMaxStackSize();
         }
 
-        stackSlot.setCount(stackSize);
+        stackSlot.setCount(Math.min(maxStackSize, stackSize));
 
         slot.set(stackSlot);
     }
 
-    private static void fillPhantomSlot(Slot slot, ItemStack stackHeld, int mouseButton) {
+    private void fillPhantomSlot(Slot slot, ItemStack stackHeld, int mouseButton) {
         if (stackHeld.isEmpty()) {
             slot.set(ItemStack.EMPTY);
             return;
@@ -195,12 +201,11 @@ public class PhantomSlotWidget extends SlotWidget implements IGhostIngredientTar
             stackSize = slot.getMaxStackSize();
         }
         ItemStack phantomStack = stackHeld.copy();
-        phantomStack.setCount(stackSize);
-
+        phantomStack.setCount(Math.min(maxStackSize, stackSize));
         slot.set(phantomStack);
     }
 
-    public static boolean areItemsEqual(ItemStack itemStack1, ItemStack itemStack2) {
+    public boolean areItemsEqual(ItemStack itemStack1, ItemStack itemStack2) {
         return ItemStack.matches(itemStack1, itemStack2);
     }
 }

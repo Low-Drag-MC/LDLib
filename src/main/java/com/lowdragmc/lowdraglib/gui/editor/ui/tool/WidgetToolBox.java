@@ -52,6 +52,7 @@ public class WidgetToolBox extends DraggableScrollableWidgetGroup {
     public WidgetToolBox(String groupName) {
         super(0, 0, ToolPanel.WIDTH, 100);
         int yOffset = 3;
+        setYScrollBarWidth(4).setYBarStyle(null, ColorPattern.T_WHITE.rectTexture().setRadius(2).transform(-0.5f, 0));
         for (UIDetector.Wrapper<RegisterUI, IConfigurableWidget> wrapper : UIDetector.REGISTER_WIDGETS) {
             String group = wrapper.annotation().group().isEmpty() ? "basic" : wrapper.annotation().group();
             if (group.equals(groupName)) {

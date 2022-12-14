@@ -9,8 +9,10 @@ import com.lowdragmc.lowdraglib.utils.LocalizationUtils;
 import com.lowdragmc.lowdraglib.utils.Position;
 import com.lowdragmc.lowdraglib.utils.Size;
 import com.mojang.blaze3d.vertex.PoseStack;
+import lombok.Setter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -21,6 +23,8 @@ import java.util.function.Supplier;
 @RegisterUI(name = "label")
 public class LabelWidget extends Widget implements IConfigurableWidget {
 
+    @Setter
+    @Nonnull
     protected Supplier<String> textSupplier;
 
     @Configurable(name = "ldlib.gui.editor.name.text")
@@ -47,6 +51,7 @@ public class LabelWidget extends Widget implements IConfigurableWidget {
         super(new Position(xPosition, yPosition), new Size(10, 10));
         this.textSupplier = text;
         if (isRemote()) {
+            lastTextValue = text.get();
             updateSize();
         }
     }
@@ -66,6 +71,54 @@ public class LabelWidget extends Widget implements IConfigurableWidget {
         return this;
     }
 
+    @Override
+    public void writeInitialData(FriendlyByteBuf buffer) {
+        super.writeInitialData(buffer);
+        buffer.writeUtf(lastTextValue);
+    }
+
+    @Override
+    public void readInitialData(FriendlyByteBuf buffer) {
+        super.readInitialData(buffer);
+        this.lastTextValue = buffer.readUtf();
+    }
+
+    @Override
+    public void detectAndSendChanges() {
+        super.detectAndSendChanges();
+        if (!isClientSideWidget) {
+            String latest = textSupplier.get();
+            if (!latest.equals(lastTextValue)) {
+                this.lastTextValue = latest;
+                writeUpdateInfo(-1, buffer -> buffer.writeUtf(this.lastTextValue));
+            }
+        }
+    }
+
+    @Override
+    @OnlyIn(Dist.CLIENT)
+    public void readUpdateInfo(int id, FriendlyByteBuf buffer) {
+        if (id == -1) {
+            this.lastTextValue = buffer.readUtf();
+            updateSize();
+        } else {
+            super.readUpdateInfo(id, buffer);
+        }
+    }
+
+    @Override
+    @OnlyIn(Dist.CLIENT)
+    public void updateScreen() {
+        super.updateScreen();
+        if (isClientSideWidget) {
+            String latest = textSupplier.get();
+            if (!latest.equals(lastTextValue)) {
+                this.lastTextValue = latest;
+                updateSize();
+            }
+        }
+    }
+
     @OnlyIn(Dist.CLIENT)
     private void updateSize() {
         Font fontRenderer = Minecraft.getInstance().font;
@@ -76,12 +129,7 @@ public class LabelWidget extends Widget implements IConfigurableWidget {
     @OnlyIn(Dist.CLIENT)
     public void drawInBackground(@Nonnull PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
         super.drawInBackground(poseStack, mouseX, mouseY, partialTicks);
-        String latest = textSupplier.get();
-        if (!latest.equals(lastTextValue)) {
-            this.lastTextValue = latest;
-            updateSize();
-        }
-        String suppliedText = LocalizationUtils.format(latest);
+        String suppliedText = LocalizationUtils.format(lastTextValue);
         String[] split = suppliedText.split("\n");
         Font fontRenderer = Minecraft.getInstance().font;
         Position position = getPosition();

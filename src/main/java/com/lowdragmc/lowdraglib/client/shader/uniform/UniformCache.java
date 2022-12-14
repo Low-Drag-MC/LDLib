@@ -124,13 +124,16 @@ public class UniformCache {
 	@SuppressWarnings({"rawtypes", "unchecked"})
 	private <T> void glUniform(String location, Predicate<UniformEntry<?>> isType, Function<T, UniformEntry<T>> createUniform, IntConsumer applyCallback, T value) {
 		int loc = getUniformLocation(location);
-		if (!FMLLoader.isProduction() && loc == -1) {
-			LDLMod.LOGGER.error("can't find uniform with name {}", location);
-			var shaders = new int[2];
-			GL20.glGetAttachedShaders(programId, null, shaders);
-			LDLMod.LOGGER.error("attached shader source {}", GL20.glGetShaderSource(shaders[0]));
-			LDLMod.LOGGER.error("attached shader source {}", GL20.glGetShaderSource(shaders[1]));
+		if (loc == -1) {
+			if (!FMLLoader.isProduction()) {
+//			LDLMod.LOGGER.error("can't find uniform with name {}", location);
+//			var shaders = new int[2];
+//			GL20.glGetAttachedShaders(programId, null, shaders);
+//			LDLMod.LOGGER.error("attached shader source {}", GL20.glGetShaderSource(shaders[0]));
+//			LDLMod.LOGGER.error("attached shader source {}", GL20.glGetShaderSource(shaders[1]));
 //			throw new IllegalArgumentException("can't find uniform");
+			}
+			return;
 		}
 		boolean update = true;
 		if (entryCache.containsKey(loc)) {
