@@ -3,8 +3,11 @@ package com.lowdragmc.lowdraglib.gui.editor.ui;
 import com.lowdragmc.lowdraglib.gui.editor.Icons;
 import com.lowdragmc.lowdraglib.gui.editor.configurator.IConfigurableWidget;
 import com.lowdragmc.lowdraglib.gui.editor.configurator.IConfigurableWidgetGroup;
+import com.lowdragmc.lowdraglib.gui.editor.data.resource.Resource;
+import com.lowdragmc.lowdraglib.gui.editor.data.resource.TexturesResource;
 import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
+import com.lowdragmc.lowdraglib.gui.texture.UIResourceTexture;
 import com.lowdragmc.lowdraglib.gui.util.TreeBuilder;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
@@ -25,7 +28,7 @@ import java.util.*;
  * @implNote MainPanel
  */
 public class MainPanel extends WidgetGroup {
-    protected static final List<CompoundTag> COPIED = new ArrayList<>();
+    public static final String COPY_TYPE = "widgets";
 
     @Getter
     protected final Editor editor;
@@ -150,25 +153,40 @@ public class MainPanel extends WidgetGroup {
         }
     }
 
+    @SuppressWarnings("unchecked")
     protected void copy() {
-        COPIED.clear();
+        if (editor.getResourcePanel().resources != null) {
+            UIResourceTexture.setCurrentResource((Resource<IGuiTexture>) editor.getResourcePanel().resources.resources.get(TexturesResource.RESOURCE_NAME), true);
+        }
+        List<CompoundTag> list = new ArrayList<>();
         if (!selectedUIs.isEmpty()) {
             for (UIWrapper selectedUI : selectedUIs) {
-                COPIED.add(selectedUI.inner().serializeWrapper());
+                list.add(selectedUI.inner().serializeWrapper());
             }
         }
+        UIResourceTexture.clearCurrentResource();
+        getEditor().setCopy("widgets", list);
     }
 
+    @SuppressWarnings("unchecked")
     protected void paste() {
-        if (!COPIED.isEmpty() && hoverUI != null) {
-            for (var tag : COPIED) {
-                var widget = IConfigurableWidget.deserializeWrapper(tag);
-                if (hoverUI.inner() instanceof IConfigurableWidgetGroup group) {
-                    if (group.canWidgetAccepted(widget)) {
-                        group.acceptWidget(widget);
+        if (hoverUI != null) {
+            getEditor().ifCopiedPresent(COPY_TYPE, c -> {
+                if (editor.getResourcePanel().resources != null) {
+                    UIResourceTexture.setCurrentResource((Resource<IGuiTexture>) editor.getResourcePanel().resources.resources.get(TexturesResource.RESOURCE_NAME), true);
+                }
+                List<CompoundTag> list = (List<CompoundTag>) c;
+                for (var tag : list) {
+                    var widget = IConfigurableWidget.deserializeWrapper(tag);
+                    if (widget != null && hoverUI.inner() instanceof IConfigurableWidgetGroup group) {
+                        widget.widget().addSelfPosition(5,5);
+                        if (group.canWidgetAccepted(widget)) {
+                            group.acceptWidget(widget);
+                        }
                     }
                 }
-            }
+                UIResourceTexture.clearCurrentResource();
+            });
         }
     }
 

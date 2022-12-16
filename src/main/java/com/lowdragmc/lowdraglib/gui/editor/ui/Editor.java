@@ -8,16 +8,19 @@ import com.lowdragmc.lowdraglib.gui.texture.ColorRectTexture;
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.util.TreeBuilder;
 import com.lowdragmc.lowdraglib.gui.util.TreeNode;
+import com.lowdragmc.lowdraglib.gui.widget.DialogWidget;
 import com.lowdragmc.lowdraglib.gui.widget.MenuWidget;
 import com.lowdragmc.lowdraglib.gui.widget.TabContainer;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
+import com.lowdragmc.lowdraglib.utils.Position;
 import com.lowdragmc.lowdraglib.utils.Size;
 import com.mojang.blaze3d.vertex.PoseStack;
 import lombok.Getter;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-
 import java.io.File;
+import java.util.Objects;
+import java.util.function.Consumer;
 
 /**
  * @author KilaBash
@@ -41,7 +44,10 @@ public class Editor extends WidgetGroup {
     protected ResourcePanel resourcePanel;
     @Getter
     protected ToolPanel toolPanel;
-
+    @Getter
+    protected String copyType;
+    @Getter
+    protected Object copied;
 
     public Editor(File workSpace) {
         super(0, 0, 10, 10);
@@ -75,6 +81,23 @@ public class Editor extends WidgetGroup {
         addWidget(resourcePanel = new ResourcePanel(this));
         addWidget(menuPanel = new MenuPanel(this));
         loadProject(currentProject);
+    }
+
+    public DialogWidget openDialog(DialogWidget dialog) {
+        this.addWidget(dialog);
+        Position pos = dialog.getPosition();
+        Size size = dialog.getSize();
+        if (pos.x + size.width > getGui().getScreenWidth()) {
+            dialog.addSelfPosition(pos.x + size.width - getGui().getScreenWidth(), 0);
+        } else if (pos.x < 0) {
+            dialog.addSelfPosition(-pos.x, 0);
+        }
+        if (pos.y + size.height > getGui().getScreenHeight()) {
+            dialog.addSelfPosition(0, pos.y + size.height - getGui().getScreenHeight());
+        } else if (pos.y < 0) {
+            dialog.addSelfPosition(0, -pos.y);
+        }
+        return dialog;
     }
 
     public <T, C> MenuWidget<T, C> openMenu(double posX, double posY, TreeNode<T, C> menuNode) {
@@ -116,6 +139,17 @@ public class Editor extends WidgetGroup {
 
         if (currentProject != null) {
             currentProject.onLoad(this);
+        }
+    }
+
+    public void setCopy(String copyType, Object copied) {
+        this.copied = copied;
+        this.copyType = copyType;
+    }
+
+    public void ifCopiedPresent(String copyType, Consumer<Object> consumer) {
+        if (Objects.equals(copyType, this.copyType)) {
+            consumer.accept(copied);
         }
     }
 

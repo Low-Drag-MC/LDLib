@@ -59,6 +59,7 @@ public class CollectionConfiguratorAccessor implements IConfiguratorAccessor<Col
 
         arrayGroup.setOnUpdate(list -> consumer.accept(updateCollection(supplier.get(), list)));
         arrayGroup.setCanCollapse(canCollapse);
+        arrayGroup.setOnReorder((index, widget) -> arrayGroup.notifyListUpdate());
         return arrayGroup;
     }
 

@@ -1,14 +1,10 @@
 package com.lowdragmc.lowdraglib.syncdata.accessor;
 
-import com.lowdragmc.lowdraglib.gui.editor.annotation.RegisterUI;
-import com.lowdragmc.lowdraglib.gui.editor.runtime.PersistedParser;
-import com.lowdragmc.lowdraglib.gui.editor.runtime.UIDetector;
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
+import com.lowdragmc.lowdraglib.gui.texture.UIResourceTexture;
 import com.lowdragmc.lowdraglib.syncdata.payload.ITypedPayload;
 import com.lowdragmc.lowdraglib.syncdata.payload.NbtTagPayload;
 import net.minecraft.nbt.CompoundTag;
-
-import java.util.HashMap;
 
 /**
  * @author KilaBash
@@ -23,15 +19,15 @@ public class IGuiTextureAccessor extends CustomObjectAccessor<IGuiTexture>{
 
     @Override
     public ITypedPayload<?> serialize(IGuiTexture value) {
-        RegisterUI registered = value.getClass().getAnnotation(RegisterUI.class);
-        CompoundTag tag = new CompoundTag();
-        if (registered != null) {
-            tag.putString("type", registered.name());
-            CompoundTag data = new CompoundTag();
-            PersistedParser.serializeNBT(data, value.getClass(), value);
-            tag.put("data", data);
-        } else {
-            tag.putString("type", "empty");
+        var tag = IGuiTexture.serialize(value);
+        if (tag == null) {
+            tag = new CompoundTag();
+            if (value instanceof UIResourceTexture uiResourceTexture) {
+                tag.putString("type", "ui_resource");
+                tag.putString("key", uiResourceTexture.key);
+            } else {
+                tag.putString("type", "empty");
+            }
         }
         return NbtTagPayload.of(tag);
     }
@@ -41,11 +37,21 @@ public class IGuiTextureAccessor extends CustomObjectAccessor<IGuiTexture>{
         if (payload instanceof NbtTagPayload nbtTagPayload) {
             var tag = (CompoundTag)nbtTagPayload.getPayload();
             var type = tag.getString("type");
-            var data = tag.getCompound("data");
-            IGuiTexture value = UIDetector.REGISTER_TEXTURES.stream().filter(w -> w.annotation().name().equals(type)).map(UIDetector.Wrapper::creator).findFirst().orElse(() -> IGuiTexture.EMPTY).get();
-            PersistedParser.deserializeNBT(data, new HashMap<>(), value.getClass(), value);
-            return value;
+            if (type.equals("ui_resource") && tag.contains("key")) {
+                var key = tag.getString("key");
+                var resource = UIResourceTexture.getProjectResource();
+                if (resource == null) {
+                    return new UIResourceTexture(key);
+                }
+                if (UIResourceTexture.isProject()) {
+                    return new UIResourceTexture(resource, key);
+                } else {
+                    return resource.getResourceOrDefault(key, IGuiTexture.MISSING_TEXTURE);
+                }
+            }
+            return IGuiTexture.deserialize(tag);
         }
         return null;
     }
+
 }

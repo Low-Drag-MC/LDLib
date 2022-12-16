@@ -1,19 +1,19 @@
 package com.lowdragmc.lowdraglib.gui.editor.configurator;
 
 import com.lowdragmc.lowdraglib.gui.editor.annotation.RegisterUI;
+import com.lowdragmc.lowdraglib.gui.editor.data.Resources;
+import com.lowdragmc.lowdraglib.gui.editor.data.resource.Resource;
+import com.lowdragmc.lowdraglib.gui.editor.data.resource.TexturesResource;
 import com.lowdragmc.lowdraglib.gui.editor.runtime.PersistedParser;
 import com.lowdragmc.lowdraglib.gui.editor.runtime.UIDetector;
-import com.lowdragmc.lowdraglib.gui.editor.ui.UIWrapper;
-import com.lowdragmc.lowdraglib.gui.editor.ui.tool.WidgetToolBox;
 import com.lowdragmc.lowdraglib.gui.texture.ColorRectTexture;
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
+import com.lowdragmc.lowdraglib.gui.texture.UIResourceTexture;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import net.minecraft.Util;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraftforge.common.util.INBTSerializable;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -23,7 +23,7 @@ import java.util.function.Supplier;
  * @date 2022/12/6
  * @implNote IConfigurableWidget
  */
-public interface IConfigurableWidget extends IConfigurable, INBTSerializable<CompoundTag> {
+public interface IConfigurableWidget extends IConfigurable {
 
     Function<String, UIDetector.Wrapper<RegisterUI, IConfigurableWidget>> CACHE = Util.memoize(type -> {
         for (var wrapper : UIDetector.REGISTER_WIDGETS) {
@@ -69,22 +69,35 @@ public interface IConfigurableWidget extends IConfigurable, INBTSerializable<Com
         return false;
     }
 
-    @Override
-    default CompoundTag serializeNBT() {
+    @SuppressWarnings("unchecked")
+    static CompoundTag serializeNBT(IConfigurableWidget widget, Resources resources, boolean isProject) {
+        UIResourceTexture.setCurrentResource((Resource<IGuiTexture>) resources.resources.get(TexturesResource.RESOURCE_NAME), isProject);
+        CompoundTag tag = widget.serializeInnerNBT();
+        UIResourceTexture.clearCurrentResource();
+        return tag;
+    }
+
+    @SuppressWarnings("unchecked")
+    static void deserializeNBT(IConfigurableWidget widget, CompoundTag tag, Resources resources, boolean isProject) {
+        UIResourceTexture.setCurrentResource((Resource<IGuiTexture>) resources.resources.get(TexturesResource.RESOURCE_NAME), isProject);
+        widget.deserializeInnerNBT(tag);
+        UIResourceTexture.clearCurrentResource();
+    }
+
+    default CompoundTag serializeInnerNBT() {
         CompoundTag tag = new CompoundTag();
         PersistedParser.serializeNBT(tag, getClass(), this);
         return tag;
     }
 
-    @Override
-    default void deserializeNBT(CompoundTag nbt) {
+    default void deserializeInnerNBT(CompoundTag nbt) {
         PersistedParser.deserializeNBT(nbt, new HashMap<>(), getClass(), this);
     }
 
     default CompoundTag serializeWrapper() {
         var tag = new CompoundTag();
         tag.putString("type", getRegisterUI().name());
-        tag.put("data", serializeNBT());
+        tag.put("data", serializeInnerNBT());
         return tag;
     }
 
@@ -94,7 +107,7 @@ public interface IConfigurableWidget extends IConfigurable, INBTSerializable<Com
         var wrapper = CACHE.apply(type);
         if (wrapper != null) {
             var child = wrapper.creator().get();
-            child.deserializeNBT(tag.getCompound("data"));
+            child.deserializeInnerNBT(tag.getCompound("data"));
             return child;
         }
         return null;

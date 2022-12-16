@@ -5,12 +5,9 @@ import com.lowdragmc.lowdraglib.gui.editor.configurator.ConfiguratorGroup;
 import com.lowdragmc.lowdraglib.gui.editor.configurator.GuiTextureConfigurator;
 import com.lowdragmc.lowdraglib.gui.editor.configurator.IConfigurableWidget;
 import com.lowdragmc.lowdraglib.gui.editor.runtime.PersistedParser;
-import com.lowdragmc.lowdraglib.gui.editor.runtime.UIDetector;
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.texture.ProgressTexture;
 import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
-import com.lowdragmc.lowdraglib.syncdata.accessor.IGuiTextureAccessor;
-import com.lowdragmc.lowdraglib.syncdata.payload.NbtTagPayload;
 import com.lowdragmc.lowdraglib.utils.Position;
 import com.lowdragmc.lowdraglib.utils.Size;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -166,8 +163,8 @@ public class ProgressWidget extends Widget implements IConfigurableWidget {
     }
 
     @Override
-    public CompoundTag serializeNBT() {
-        var tag = IConfigurableWidget.super.serializeNBT();
+    public CompoundTag serializeInnerNBT() {
+        var tag = IConfigurableWidget.super.serializeInnerNBT();
         if (progressBar != null) {
             CompoundTag data = new CompoundTag();
             PersistedParser.serializeNBT(data, progressBar.getClass(), progressBar);
@@ -177,8 +174,8 @@ public class ProgressWidget extends Widget implements IConfigurableWidget {
     }
 
     @Override
-    public void deserializeNBT(CompoundTag nbt) {
-        IConfigurableWidget.super.deserializeNBT(nbt);
+    public void deserializeInnerNBT(CompoundTag nbt) {
+        IConfigurableWidget.super.deserializeInnerNBT(nbt);
         if (nbt.contains("progressBar")) {
             PersistedParser.deserializeNBT(nbt.getCompound("progressBar"), new HashMap<>(), ProgressTexture.class, progressBar = new ProgressTexture());
         }

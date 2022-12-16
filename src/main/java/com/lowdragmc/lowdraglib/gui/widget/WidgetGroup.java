@@ -3,7 +3,6 @@ package com.lowdragmc.lowdraglib.gui.widget;
 import com.lowdragmc.lowdraglib.gui.animation.Animation;
 import com.lowdragmc.lowdraglib.gui.editor.annotation.RegisterUI;
 import com.lowdragmc.lowdraglib.gui.editor.configurator.*;
-import com.lowdragmc.lowdraglib.gui.editor.runtime.UIDetector;
 import com.lowdragmc.lowdraglib.gui.ingredient.IGhostIngredientTarget;
 import com.lowdragmc.lowdraglib.gui.ingredient.IIngredientSlot;
 import com.lowdragmc.lowdraglib.gui.ingredient.Target;
@@ -14,7 +13,6 @@ import com.lowdragmc.lowdraglib.utils.Position;
 import com.lowdragmc.lowdraglib.utils.Size;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
-import net.minecraft.Util;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -28,7 +26,6 @@ import org.jetbrains.annotations.Nullable;
 import javax.annotation.Nonnull;
 import java.util.*;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.regex.Pattern;
 
 @RegisterUI(name = "group", group = "group")
@@ -650,8 +647,8 @@ public class WidgetGroup extends Widget implements IGhostIngredientTarget, IIngr
     }
 
     @Override
-    public CompoundTag serializeNBT() {
-        CompoundTag tag = IConfigurableWidgetGroup.super.serializeNBT();
+    public CompoundTag serializeInnerNBT() {
+        CompoundTag tag = IConfigurableWidgetGroup.super.serializeInnerNBT();
         var children = new ListTag();
         for (Widget widget : widgets) {
             if (widget instanceof IConfigurableWidget child && child.isRegisterUI()) {
@@ -663,9 +660,9 @@ public class WidgetGroup extends Widget implements IGhostIngredientTarget, IIngr
     }
 
     @Override
-    public void deserializeNBT(CompoundTag nbt) {
+    public void deserializeInnerNBT(CompoundTag nbt) {
         clearAllWidgets();
-        IConfigurableWidgetGroup.super.deserializeNBT(nbt);
+        IConfigurableWidgetGroup.super.deserializeInnerNBT(nbt);
         var children = nbt.getList("children", Tag.TAG_COMPOUND);
         for (Tag tag : children) {
             if (tag instanceof CompoundTag ui) {

@@ -254,6 +254,7 @@ public class TankWidget extends Widget implements IRecipeIngredientSlot, IConfig
 
     @Override
     public void writeInitialData(FriendlyByteBuf buffer) {
+        buffer.writeBoolean(fluidTank != null);
         if (fluidTank != null) {
             this.lastTankCapacity = fluidTank.getCapacity();
             buffer.writeVarInt(lastTankCapacity);
@@ -265,8 +266,10 @@ public class TankWidget extends Widget implements IRecipeIngredientSlot, IConfig
 
     @Override
     public void readInitialData(FriendlyByteBuf buffer) {
-        this.lastTankCapacity = buffer.readVarInt();
-        readUpdateInfo(2, buffer);
+        if (buffer.readBoolean()) {
+            this.lastTankCapacity = buffer.readVarInt();
+            readUpdateInfo(2, buffer);
+        }
     }
 
     @Override

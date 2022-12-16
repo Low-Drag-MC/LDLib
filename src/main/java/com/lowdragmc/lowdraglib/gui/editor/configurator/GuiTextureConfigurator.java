@@ -1,14 +1,19 @@
 package com.lowdragmc.lowdraglib.gui.editor.configurator;
 
 import com.lowdragmc.lowdraglib.gui.editor.ColorPattern;
+import com.lowdragmc.lowdraglib.gui.editor.Icons;
+import com.lowdragmc.lowdraglib.gui.editor.ui.Editor;
 import com.lowdragmc.lowdraglib.gui.texture.ColorRectTexture;
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.texture.TextTexture;
 import com.lowdragmc.lowdraglib.gui.util.ClickData;
+import com.lowdragmc.lowdraglib.gui.util.TreeBuilder;
 import com.lowdragmc.lowdraglib.gui.widget.ButtonWidget;
 import com.lowdragmc.lowdraglib.gui.widget.ImageWidget;
 import com.lowdragmc.lowdraglib.utils.Size;
 import lombok.Setter;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -42,6 +47,32 @@ public class GuiTextureConfigurator extends ValueConfigurator<IGuiTexture>{
     public void computeHeight() {
         super.computeHeight();
         setSize(new Size(getSize().width, 15 + preview.getSize().height + 4));
+    }
+
+    @Override
+    @OnlyIn(Dist.CLIENT)
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        if (button == 1 && Editor.INSTANCE != null && preview.isMouseOverElement(mouseX, mouseY)) {
+            var menu = TreeBuilder.Menu.start()
+                    .leaf(Icons.DELETE, "ldlib.gui.editor.menu.remove", () -> {
+                        onValueUpdate(IGuiTexture.EMPTY);
+                        updateValue();
+                    })
+                    .leaf(Icons.COPY, "ldlib.gui.editor.menu.copy", () -> Editor.INSTANCE.setCopy("texture", value));
+            if ("texture".equals(Editor.INSTANCE.getCopyType())) {
+                menu.leaf(Icons.PASTE, "ldlib.gui.editor.menu.paste", () -> {
+                    Editor.INSTANCE.ifCopiedPresent("texture", c -> {
+                        if (c instanceof IGuiTexture texture) {
+                            onValueUpdate(texture);
+                            updateValue();
+                        }
+                    });
+                });
+            }
+            Editor.INSTANCE.openMenu(mouseX, mouseY, menu);
+            return true;
+        }
+        return super.mouseClicked(mouseX, mouseY, button);
     }
 
     @Override

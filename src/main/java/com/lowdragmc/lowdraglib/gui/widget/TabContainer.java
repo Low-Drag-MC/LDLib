@@ -149,7 +149,7 @@ public class TabContainer extends WidgetGroup {
     }
 
     @Override
-    public CompoundTag serializeNBT() {
+    public CompoundTag serializeInnerNBT() {
         CompoundTag tag = new CompoundTag();
         PersistedParser.serializeNBT(tag, getClass(), this);
         var tabs = new ListTag();
@@ -157,7 +157,7 @@ public class TabContainer extends WidgetGroup {
             var button = entry.getKey();
             var group = entry.getValue();
             var tab = new CompoundTag();
-            tab.put("button", button.serializeNBT());
+            tab.put("button", button.serializeInnerNBT());
             tab.put("group", group.serializeWrapper());
             tabs.add(tab);
         }
@@ -166,14 +166,14 @@ public class TabContainer extends WidgetGroup {
     }
 
     @Override
-    public void deserializeNBT(CompoundTag nbt) {
+    public void deserializeInnerNBT(CompoundTag nbt) {
         clearAllWidgets();
         PersistedParser.deserializeNBT(nbt, new HashMap<>(), getClass(), this);
         var tabs = nbt.getList("tabs", Tag.TAG_COMPOUND);
         for (Tag tag : tabs) {
             if (tag instanceof CompoundTag tab) {
                 TabButton button = new TabButton();
-                button.deserializeNBT(tab.getCompound("button"));
+                button.deserializeInnerNBT(tab.getCompound("button"));
                 var widget = IConfigurableWidget.deserializeWrapper(tab.getCompound("group"));
                 if (widget != null && widget.widget() instanceof WidgetGroup group) {
                     addTab(button, group);

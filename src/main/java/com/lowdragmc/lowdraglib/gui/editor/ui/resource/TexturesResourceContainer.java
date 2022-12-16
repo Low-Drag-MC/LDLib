@@ -10,6 +10,7 @@ import com.lowdragmc.lowdraglib.gui.editor.runtime.UIDetector;
 import com.lowdragmc.lowdraglib.gui.editor.ui.ConfigPanel;
 import com.lowdragmc.lowdraglib.gui.editor.ui.ResourcePanel;
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
+import com.lowdragmc.lowdraglib.gui.texture.UIResourceTexture;
 import com.lowdragmc.lowdraglib.gui.util.TreeBuilder;
 import com.lowdragmc.lowdraglib.gui.widget.ImageWidget;
 
@@ -22,7 +23,7 @@ public class TexturesResourceContainer extends ResourceContainer<IGuiTexture, Im
     public TexturesResourceContainer(Resource<IGuiTexture> resource, ResourcePanel panel) {
         super(resource, panel);
         setWidgetSupplier(k -> new ImageWidget(0, 0, 30, 30, getResource().getResource(k)));
-        setDragging(resource::getResource, o -> o);
+        setDragging(key -> new UIResourceTexture(resource, key), o -> o);
         setOnEdit(key -> openTextureConfigurator(key, getResource().getResource(key)));
         setOnRemove(key -> !key.equals("empty"));
     }

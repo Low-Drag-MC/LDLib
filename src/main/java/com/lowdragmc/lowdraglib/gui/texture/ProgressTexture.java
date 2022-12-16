@@ -3,6 +3,7 @@ package com.lowdragmc.lowdraglib.gui.texture;
 import com.lowdragmc.lowdraglib.gui.editor.annotation.Configurable;
 import com.lowdragmc.lowdraglib.gui.editor.annotation.RegisterUI;
 import com.mojang.blaze3d.vertex.PoseStack;
+import lombok.Getter;
 import net.minecraft.util.Mth;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -15,8 +16,10 @@ public class ProgressTexture extends TransformTexture {
     @Configurable
     protected FillDirection fillDirection = FillDirection.LEFT_TO_RIGHT;
     @Configurable
+    @Getter
     protected IGuiTexture emptyBarArea;
     @Configurable
+    @Getter
     protected IGuiTexture filledBarArea;
 
     protected double progress;

@@ -10,6 +10,7 @@ import com.lowdragmc.lowdraglib.gui.util.FileNode;
 import com.lowdragmc.lowdraglib.gui.util.TreeNode;
 import com.lowdragmc.lowdraglib.utils.Size;
 import com.mojang.blaze3d.vertex.PoseStack;
+import lombok.Setter;
 import net.minecraft.Util;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.api.distmarker.Dist;
@@ -27,13 +28,19 @@ public class DialogWidget extends WidgetGroup {
     private static final int WIDTH = 184;
     protected boolean isParentInVisible;
     protected Runnable onClosed;
+    @Setter
+    protected boolean clickClose;
 
     public DialogWidget(WidgetGroup parent, boolean isClient) {
-        super(0, 0, parent.getSize().width, parent.getSize().height);
+        this(0, 0, parent.getSize().width, parent.getSize().height);
         if (isClient) setClientSideWidget();
         if (autoAdd()) {
             parent.addWidget(this);
         }
+    }
+
+    public DialogWidget(int x, int y, int width, int height) {
+        super(x, y, width, height);
     }
 
     protected boolean autoAdd() {
@@ -80,7 +87,13 @@ public class DialogWidget extends WidgetGroup {
     @Override
     @OnlyIn(Dist.CLIENT)
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if (!isMouseOverElement(mouseX, mouseY)) return false;
+        if (!isMouseOverElement(mouseX, mouseY)) {
+            if (clickClose) {
+                close();
+                return true;
+            }
+            return false;
+        }
         super.mouseClicked(mouseX, mouseY, button);
         return true;
     }

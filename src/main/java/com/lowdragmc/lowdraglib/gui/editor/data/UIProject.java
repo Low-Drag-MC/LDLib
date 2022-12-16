@@ -2,6 +2,7 @@ package com.lowdragmc.lowdraglib.gui.editor.data;
 
 import com.lowdragmc.lowdraglib.gui.editor.ColorPattern;
 import com.lowdragmc.lowdraglib.gui.editor.annotation.RegisterUI;
+import com.lowdragmc.lowdraglib.gui.editor.configurator.IConfigurableWidget;
 import com.lowdragmc.lowdraglib.gui.editor.ui.Editor;
 import com.lowdragmc.lowdraglib.gui.editor.ui.MainPanel;
 import com.lowdragmc.lowdraglib.gui.editor.ui.tool.WidgetToolBox;
@@ -48,14 +49,14 @@ public class UIProject extends Project {
     public CompoundTag serializeNBT() {
         CompoundTag tag = new CompoundTag();
         tag.put("resources", resources.serializeNBT());
-        tag.put("root", root.serializeNBT());
+        tag.put("root", IConfigurableWidget.serializeNBT(this.root, resources, true));
         return tag;
     }
 
     public void deserializeNBT(CompoundTag tag) {
         this.resources = loadResources(tag.getCompound("resources"));
         this.root = new WidgetGroup();
-        root.deserializeNBT(tag.getCompound("root"));
+        IConfigurableWidget.deserializeNBT(this.root, tag.getCompound("root"), resources, true);
     }
 
     @Override

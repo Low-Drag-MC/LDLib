@@ -490,8 +490,8 @@ public class DraggableScrollableWidgetGroup extends WidgetGroup {
     }
 
     @Override
-    public CompoundTag serializeNBT() {
-        CompoundTag tag = super.serializeNBT();
+    public CompoundTag serializeInnerNBT() {
+        CompoundTag tag = super.serializeInnerNBT();
         tag.putInt("scrollXOffset", scrollXOffset);
         tag.putInt("scrollYOffset", scrollYOffset);
         tag.putInt("maxHeight", maxHeight);
@@ -500,8 +500,8 @@ public class DraggableScrollableWidgetGroup extends WidgetGroup {
     }
 
     @Override
-    public void deserializeNBT(CompoundTag nbt) {
-        super.deserializeNBT(nbt);
+    public void deserializeInnerNBT(CompoundTag nbt) {
+        super.deserializeInnerNBT(nbt);
         this.scrollXOffset= nbt.getInt("scrollXOffset");
         this.scrollYOffset= nbt.getInt("scrollYOffset");
         this.maxHeight= nbt.getInt("maxHeight");

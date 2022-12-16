@@ -105,7 +105,7 @@ public class ArrayConfiguratorGroup<T> extends ConfiguratorGroup{
         }
     }
 
-    protected void notifyListUpdate() {
+    public void notifyListUpdate() {
         if (onUpdate != null) {
             onUpdate.accept(configurators.stream().map(c -> ((ItemConfigurator)c).object).toList());
         }

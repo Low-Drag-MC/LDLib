@@ -58,7 +58,6 @@ public class ResourceContainer<T, C extends Widget> extends WidgetGroup {
 
     @Getter @Nullable
     protected String selected;
-    private Tag copied;
 
     public ResourceContainer(Resource<T> resource, ResourcePanel panel) {
         super(3, 0, panel.getSize().width - 6, panel.getSize().height - 14);
@@ -147,16 +146,16 @@ public class ResourceContainer<T, C extends Widget> extends WidgetGroup {
     }
 
     protected void paste() {
-        if (copied != null) {
-            var value = getResource().deserialize(copied);
+        panel.getEditor().ifCopiedPresent(resource.name(), c -> {
+            var value = getResource().deserialize((Tag)c);
             resource.addResource(genNewFileName(), value);
             reBuild();
-        }
+        });
     }
 
     protected void copy() {
         if (selected != null) {
-            copied = resource.serialize(resource.getResource(selected));
+            panel.getEditor().setCopy(resource.name(), resource.serialize(resource.getResource(selected)));
         }
     }
 

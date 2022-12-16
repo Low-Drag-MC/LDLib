@@ -64,6 +64,7 @@ public class ArrayConfiguratorAccessor implements IConfiguratorAccessor<Object> 
 
         arrayGroup.setOnUpdate(list -> consumer.accept(toArray(list)));
         arrayGroup.setCanCollapse(canCollapse);
+        arrayGroup.setOnReorder((index, widget) -> arrayGroup.notifyListUpdate());
         return arrayGroup;
     }
 
