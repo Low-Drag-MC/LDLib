@@ -27,7 +27,7 @@ import javax.annotation.Nonnull;
 import java.util.Collections;
 import java.util.List;
 
-@RegisterUI(name = "phantom_item_slot", group = "container")
+@RegisterUI(name = "phantom_item_slot", group = "widget.container")
 public class PhantomSlotWidget extends SlotWidget implements IGhostIngredientTarget, IConfigurableWidget {
 
     private boolean clearSlotOnRightClick;

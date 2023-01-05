@@ -15,7 +15,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 import java.awt.Color;
 
-@RegisterUI(name = "color_rect_texture")
+@RegisterUI(name = "color_rect_texture", group = "texture")
 @Accessors(chain = true)
 public class ColorRectTexture extends TransformTexture{
 

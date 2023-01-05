@@ -21,7 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Configurable(name = "ldlib.gui.editor.register.widget.text_box", collapse = false)
-@RegisterUI(name = "text_box")
+@RegisterUI(name = "text_box", group = "widget.basic")
 public class TextBoxWidget extends Widget implements IConfigurableWidget {
 
     // config

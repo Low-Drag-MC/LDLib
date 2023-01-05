@@ -94,4 +94,9 @@ public class UIResourceTexture implements IGuiTexture {
     public void buildConfigurator(ConfiguratorGroup father) {
         getTexture().buildConfigurator(father);
     }
+
+    @Override
+    public void setUIResource(Resource<IGuiTexture> texturesResource) {
+        setResource(texturesResource);
+    }
 }

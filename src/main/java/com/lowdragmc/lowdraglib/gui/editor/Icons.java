@@ -34,6 +34,8 @@ public class Icons {
     public static ResourceTexture ADD_FILE = icon("add_file");
     public static ResourceTexture EDIT_FILE = icon("edit_file");
     public static ResourceTexture REMOVE_FILE = icon("remove_file");
+    public static ResourceTexture CHECK = icon("check");
+    public static ResourceTexture HISTORY = icon("history");
 
     //align
     public static ResourceTexture ALIGN_H_C = icon("align_horizontal_center");

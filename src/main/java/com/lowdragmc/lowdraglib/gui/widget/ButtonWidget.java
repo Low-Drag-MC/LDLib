@@ -11,7 +11,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 import java.util.function.Consumer;
 
-@RegisterUI(name = "button")
+@RegisterUI(name = "button", group = "widget.basic")
 public class ButtonWidget extends Widget implements IConfigurableWidget {
 
     protected Consumer<ClickData> onPressCallback;

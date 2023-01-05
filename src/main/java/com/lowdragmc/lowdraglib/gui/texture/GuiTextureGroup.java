@@ -2,11 +2,12 @@ package com.lowdragmc.lowdraglib.gui.texture;
 
 import com.lowdragmc.lowdraglib.gui.editor.annotation.Configurable;
 import com.lowdragmc.lowdraglib.gui.editor.annotation.RegisterUI;
+import com.lowdragmc.lowdraglib.gui.editor.data.resource.Resource;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
-@RegisterUI(name = "group_texture")
+@RegisterUI(name = "group_texture", group = "texture")
 public class GuiTextureGroup extends TransformTexture{
 
     @Configurable(collapse = false)
@@ -54,6 +55,13 @@ public class GuiTextureGroup extends TransformTexture{
     protected void drawSubAreaInternal(PoseStack stack, float x, float y, int width, int height, float drawnU, float drawnV, float drawnWidth, float drawnHeight) {
         for (IGuiTexture texture : textures) {
             texture.drawSubArea(stack, x, y, width, height, drawnU, drawnV, drawnWidth, drawnHeight);
+        }
+    }
+
+    @Override
+    public void setUIResource(Resource<IGuiTexture> texturesResource) {
+        for (IGuiTexture texture : textures) {
+            texture.setUIResource(texturesResource);
         }
     }
 }

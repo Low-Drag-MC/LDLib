@@ -31,7 +31,7 @@ import java.io.File;
 
 import static com.mojang.blaze3d.vertex.DefaultVertexFormat.POSITION_TEX_COLOR;
 
-@RegisterUI(name = "resource_texture")
+@RegisterUI(name = "resource_texture", group = "texture")
 @NoArgsConstructor
 public class ResourceTexture extends TransformTexture {
 
@@ -136,7 +136,7 @@ public class ResourceTexture extends TransformTexture {
         widgetGroup.addWidget(imageWidget = new ImageWidget(0, 0, 100, 100, new GuiTextureGroup(new ResourceTexture(imageLocation.toString()), this::drawGuides)).setBorder(2, ColorPattern.T_WHITE.color));
         widgetGroup.addWidget(new ButtonWidget(0, 0, 100, 100, IGuiTexture.EMPTY, cd -> {
             if (Editor.INSTANCE == null) return;
-            File path = new File(LDLMod.location, "assets/ldlib/textures");
+            File path = new File(Editor.INSTANCE.getWorkSpace(), "assets/ldlib/textures");
             DialogWidget.showFileDialog(Editor.INSTANCE, "ldlib.gui.editor.tips.select_image", path, true,
                     DialogWidget.suffixFilter(".png"), r -> {
                         if (r != null && r.isFile()) {

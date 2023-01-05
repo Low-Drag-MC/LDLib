@@ -19,7 +19,7 @@ public class IGuiTextureAccessor extends CustomObjectAccessor<IGuiTexture>{
 
     @Override
     public ITypedPayload<?> serialize(IGuiTexture value) {
-        var tag = IGuiTexture.serialize(value);
+        var tag = IGuiTexture.serializeWrapper(value);
         if (tag == null) {
             tag = new CompoundTag();
             if (value instanceof UIResourceTexture uiResourceTexture) {
@@ -49,7 +49,7 @@ public class IGuiTextureAccessor extends CustomObjectAccessor<IGuiTexture>{
                     return resource.getResourceOrDefault(key, IGuiTexture.MISSING_TEXTURE);
                 }
             }
-            return IGuiTexture.deserialize(tag);
+            return IGuiTexture.deserializeWrapper(tag);
         }
         return null;
     }

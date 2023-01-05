@@ -22,7 +22,7 @@ import java.io.IOException;
  * @date 2022/12/4
  * @implNote UIProject
  */
-@RegisterUI(name = "ui")
+@RegisterUI(name = "ui", group = "project")
 public class UIProject extends Project {
 
     public Resources resources;

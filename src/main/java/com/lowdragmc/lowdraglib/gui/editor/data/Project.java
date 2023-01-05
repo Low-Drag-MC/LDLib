@@ -1,6 +1,6 @@
 package com.lowdragmc.lowdraglib.gui.editor.data;
 
-import com.lowdragmc.lowdraglib.gui.editor.annotation.RegisterUI;
+import com.lowdragmc.lowdraglib.gui.editor.IRegisterUI;
 import com.lowdragmc.lowdraglib.gui.editor.ui.Editor;
 import com.lowdragmc.lowdraglib.gui.util.TreeBuilder;
 import net.minecraft.nbt.CompoundTag;
@@ -13,7 +13,7 @@ import java.io.File;
  * @date 2022/12/9
  * @implNote Project
  */
-public abstract class Project {
+public abstract class Project implements IRegisterUI {
 
     public abstract Resources getResources();
 
@@ -30,15 +30,11 @@ public abstract class Project {
 
     public abstract Project newEmptyProject();
 
-    public RegisterUI getRegisterUI() {
-        return getClass().getAnnotation(RegisterUI.class);
-    }
-
     /**
      * Suffix name of this project
      */
     public String getSuffix() {
-        return getRegisterUI().name();
+        return name();
     }
 
     /**

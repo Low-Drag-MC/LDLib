@@ -14,7 +14,18 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE})
 public @interface RegisterUI {
+    /**
+     * Should be unique in the same type of ui element
+     */
     String name();
-    String group() default "";
+
+    /**
+     * In general, it refers to the type.
+     */
+    String group();
+
+    /**
+     * Register it while such mod is installed.
+     */
     String modID() default "";
 }

@@ -18,7 +18,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import javax.annotation.Nonnull;
 
 @Configurable(name = "ldlib.gui.editor.register.widget.image", collapse = false)
-@RegisterUI(name = "image")
+@RegisterUI(name = "image", group = "widget.basic")
 public class ImageWidget extends Widget implements IConfigurableWidget {
 
     @Configurable(name = "ldlib.gui.editor.name.border")

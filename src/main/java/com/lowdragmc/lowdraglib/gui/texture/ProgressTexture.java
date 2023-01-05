@@ -2,6 +2,7 @@ package com.lowdragmc.lowdraglib.gui.texture;
 
 import com.lowdragmc.lowdraglib.gui.editor.annotation.Configurable;
 import com.lowdragmc.lowdraglib.gui.editor.annotation.RegisterUI;
+import com.lowdragmc.lowdraglib.gui.editor.data.resource.Resource;
 import com.mojang.blaze3d.vertex.PoseStack;
 import lombok.Getter;
 import net.minecraft.util.Mth;
@@ -11,7 +12,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 /**
  * @author youyihj
  */
-@RegisterUI(name = "progress_texture")
+@RegisterUI(name = "progress_texture", group = "texture")
 public class ProgressTexture extends TransformTexture {
     @Configurable
     protected FillDirection fillDirection = FillDirection.LEFT_TO_RIGHT;
@@ -73,6 +74,16 @@ public class ProgressTexture extends TransformTexture {
             float drawnHeight = (float) fillDirection.getDrawnHeight(progress);
             filledBarArea.drawSubArea(stack, x + drawnU * width, y + drawnV * height, ((int) (width * drawnWidth)), ((int) (height * drawnHeight)),
                     drawnU, drawnV,((int) (drawnWidth * width)) / (width * 1.0f), ((int) (drawnHeight * height)) / (height * 1.0f));
+        }
+    }
+
+    @Override
+    public void setUIResource(Resource<IGuiTexture> texturesResource) {
+        if (emptyBarArea != null) {
+            emptyBarArea.setUIResource(texturesResource);
+        }
+        if (filledBarArea != null) {
+            filledBarArea.setUIResource(texturesResource);
         }
     }
 

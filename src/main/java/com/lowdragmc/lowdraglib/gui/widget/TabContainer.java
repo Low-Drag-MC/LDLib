@@ -17,7 +17,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiConsumer;
 
-@RegisterUI(name = "tab_group", group = "group")
+@RegisterUI(name = "tab_group", group = "widget.group")
 public class TabContainer extends WidgetGroup {
     public static final ResourceTexture TABS_LEFT = new ResourceTexture("ldlib:textures/gui/tabs_left.png");
 

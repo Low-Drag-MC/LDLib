@@ -1,5 +1,6 @@
 package com.lowdragmc.lowdraglib.gui.editor.configurator;
 
+import com.lowdragmc.lowdraglib.gui.editor.IRegisterUI;
 import com.lowdragmc.lowdraglib.gui.editor.annotation.RegisterUI;
 import com.lowdragmc.lowdraglib.gui.editor.runtime.ConfiguratorParser;
 import com.lowdragmc.lowdraglib.gui.editor.runtime.PersistedParser;
@@ -18,7 +19,7 @@ import java.util.HashMap;
  * <br>
  * to de/serialize it.
  */
-public interface IConfigurable {
+public interface IConfigurable extends IRegisterUI {
 
     /**
      * Add configurators into given group
@@ -26,20 +27,6 @@ public interface IConfigurable {
      */
     default void buildConfigurator(ConfiguratorGroup father) {
         ConfiguratorParser.createConfigurators(father, new HashMap<>(), getClass(), this);
-    }
-
-    /**
-     * Whether element is registered
-     */
-    default boolean isRegisterUI() {
-        return getClass().isAnnotationPresent(RegisterUI.class);
-    }
-
-    /**
-     * Get register annotation
-     */
-    default RegisterUI getRegisterUI() {
-        return getClass().getAnnotation(RegisterUI.class);
     }
 
 }

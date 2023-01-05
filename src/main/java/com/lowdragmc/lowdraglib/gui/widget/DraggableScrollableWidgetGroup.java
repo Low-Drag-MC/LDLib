@@ -19,7 +19,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import javax.annotation.Nonnull;
 import java.util.List;
 
-@RegisterUI(name = "draggable_scrollable_group", group = "group")
+@RegisterUI(name = "draggable_scrollable_group", group = "widget.group")
 public class DraggableScrollableWidgetGroup extends WidgetGroup {
     protected int scrollXOffset;
     protected int scrollYOffset;

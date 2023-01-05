@@ -70,7 +70,9 @@ public class FluidStackSelectorWidget extends WidgetGroup {
 
     public FluidStackSelectorWidget setFluidStack(FluidStack fluidStack) {
         fluid = Objects.requireNonNullElse(fluidStack, FluidStack.EMPTY).copy();
-        fluid.setAmount(1000);
+        if (fluid != FluidStack.EMPTY) {
+            fluid.setAmount(1000);
+        }
         handler.setFluid(fluid);
         fluidField.setCurrentString(fluid.getFluid().getRegistryName().toString());
         return this;

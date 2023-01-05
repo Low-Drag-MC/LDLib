@@ -78,7 +78,7 @@ public class GuiTextureConfigurator extends ValueConfigurator<IGuiTexture>{
     @Override
     public void init(int width) {
         super.init(width);
-        int w = Math.min(width - 6, 100);
+        int w = Math.min(width - 6, 50);
         int x = (width - w) / 2;
         addWidget(preview = new ImageWidget(x, 17, w, w, value).setBorder(2, ColorPattern.T_WHITE.color));
         preview.setDraggingConsumer(

@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-@RegisterUI(name = "text_texture")
+@RegisterUI(name = "text_texture", group = "texture")
 public class TextTexture extends TransformTexture{
 
     @Configurable

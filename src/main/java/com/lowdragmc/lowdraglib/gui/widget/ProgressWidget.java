@@ -8,6 +8,7 @@ import com.lowdragmc.lowdraglib.gui.editor.runtime.PersistedParser;
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.texture.ProgressTexture;
 import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
+import com.lowdragmc.lowdraglib.gui.texture.UIResourceTexture;
 import com.lowdragmc.lowdraglib.utils.Position;
 import com.lowdragmc.lowdraglib.utils.Size;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -25,12 +26,12 @@ import java.util.HashMap;
 import java.util.function.DoubleSupplier;
 import java.util.function.Function;
 
-@RegisterUI(name = "progress", group = "basic")
+@RegisterUI(name = "progress", group = "widget.basic")
 public class ProgressWidget extends Widget implements IConfigurableWidget {
     public final static DoubleSupplier JEIProgress = () -> Math.abs(System.currentTimeMillis() % 2000) / 2000.;
 
     public DoubleSupplier progressSupplier;
-    private ProgressTexture progressBar;
+    private IGuiTexture progressBar;
     private Function<Double, String> dynamicHoverTips;
 
     private double lastProgressValue;
@@ -74,7 +75,9 @@ public class ProgressWidget extends Widget implements IConfigurableWidget {
     }
 
     public ProgressWidget setFillDirection(ProgressTexture.FillDirection fillDirection) {
-        this.progressBar.setFillDirection(fillDirection);
+        if (this.progressBar instanceof ProgressTexture progressTexture) {
+            progressTexture.setFillDirection(fillDirection);
+        }
         return this;
     }
 
@@ -111,7 +114,9 @@ public class ProgressWidget extends Widget implements IConfigurableWidget {
         if (progressSupplier == JEIProgress || isClientSideWidget) {
             lastProgressValue = progressSupplier.getAsDouble();
         }
-        progressBar.setProgress(lastProgressValue);
+        if (progressBar instanceof ProgressTexture progressTexture) {
+            progressTexture.setProgress(lastProgressValue);
+        }
         progressBar.draw(matrixStack, mouseX, mouseY, pos.x, pos.y, size.width, size.height);
     }
 
@@ -153,11 +158,11 @@ public class ProgressWidget extends Widget implements IConfigurableWidget {
     public void buildConfigurator(ConfiguratorGroup father) {
         IConfigurableWidget.super.buildConfigurator(father);
         var configurator = new GuiTextureConfigurator("progress bar", () -> progressBar, t -> {
-            if (t instanceof ProgressTexture texture) {
-                setProgressBar(texture);
+            if (t instanceof ProgressTexture || (t instanceof UIResourceTexture uiResourceTexture && uiResourceTexture.getTexture() instanceof ProgressTexture)) {
+                this.progressBar = t;
             }
         }, true);
-        configurator.setAvailable(t -> t instanceof ProgressTexture);
+        configurator.setAvailable(t -> t instanceof ProgressTexture || (t instanceof UIResourceTexture uiResourceTexture && uiResourceTexture.getTexture() instanceof ProgressTexture));
         configurator.setTips("ldlib.gui.editor.tips.progress_texture");
         father.addConfigurators(configurator);
     }
@@ -191,9 +196,10 @@ public class ProgressWidget extends Widget implements IConfigurableWidget {
 
     @Override
     public boolean handleDragging(Object dragging) {
-        if (dragging instanceof ProgressTexture progressTexture) {
-            setProgressBar(progressTexture);
+        if (dragging instanceof ProgressTexture || (dragging instanceof UIResourceTexture uiResourceTexture && uiResourceTexture.getTexture() instanceof ProgressTexture) ) {
+            this.progressBar = (IGuiTexture) dragging;
             return true;
         } else return IConfigurableWidget.super.handleDragging(dragging);
     }
+
 }

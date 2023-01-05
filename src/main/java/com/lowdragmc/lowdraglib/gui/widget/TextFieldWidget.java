@@ -29,7 +29,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 @Configurable(name = "ldlib.gui.editor.register.widget.text_field", collapse = false)
-@RegisterUI(name = "text_field")
+@RegisterUI(name = "text_field", group = "widget.basic")
 public class TextFieldWidget extends Widget implements IConfigurableWidget {
 
     @OnlyIn(Dist.CLIENT)

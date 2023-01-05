@@ -11,7 +11,7 @@ import com.lowdragmc.lowdraglib.utils.Position;
  * @date 2022/12/12
  * @implNote PlayerInventoryWidget
  */
-@RegisterUI(name = "player_inventory", group = "custom")
+@RegisterUI(name = "player_inventory", group = "widget.custom")
 public class PlayerInventoryWidget extends WidgetGroup {
 
     public PlayerInventoryWidget() {

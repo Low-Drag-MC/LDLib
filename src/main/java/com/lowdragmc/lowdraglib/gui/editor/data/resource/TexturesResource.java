@@ -18,7 +18,7 @@ import static com.lowdragmc.lowdraglib.gui.widget.TabContainer.TABS_LEFT;
  * @date 2022/12/3
  * @implNote TextureResource
  */
-@RegisterUI(name = RESOURCE_NAME)
+@RegisterUI(name = RESOURCE_NAME, group = "resource")
 public class TexturesResource extends Resource<IGuiTexture> {
 
     public final static String RESOURCE_NAME = "ldlib.gui.editor.group.textures";
@@ -52,13 +52,13 @@ public class TexturesResource extends Resource<IGuiTexture> {
 
     @Override
     public Tag serialize(IGuiTexture value) {
-        return IGuiTexture.serialize(value);
+        return IGuiTexture.serializeWrapper(value);
     }
 
     @Override
     public IGuiTexture deserialize(Tag nbt) {
         if (nbt instanceof CompoundTag tag) {
-            return IGuiTexture.deserialize(tag);
+            return IGuiTexture.deserializeWrapper(tag);
         }
         return null;
     }
@@ -71,24 +71,8 @@ public class TexturesResource extends Resource<IGuiTexture> {
             data.put(key, deserialize(nbt.get(key)));
         }
         for (IGuiTexture texture : data.values()) {
-            updateUIResource(texture);
+            texture.setUIResource(this);
         }
     }
 
-    private void updateUIResource(IGuiTexture texture) {
-        if (texture instanceof UIResourceTexture uiResourceTexture) {
-            uiResourceTexture.setResource(this);
-        } else if (texture instanceof GuiTextureGroup textureGroup && textureGroup.textures != null) {
-            for (IGuiTexture guiTexture : textureGroup.textures) {
-                updateUIResource(guiTexture);
-            }
-        } else if (texture instanceof ProgressTexture progressTexture) {
-            if (progressTexture.getEmptyBarArea() != null) {
-                updateUIResource(progressTexture.getEmptyBarArea());
-            }
-            if (progressTexture.getFilledBarArea() != null) {
-                updateUIResource(progressTexture.getFilledBarArea());
-            }
-        }
-    }
 }

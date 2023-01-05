@@ -21,7 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
-@RegisterUI(name = "selector", group = "basic")
+@RegisterUI(name = "selector", group = "widget.basic")
 public class SelectorWidget extends WidgetGroup {
     protected List<SelectableWidgetGroup> selectables;
     @Configurable

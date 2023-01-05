@@ -7,6 +7,8 @@ import com.lowdragmc.lowdraglib.gui.editor.annotation.RegisterUI;
 import com.lowdragmc.lowdraglib.gui.editor.configurator.IConfigurableWidget;
 import com.lowdragmc.lowdraglib.gui.editor.data.Project;
 import com.lowdragmc.lowdraglib.gui.editor.data.resource.Resource;
+import com.lowdragmc.lowdraglib.gui.editor.ui.menu.MenuTab;
+import com.lowdragmc.lowdraglib.gui.editor.ui.view.FloatViewWidget;
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.utils.ReflectionUtils;
 
@@ -31,6 +33,8 @@ public class UIDetector {
     public static final List<Wrapper<RegisterUI, IGuiTexture>> REGISTER_TEXTURES = scanClasses(RegisterUI.class, IGuiTexture.class, UIDetector::checkNoArgsConstructor, UIDetector::toUINoArgsBuilder);
     public static final List<Wrapper<RegisterUI, Resource>> REGISTER_RESOURCES = scanClasses(RegisterUI.class, Resource.class, UIDetector::checkNoArgsConstructor, UIDetector::toUINoArgsBuilder);
     public static final List<Wrapper<RegisterUI, IConfigurableWidget>> REGISTER_WIDGETS = scanClasses(RegisterUI.class, IConfigurableWidget.class, UIDetector::checkNoArgsConstructor, UIDetector::toUINoArgsBuilder);
+    public static final List<Wrapper<RegisterUI, FloatViewWidget>> REGISTER_FLOAT_VIEWS = scanClasses(RegisterUI.class, FloatViewWidget.class, UIDetector::checkNoArgsConstructor, UIDetector::toUINoArgsBuilder);
+    public static final List<Wrapper<RegisterUI, MenuTab>> REGISTER_MENU_TABS = scanClasses(RegisterUI.class, MenuTab.class, UIDetector::checkNoArgsConstructor, UIDetector::toUINoArgsBuilder);
     public static final List<Project> REGISTER_PROJECTS = scanClasses(RegisterUI.class, Project.class, UIDetector::checkNoArgsConstructor, UIDetector::createNoArgsInstance);
 
     public static void init() {

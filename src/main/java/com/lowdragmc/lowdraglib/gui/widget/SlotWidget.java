@@ -45,7 +45,7 @@ import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
-@RegisterUI(name = "item_slot", group = "container")
+@RegisterUI(name = "item_slot", group = "widget.container")
 @Accessors(chain = true)
 public class SlotWidget extends Widget implements IRecipeIngredientSlot, IConfigurableWidget {
 

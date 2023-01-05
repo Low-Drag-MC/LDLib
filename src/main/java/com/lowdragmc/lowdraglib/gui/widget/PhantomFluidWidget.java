@@ -3,7 +3,6 @@ package com.lowdragmc.lowdraglib.gui.widget;
 import com.google.common.collect.Lists;
 import com.lowdragmc.lowdraglib.LDLMod;
 import com.lowdragmc.lowdraglib.gui.editor.annotation.ConfigSetter;
-import com.lowdragmc.lowdraglib.gui.editor.annotation.Configurable;
 import com.lowdragmc.lowdraglib.gui.editor.annotation.RegisterUI;
 import com.lowdragmc.lowdraglib.gui.editor.configurator.IConfigurableWidget;
 import com.lowdragmc.lowdraglib.gui.ingredient.IGhostIngredientTarget;
@@ -13,6 +12,7 @@ import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.fluids.FluidStack;
@@ -26,7 +26,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 
-@RegisterUI(name = "phantom_fluid_slot", group = "container")
+@RegisterUI(name = "phantom_fluid_slot", group = "widget.container")
 public class PhantomFluidWidget extends TankWidget implements IGhostIngredientTarget, IConfigurableWidget {
 
     private Consumer<FluidStack> fluidStackUpdater;
@@ -63,8 +63,17 @@ public class PhantomFluidWidget extends TankWidget implements IGhostIngredientTa
     }
 
     public static FluidStack drainFrom(Object ingredient) {
+         if (ingredient instanceof Ingredient ingred) {
+            var items = ingred.getItems();
+            if (items.length > 0) {
+                ingredient = items[0];
+            }
+        }
         if (ingredient instanceof ItemStack itemStack) {
-            itemStack.getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY, null).ifPresent(handler -> handler.drain(Integer.MAX_VALUE, IFluidHandler.FluidAction.SIMULATE));
+            var handler = itemStack.getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY, null);
+            if (handler.isPresent()) {
+                return handler.orElse(null).drain(Integer.MAX_VALUE, IFluidHandler.FluidAction.SIMULATE);
+            }
         }
         return null;
     }
@@ -120,24 +129,7 @@ public class PhantomFluidWidget extends TankWidget implements IGhostIngredientTa
     @Override
     public void handleClientAction(int id, FriendlyByteBuf buffer) {
         if (id == 1) {
-            if (fluidTank == null) return;
-            ItemStack itemStack = gui.getModularUIContainer().getCarried().copy();
-            if (!itemStack.isEmpty()) {
-                itemStack.setCount(1);
-                itemStack.getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY).ifPresent(handler -> {
-                    FluidStack resultFluid = handler.drain(Integer.MAX_VALUE, IFluidHandler.FluidAction.SIMULATE);
-                    fluidTank.drain(fluidTank.getCapacity(), IFluidHandler.FluidAction.EXECUTE);
-                    fluidTank.fill(resultFluid.copy(), IFluidHandler.FluidAction.EXECUTE);
-                    if (fluidStackUpdater != null) {
-                        fluidStackUpdater.accept(resultFluid);
-                    }
-                });
-            } else {
-                fluidTank.drain(fluidTank.getCapacity(), IFluidHandler.FluidAction.EXECUTE);
-                if (fluidStackUpdater != null) {
-                    fluidStackUpdater.accept(null);
-                }
-            }
+            handlePhantomClick();
         } else if (id == 2) {
             FluidStack fluidStack;
             fluidStack = FluidStack.loadFluidStackFromNBT(buffer.readNbt());
@@ -156,16 +148,35 @@ public class PhantomFluidWidget extends TankWidget implements IGhostIngredientTa
     @OnlyIn(Dist.CLIENT)
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (isMouseOverElement(mouseX, mouseY)) {
-            writeClientAction(1, buffer -> { });
-            if (isClientSideWidget && fluidTank != null) {
-                fluidTank.drain(fluidTank.getCapacity(), IFluidHandler.FluidAction.EXECUTE);
-                if (fluidStackUpdater != null) {
-                    fluidStackUpdater.accept(null);
-                }
+            if (isClientSideWidget) {
+                handlePhantomClick();
+            } else {
+                writeClientAction(1, buffer -> { });
             }
             return true;
         }
         return false;
+    }
+
+    private void handlePhantomClick() {
+        if (fluidTank == null) return;
+        ItemStack itemStack = gui.getModularUIContainer().getCarried().copy();
+        if (!itemStack.isEmpty()) {
+            itemStack.setCount(1);
+            itemStack.getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY).ifPresent(handler -> {
+                FluidStack resultFluid = handler.drain(Integer.MAX_VALUE, IFluidHandler.FluidAction.SIMULATE);
+                fluidTank.drain(fluidTank.getCapacity(), IFluidHandler.FluidAction.EXECUTE);
+                fluidTank.fill(resultFluid.copy(), IFluidHandler.FluidAction.EXECUTE);
+                if (fluidStackUpdater != null) {
+                    fluidStackUpdater.accept(resultFluid);
+                }
+            });
+        } else {
+            fluidTank.drain(fluidTank.getCapacity(), IFluidHandler.FluidAction.EXECUTE);
+            if (fluidStackUpdater != null) {
+                fluidStackUpdater.accept(null);
+            }
+        }
     }
 
 }

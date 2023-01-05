@@ -18,7 +18,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
 @Configurable(name = "ldlib.gui.editor.register.widget.switch", collapse = false)
-@RegisterUI(name = "switch")
+@RegisterUI(name = "switch", group = "widget.container")
 public class SwitchWidget extends Widget implements IConfigurableWidget {
 
     @Configurable

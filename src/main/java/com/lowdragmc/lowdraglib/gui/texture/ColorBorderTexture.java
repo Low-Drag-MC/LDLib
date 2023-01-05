@@ -14,7 +14,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 import java.awt.Color;
 
-@RegisterUI(name = "color_border_texture")
+@RegisterUI(name = "color_border_texture", group = "texture")
 public class ColorBorderTexture extends TransformTexture{
 
     @Configurable

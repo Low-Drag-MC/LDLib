@@ -5,6 +5,7 @@ import com.lowdragmc.lowdraglib.gui.editor.annotation.RegisterUI;
 import com.lowdragmc.lowdraglib.gui.editor.configurator.ConfiguratorGroup;
 import com.lowdragmc.lowdraglib.gui.editor.configurator.IConfigurable;
 import com.lowdragmc.lowdraglib.gui.editor.configurator.WrapperConfigurator;
+import com.lowdragmc.lowdraglib.gui.editor.data.resource.Resource;
 import com.lowdragmc.lowdraglib.gui.editor.runtime.PersistedParser;
 import com.lowdragmc.lowdraglib.gui.editor.runtime.UIDetector;
 import com.lowdragmc.lowdraglib.gui.widget.ImageWidget;
@@ -107,11 +108,10 @@ public interface IGuiTexture extends IConfigurable {
     }
 
     @Nullable
-    static CompoundTag serialize(IGuiTexture texture) {
-        RegisterUI registered = texture.getClass().getAnnotation(RegisterUI.class);
-        if (registered != null) {
+    static CompoundTag serializeWrapper(IGuiTexture texture) {
+        if (texture.isRegisterUI()) {
             CompoundTag tag = new CompoundTag();
-            tag.putString("type", registered.name());
+            tag.putString("type", texture.name());
             CompoundTag data = new CompoundTag();
             PersistedParser.serializeNBT(data, texture.getClass(), texture);
             tag.put("data", data);
@@ -121,12 +121,16 @@ public interface IGuiTexture extends IConfigurable {
     }
 
     @NotNull
-    static IGuiTexture deserialize(CompoundTag tag) {
+    static IGuiTexture deserializeWrapper(CompoundTag tag) {
         var type = tag.getString("type");
         var data = tag.getCompound("data");
         var wrapper = CACHE.apply(type);
         IGuiTexture value = wrapper == null ? IGuiTexture.EMPTY : wrapper.creator().get();
         PersistedParser.deserializeNBT(data, new HashMap<>(), value.getClass(), value);
         return value;
+    }
+
+    default void setUIResource(Resource<IGuiTexture> texturesResource) {
+
     }
 }

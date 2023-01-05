@@ -96,7 +96,7 @@ public interface IConfigurableWidget extends IConfigurable {
 
     default CompoundTag serializeWrapper() {
         var tag = new CompoundTag();
-        tag.putString("type", getRegisterUI().name());
+        tag.putString("type", name());
         tag.put("data", serializeInnerNBT());
         return tag;
     }

@@ -19,7 +19,7 @@ import static com.lowdragmc.lowdraglib.gui.editor.data.resource.EntriesResource.
  * @date 2022/12/3
  * @implNote TextureResource
  */
-@RegisterUI(name = RESOURCE_NAME)
+@RegisterUI(name = RESOURCE_NAME, group = "resource")
 public class EntriesResource extends Resource<String> {
 
     public final static String RESOURCE_NAME = "ldlib.gui.editor.group.entries";

@@ -20,7 +20,7 @@ import javax.annotation.Nonnull;
 import java.util.function.Supplier;
 
 @Configurable(name = "ldlib.gui.editor.register.widget.label", collapse = false)
-@RegisterUI(name = "label")
+@RegisterUI(name = "label", group = "widget.basic")
 public class LabelWidget extends Widget implements IConfigurableWidget {
 
     @Setter

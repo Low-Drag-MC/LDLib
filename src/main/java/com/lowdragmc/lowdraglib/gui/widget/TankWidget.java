@@ -51,8 +51,9 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
-@RegisterUI(name = "fluid_slot", group = "container")
+@RegisterUI(name = "fluid_slot", group = "widget.container")
 @Accessors(chain = true)
 public class TankWidget extends Widget implements IRecipeIngredientSlot, IConfigurableWidget {
 
@@ -87,6 +88,8 @@ public class TankWidget extends Widget implements IRecipeIngredientSlot, IConfig
 
     protected FluidStack lastFluidInTank;
     protected int lastTankCapacity;
+    @Setter
+    protected Runnable changeListener;
 
     public TankWidget() {
         this(null, 0, 0, 18, 18, true, true);
@@ -248,6 +251,12 @@ public class TankWidget extends Widget implements IRecipeIngredientSlot, IConfig
             } else if (fluidStack.getAmount() != lastFluidInTank.getAmount()) {
                 this.lastFluidInTank.setAmount(fluidStack.getAmount());
                 writeUpdateInfo(3, buffer -> buffer.writeVarInt(lastFluidInTank.getAmount()));
+            } else {
+                super.detectAndSendChanges();
+                return;
+            }
+            if (changeListener != null) {
+                changeListener.run();
             }
         }
     }
@@ -288,6 +297,12 @@ public class TankWidget extends Widget implements IRecipeIngredientSlot, IConfig
             int newStackSize = buffer.readVarInt();
             currentStack.setCount(newStackSize);
             gui.getModularUIContainer().setCarried(currentStack);
+        } else {
+            super.readUpdateInfo(id, buffer);
+            return;
+        }
+        if (changeListener != null) {
+            changeListener.run();
         }
     }
 

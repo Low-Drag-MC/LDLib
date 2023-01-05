@@ -8,10 +8,7 @@ import com.lowdragmc.lowdraglib.gui.texture.ColorRectTexture;
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.util.TreeBuilder;
 import com.lowdragmc.lowdraglib.gui.util.TreeNode;
-import com.lowdragmc.lowdraglib.gui.widget.DialogWidget;
-import com.lowdragmc.lowdraglib.gui.widget.MenuWidget;
-import com.lowdragmc.lowdraglib.gui.widget.TabContainer;
-import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
+import com.lowdragmc.lowdraglib.gui.widget.*;
 import com.lowdragmc.lowdraglib.utils.Position;
 import com.lowdragmc.lowdraglib.utils.Size;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -42,6 +39,8 @@ public class Editor extends WidgetGroup {
     protected ConfigPanel configPanel;
     @Getter
     protected ResourcePanel resourcePanel;
+    @Getter
+    protected WidgetGroup floatView;
     @Getter
     protected ToolPanel toolPanel;
     @Getter
@@ -80,6 +79,8 @@ public class Editor extends WidgetGroup {
         addWidget(configPanel = new ConfigPanel(this));
         addWidget(resourcePanel = new ResourcePanel(this));
         addWidget(menuPanel = new MenuPanel(this));
+        addWidget(floatView = new WidgetGroup(0, 0, screenWidth, screenHeight));
+
         loadProject(currentProject);
     }
 

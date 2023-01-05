@@ -16,6 +16,8 @@ import java.util.Set;
  * @author KilaBash
  * @date 2022/12/3
  * @implNote Resource
+ * You can register a new global resource (available for all projects) using {@link com.lowdragmc.lowdraglib.gui.editor.annotation.RegisterUI},
+ * or you can add a resource dynamically to the project
  */
 public abstract class Resource<T> implements INBTSerializable<CompoundTag> {
 

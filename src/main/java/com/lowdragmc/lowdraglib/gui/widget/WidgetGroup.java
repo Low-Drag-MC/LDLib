@@ -28,7 +28,7 @@ import java.util.*;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
 
-@RegisterUI(name = "group", group = "group")
+@RegisterUI(name = "group", group = "widget.group")
 public class WidgetGroup extends Widget implements IGhostIngredientTarget, IIngredientSlot, IConfigurableWidgetGroup {
 
     public final List<Widget> widgets = new ArrayList<>();
