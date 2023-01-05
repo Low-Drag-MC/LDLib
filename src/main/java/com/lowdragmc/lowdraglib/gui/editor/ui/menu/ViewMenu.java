@@ -49,7 +49,6 @@ public class ViewMenu extends MenuTab {
     public CompoundTag serializeNBT() {
         var tag = super.serializeNBT();
         for (FloatViewWidget view : openedViews.values()) {
-            ItemStack
         }
         return tag;
     }
