@@ -332,6 +332,7 @@ public abstract class WorldSceneRenderer {
         //setup viewport and clear GL buffers
         RenderSystem.viewport(x, y, width, height);
 
+        RenderSystem.depthMask(true);
         clearView(x, y, width, height);
 
         //setup projection matrix to perspective
@@ -352,7 +353,6 @@ public abstract class WorldSceneRenderer {
         RenderSystem.applyModelViewMatrix();
 
         RenderSystem.enableTexture();
-        RenderSystem.depthMask(true);
 
         Minecraft mc = Minecraft.getInstance();
         RenderSystem.enableCull();

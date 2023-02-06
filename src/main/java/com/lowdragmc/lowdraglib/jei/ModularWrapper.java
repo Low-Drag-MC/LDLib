@@ -91,6 +91,7 @@ public class ModularWrapper<T extends Widget> extends ModularUIGuiContainer {
         this.hoveredSlot = null;
 
         RenderSystem.disableDepthTest();
+        RenderSystem.depthMask(false);
 
         tooltipTexts = null;
         tooltipFont = null;
@@ -101,7 +102,9 @@ public class ModularWrapper<T extends Widget> extends ModularUIGuiContainer {
         modularUI.mainGroup.drawInForeground(matrixStack, mouseX, mouseY, partialTicks);
 
         if (tooltipTexts != null && tooltipTexts.size() > 0) {
+            matrixStack.translate(0, 0, 200);
             renderTooltip(matrixStack, tooltipTexts, Optional.ofNullable(tooltipComponent), mouseX, mouseY, tooltipFont, tooltipStack);
+            matrixStack.translate(0, 0, -200);
         }
 
         RenderSystem.depthMask(true);
