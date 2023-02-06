@@ -18,9 +18,11 @@ import mezz.jei.common.gui.ingredients.RecipeSlot;
 import mezz.jei.common.ingredients.TypedIngredient;
 import mezz.jei.common.util.ImmutableRect2i;
 import net.minecraft.MethodsReturnNonnullByDefault;
+import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.Unmodifiable;
 
 import javax.annotation.ParametersAreNonnullByDefault;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -45,6 +47,9 @@ public class RecipeSlotWrapper extends RecipeSlot {
         this.area = new ImmutableRect2i(xPos, yPos, widget.getSize().width, widget.getSize().height);
         ((RecipeSlotAccessor) this).setArea(this.area);
         ((RecipeSlotAccessor) wrapperSlot).setArea(this.area);
+        if (widget instanceof IRecipeIngredientSlot slot) {
+            slot.clearTooltipCallback();
+        }
     }
 
     @Override
@@ -123,6 +128,13 @@ public class RecipeSlotWrapper extends RecipeSlot {
     @Override
     public void addTooltipCallback(IRecipeSlotTooltipCallback tooltipCallback) {
         wrapperSlot.addTooltipCallback(tooltipCallback);
+        if (widget instanceof IRecipeIngredientSlot) {
+            ((IRecipeIngredientSlot) widget).addTooltipCallback(tooltips -> {
+                List<Component> additional = new ArrayList<>();
+                tooltipCallback.onTooltip(this, additional);
+                tooltips.addAll(additional);
+            });
+        }
     }
 
     @Override

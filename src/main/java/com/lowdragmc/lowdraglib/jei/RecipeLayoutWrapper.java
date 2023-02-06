@@ -7,8 +7,11 @@ import com.lowdragmc.lowdraglib.utils.Position;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import mezz.jei.api.gui.drawable.IDrawable;
+import mezz.jei.api.gui.ingredient.IRecipeSlotTooltipCallback;
+import mezz.jei.api.gui.ingredient.IRecipeSlotView;
 import mezz.jei.api.helpers.IModIdHelper;
 import mezz.jei.api.recipe.IFocusGroup;
+import mezz.jei.api.recipe.RecipeIngredientRole;
 import mezz.jei.api.recipe.category.IRecipeCategory;
 import mezz.jei.api.runtime.IIngredientVisibility;
 import mezz.jei.common.gui.ingredients.RecipeSlot;
@@ -19,7 +22,12 @@ import mezz.jei.common.gui.recipes.layout.RecipeLayoutBuilder;
 import mezz.jei.common.gui.textures.Textures;
 import mezz.jei.common.ingredients.RegisteredIngredients;
 import mezz.jei.common.util.ImmutableRect2i;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -50,7 +58,7 @@ public class RecipeLayoutWrapper<R extends ModularWrapper<?>> extends RecipeLayo
             int posX,
             int posY,
             Textures textures
-            ) {
+    ) {
         RecipeLayoutWrapper<T> wrapper = new RecipeLayoutWrapper<>(index, recipeCategory, recipe, focuses, registeredIngredients, ingredientVisibility, modIdHelper, posX, posY, textures);
         if (wrapper.setRecipeLayout(recipeCategory, recipe, focuses) || wrapper.getLegacyAdapter().setRecipeLayout(recipeCategory, recipe)) {
             recipe.setRecipeLayout(posX, posY);
@@ -62,6 +70,8 @@ public class RecipeLayoutWrapper<R extends ModularWrapper<?>> extends RecipeLayo
                 Position position = widget.getPosition();
                 recipeSlots.add(new RecipeSlotWrapper(widget, slot, position.x - posX, position.y - posY));
             }
+            String uid = recipe.getUid();
+            if (uid != null) wrapper.addOutputTooltips(recipeSlots, uid);
             wrapper.setRecipeSlots(recipeSlots);
             return wrapper;
         }
@@ -176,6 +186,46 @@ public class RecipeLayoutWrapper<R extends ModularWrapper<?>> extends RecipeLayo
                 .filter(RecipeSlotWrapper.class::isInstance)
                 .map(RecipeSlotWrapper.class::cast)
                 .forEach(slotWrapper -> slotWrapper.onPositionUpdate(this));
+    }
+
+    private void addOutputTooltips(List<RecipeSlot> recipeSlots, String uid) {
+        List<RecipeSlot> outputSlots = recipeSlots.stream()
+                .filter(r -> r.getRole() == RecipeIngredientRole.OUTPUT)
+                .toList();
+        if (outputSlots.isEmpty()) return;
+
+        for (RecipeSlot outputSlot : outputSlots) {
+            outputSlot.addTooltipCallback(new RegisterNameTooltipCallback(uid, accessor.getModIdHelper()));
+        }
+    }
+
+    private static class RegisterNameTooltipCallback implements IRecipeSlotTooltipCallback {
+
+        private final ResourceLocation uid;
+        private final IModIdHelper modIdHelper;
+
+        private RegisterNameTooltipCallback(String uid, IModIdHelper modIdHelper) {
+            this.uid = new ResourceLocation(uid);
+            this.modIdHelper = modIdHelper;
+        }
+
+        @Override
+        public void onTooltip(@NotNull IRecipeSlotView recipeSlotView, @NotNull List<Component> tooltip) {
+            if (recipeSlotView.getRole() != RecipeIngredientRole.OUTPUT) return;
+            if (modIdHelper.isDisplayingModNameEnabled()) {
+                String modName = modIdHelper.getFormattedModNameForModId(uid.getNamespace());
+                TranslatableComponent recipeBy = new TranslatableComponent("jei.tooltip.recipe.by", modName);
+                tooltip.add(recipeBy.withStyle(ChatFormatting.GRAY));
+            }
+
+            Minecraft minecraft = Minecraft.getInstance();
+            boolean showAdvanced = minecraft.options.advancedItemTooltips || Screen.hasShiftDown();
+            if (showAdvanced) {
+                String recipeUid = ResourceLocation.DEFAULT_NAMESPACE.equals(uid.getNamespace()) ? uid.getPath() : uid.toString();
+                TranslatableComponent recipeId = new TranslatableComponent("jei.tooltip.recipe.id", recipeUid);
+                tooltip.add(recipeId.withStyle(ChatFormatting.DARK_GRAY));
+            }
+        }
     }
 
 }
