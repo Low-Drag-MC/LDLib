@@ -7,6 +7,7 @@ import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 import com.lowdragmc.lowdraglib.utils.LocalizationUtils;
 import com.lowdragmc.lowdraglib.utils.Size;
+import lombok.Getter;
 import net.minecraft.client.Minecraft;
 
 /**
@@ -18,6 +19,7 @@ public class Configurator extends WidgetGroup {
     protected ConfigPanel configPanel;
     protected ConfigPanel.Tab tab;
     protected String[] tips = new String[0];
+    @Getter
     protected String name;
     protected int leftWidth, rightWidth, width = -1;
 

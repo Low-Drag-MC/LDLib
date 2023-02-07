@@ -100,6 +100,7 @@ public class ShaderTexture extends TransformTexture {
             dispose();
             shader = new Shader(Shader.ShaderType.FRAGMENT, rawShader).compileShader();
             program = new ShaderProgram();
+            program.attach(Shaders.GUI_IMAGE_V);
             program.attach(shader);
         }
     }
@@ -199,6 +200,7 @@ public class ShaderTexture extends TransformTexture {
             } catch (Exception e) {
                 e.printStackTrace();
                 dispose();
+                return;
             }
 
             Tesselator tessellator = Tesselator.getInstance();

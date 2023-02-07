@@ -1,5 +1,7 @@
 package com.lowdragmc.lowdraglib.gui.editor.configurator;
 
+import lombok.Setter;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.function.Consumer;
@@ -11,7 +13,9 @@ public abstract class ValueConfigurator<T> extends Configurator {
     protected T value;
     @Nonnull
     protected T defaultValue;
+    @Setter
     protected Consumer<T> onUpdate;
+    @Setter
     protected Supplier<T> supplier;
 
     public ValueConfigurator(String name, Supplier<T> supplier, Consumer<T> onUpdate, @Nonnull T defaultValue, boolean forceUpdate) {
