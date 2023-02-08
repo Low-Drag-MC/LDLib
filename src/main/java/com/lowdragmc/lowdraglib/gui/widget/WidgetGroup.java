@@ -378,8 +378,15 @@ public class WidgetGroup extends Widget implements IGhostIngredientTarget, IIngr
     @OnlyIn(Dist.CLIENT)
     public void drawInForeground(@Nonnull PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
         super.drawInForeground(poseStack, mouseX, mouseY, partialTicks);
+        DialogWidget dialogWidget = null;
+        for (int i = widgets.size() - 1; i >= 0; i--) {
+            if (widgets.get(i) instanceof DialogWidget dialog) {
+                dialogWidget = dialog;
+                break;
+            }
+        }
         for (Widget widget : widgets) {
-            if (widget.isVisible()) {
+            if (widget.isVisible() && (dialogWidget == null || widget == dialogWidget)) {
                 RenderSystem.setShaderColor(1, 1, 1, 1);
                 RenderSystem.enableBlend();
                 if (widget.inAnimate()) {

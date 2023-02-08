@@ -19,9 +19,12 @@ import org.lwjgl.glfw.GLFW;
 
 import javax.annotation.Nonnull;
 import java.io.File;
+import java.util.Arrays;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 public class DialogWidget extends WidgetGroup {
     private static final int HEIGHT = 128;
@@ -79,9 +82,7 @@ public class DialogWidget extends WidgetGroup {
     @Override
     @OnlyIn(Dist.CLIENT)
     public void drawInBackground(@Nonnull PoseStack matrixStack, int mouseX, int mouseY, float partialTicks) {
-//        matrixStack.translate(0, 0, 200);
         super.drawInBackground(matrixStack, mouseX, mouseY, partialTicks);
-//        matrixStack.translate(0, 0, -200);
     }
 
     @Override
@@ -130,8 +131,15 @@ public class DialogWidget extends WidgetGroup {
         }
     }
 
-    public static Predicate<TreeNode<File, File>> suffixFilter(String suffix) {
-        return node -> !(node.isLeaf() && node.getContent().isFile() && !node.getContent().getName().toLowerCase().endsWith(suffix.toLowerCase()));
+    public static Predicate<TreeNode<File, File>> suffixFilter(String... suffixes) {
+        return node -> {
+            for (String suffix : suffixes) {
+                if (!(node.isLeaf() && node.getContent().isFile() && !node.getContent().getName().toLowerCase().endsWith(suffix.toLowerCase()))) {
+                    return true;
+                }
+            }
+            return false;
+        };
     }
 
     public static DialogWidget showStringEditorDialog(WidgetGroup parent, String title, String initial, Predicate<String> predicate, Consumer<String> result) {
