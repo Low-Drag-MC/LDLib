@@ -33,7 +33,6 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -44,7 +43,7 @@ import net.minecraftforge.fluids.IFluidTank;
 import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.fluids.capability.templates.FluidTank;
-import net.minecraftforge.items.ItemStackHandler;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -90,6 +89,8 @@ public class TankWidget extends Widget implements IRecipeIngredientSlot, IConfig
     protected int lastTankCapacity;
     @Setter
     protected Runnable changeListener;
+    @NotNull
+    protected List<Consumer<List<Component>>> tooltipCallback = new ArrayList<>();
 
     public TankWidget() {
         this(null, 0, 0, 18, 18, true, true);
@@ -154,7 +155,21 @@ public class TankWidget extends Widget implements IRecipeIngredientSlot, IConfig
         if (this.onAddedTooltips != null) {
             this.onAddedTooltips.accept(this, list);
         }
+        for (Consumer<List<Component>> callback : this.tooltipCallback) {
+            callback.accept(list);
+        }
+
         return list;
+    }
+
+    @Override
+    public void addTooltipCallback(Consumer<List<Component>> callback) {
+        this.tooltipCallback.add(callback);
+    }
+
+    @Override
+    public void clearTooltipCallback() {
+        this.tooltipCallback.clear();
     }
 
     @Override
@@ -231,7 +246,7 @@ public class TankWidget extends Widget implements IRecipeIngredientSlot, IConfig
         }
         if (drawHoverOverlay && isMouseOverElement(mouseX, mouseY)) {
             RenderSystem.colorMask(true, true, true, false);
-            DrawerHelper.drawSolidRect(matrixStack,getPosition().x + 1, getPosition().y + 1, getSize().width - 2, getSize().height - 2, 0x80FFFFFF);
+            DrawerHelper.drawSolidRect(matrixStack, getPosition().x + 1, getPosition().y + 1, getSize().width - 2, getSize().height - 2, 0x80FFFFFF);
             RenderSystem.colorMask(true, true, true, true);
         }
     }
@@ -380,7 +395,7 @@ public class TankWidget extends Widget implements IRecipeIngredientSlot, IConfig
     public void buildConfigurator(ConfiguratorGroup father) {
         var handler = new FluidTank(5000);
         handler.fill(new FluidStack(Fluids.WATER, 3000), IFluidHandler.FluidAction.EXECUTE);
-        father.addConfigurators(new WrapperConfigurator("ldlib.gui.editor.group.preview", new TankWidget(){
+        father.addConfigurators(new WrapperConfigurator("ldlib.gui.editor.group.preview", new TankWidget() {
             @Override
             public void updateScreen() {
                 super.updateScreen();

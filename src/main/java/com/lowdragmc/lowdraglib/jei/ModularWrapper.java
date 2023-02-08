@@ -43,6 +43,10 @@ public class ModularWrapper<T extends Widget> extends ModularUIGuiContainer {
         return top;
     }
 
+    public String getUid() {
+        return null;
+    }
+
     /**
      * For JEI to use
      */

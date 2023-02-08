@@ -43,6 +43,7 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 @RegisterUI(name = "item_slot", group = "widget.container")
@@ -78,6 +79,8 @@ public class SlotWidget extends Widget implements IRecipeIngredientSlot, IConfig
     protected Function<ItemStack, ItemStack> itemHook;
     @Setter
     protected IngredientIO ingredientIO = IngredientIO.RENDER_ONLY;
+    @NotNull
+    public List<Consumer<List<Component>>> tooltipCallbacks = new ArrayList<>();
 
     public SlotWidget() {
         super(new Position(0, 0), new Size(18, 18));
@@ -308,7 +311,20 @@ public class SlotWidget extends Widget implements IRecipeIngredientSlot, IConfig
         if (this.onAddedTooltips != null) {
             this.onAddedTooltips.accept(this, list);
         }
+        for (Consumer<List<Component>> tooltipCallback : tooltipCallbacks) {
+            tooltipCallback.accept(list);
+        }
         return list;
+    }
+
+    @Override
+    public void addTooltipCallback(Consumer<List<Component>> callback) {
+        this.tooltipCallbacks.add(callback);
+    }
+
+    @Override
+    public void clearTooltipCallback() {
+        this.tooltipCallbacks.clear();
     }
 
     @Override
