@@ -5,11 +5,10 @@ import com.lowdragmc.lowdraglib.client.scene.ParticleManager;
 import com.lowdragmc.lowdraglib.core.mixins.accessor.DimensionTypeAccessor;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.client.Minecraft;
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
-import net.minecraft.core.Holder;
-import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.*;
 import net.minecraft.data.worldgen.biome.Biomes;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.profiling.ProfilerFiller;
@@ -215,7 +214,7 @@ public class DummyWorld extends Level {
     protected DummyChunkSource chunkProvider = new DummyChunkSource(this);
 
     public DummyWorld() {
-        super(SPAWN_WORLD_INFO, null, new Holder.Direct<>(DIMENSION_TYPE), ()-> dummyProfiler,true, false, 0);
+        super(SPAWN_WORLD_INFO, ResourceKey.create(Registry.DIMENSION_REGISTRY, new ResourceLocation(LDLMod.MODID, "dummy_world")), new Holder.Direct<>(DIMENSION_TYPE), ()-> dummyProfiler,true, false, 0);
     }
 
     public DummyWorld(Level world) {
